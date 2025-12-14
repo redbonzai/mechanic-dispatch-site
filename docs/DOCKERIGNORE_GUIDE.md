@@ -120,3 +120,7 @@ du -sh .
 - **Cause**: `.env` or secrets not excluded
 - **Fix**: Ensure `.env*` is in `.dockerignore` (use environment variables in docker-compose instead)
 
+
+
+
+

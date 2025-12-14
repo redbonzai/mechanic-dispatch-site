@@ -132,3 +132,7 @@ docker compose up --build
 - Include all required variables (see Environment Variables section)
 - Restart services: `docker compose restart api`
 
+
+
+
+
