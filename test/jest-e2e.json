@@ -7,7 +7,7 @@
     "^.+\\.(t|j)s$": [
       "ts-jest",
       {
-        "tsconfig": "tsconfig.jest.json"
+        "tsconfig": "../tsconfig.jest.json"
       }
     ]
   },
@@ -17,13 +17,4 @@
   },
   "collectCoverage": false,
   "verbose": true
-}
-{
-  "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
-  "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
-  "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
 }

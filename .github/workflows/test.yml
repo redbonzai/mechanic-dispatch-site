@@ -7,9 +7,25 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mechanic_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     env:
       CI: 'true'
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
       STRIPE_SECRET_KEY: sk_test_mock
       STRIPE_WEBHOOK_SECRET: whsec_mock
     steps:
@@ -40,13 +56,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate
+
+      - name: Run database migrations
+        run: pnpm prisma:migrate:deploy
+
       - name: Build
         run: pnpm run build
 
-      # Integration/E2E tests can be added back once stable; leaving disabled for now to match template intent.
-      # - name: Integration Tests
-      #   id: integration-tests
-      #   timeout-minutes: 5
-      #   continue-on-error: true
-      #   run: pnpm run test:e2e
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Run e2e tests
+        run: pnpm test:e2e
 
