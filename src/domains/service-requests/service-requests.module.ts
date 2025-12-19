@@ -10,10 +10,7 @@ import {
 } from './interfaces';
 import { PrismaServiceRequestRepository } from './repositories/prisma-service-request.repository';
 import { MechanicWorkLogRepository } from './repositories/prisma-mechanic-work-log.repository';
-import {
-  PAYMENT_ADAPTER,
-  StripePaymentService,
-} from './payments';
+import { PAYMENT_ADAPTER, StripePaymentService } from './payments';
 
 @Module({
   imports: [DatabaseModule, StripeModule],
@@ -36,4 +33,3 @@ import {
   exports: [RequestsService],
 })
 export class ServiceRequestsModule {}
-

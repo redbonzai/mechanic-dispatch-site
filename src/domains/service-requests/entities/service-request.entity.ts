@@ -141,9 +141,12 @@ export class ServiceRequest {
     return ServiceRequest.create({
       ...this.props,
       stripeCustomerId: metadata.customerId ?? this.props.stripeCustomerId,
-      stripePaymentMethodId: metadata.paymentMethodId ?? this.props.stripePaymentMethodId,
-      finalPaymentIntentId: metadata.finalPaymentIntentId ?? this.props.finalPaymentIntentId,
-      finalAmountCents: metadata.finalAmountCents ?? this.props.finalAmountCents,
+      stripePaymentMethodId:
+        metadata.paymentMethodId ?? this.props.stripePaymentMethodId,
+      finalPaymentIntentId:
+        metadata.finalPaymentIntentId ?? this.props.finalPaymentIntentId,
+      finalAmountCents:
+        metadata.finalAmountCents ?? this.props.finalAmountCents,
     });
   }
 
@@ -158,7 +161,3 @@ export class ServiceRequest {
     return { ...this.props };
   }
 }
-
-
-
-

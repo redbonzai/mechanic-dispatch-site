@@ -6,5 +6,3 @@ export abstract class SkillAbstract {
 }
 
 export const SKILL_REPOSITORY = Symbol('SKILL_REPOSITORY');
-
-

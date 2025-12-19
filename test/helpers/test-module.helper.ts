@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../../src/app.module';
@@ -20,9 +21,7 @@ export class TestModuleHelper {
   /**
    * Create a test application with validation pipes
    */
-  static async createTestApp(
-    module: TestingModule,
-  ): Promise<INestApplication> {
+  static async createTestApp(module: TestingModule): Promise<INestApplication> {
     const app = module.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -57,5 +56,3 @@ export class TestModuleHelper {
     return req;
   }
 }
-
-

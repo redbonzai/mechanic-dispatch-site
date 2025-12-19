@@ -7,8 +7,4 @@ export {
   MechanicsReviewAbstract as ReviewAbstract,
   REVIEW_REPOSITORY,
 } from './mechanics-review.abstract';
-export {
-  SkillAbstract,
-  SKILL_REPOSITORY,
-} from '../skills/repositories';
-
+export { SkillAbstract, SKILL_REPOSITORY } from '../skills/repositories';

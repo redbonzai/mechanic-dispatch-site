@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { MechanicsService } from './services/mechanics.service';
-import { MechanicsController, ReviewsController } from './controllers/mechanics.controller';
+import {
+  MechanicsController,
+  ReviewsController,
+} from './controllers/mechanics.controller';
 import {
   MECHANIC_REPOSITORY,
   REVIEW_REPOSITORY,

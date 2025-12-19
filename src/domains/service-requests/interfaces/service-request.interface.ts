@@ -28,7 +28,3 @@ export interface ServiceRequestProps {
   stripePaymentMethodId?: string | null;
   status: import('../enums/service-request-status.enum').ServiceRequestStatus;
 }
-
-
-
-

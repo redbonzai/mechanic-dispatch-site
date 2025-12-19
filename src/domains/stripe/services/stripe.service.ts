@@ -24,7 +24,9 @@ export class StripeService {
     });
   }
 
-  async getOrCreateCustomer(payload: StripeCustomerPayload): Promise<Stripe.Customer> {
+  async getOrCreateCustomer(
+    payload: StripeCustomerPayload,
+  ): Promise<Stripe.Customer> {
     const existing = await this.stripe.customers.list({
       email: payload.email,
       limit: 1,
@@ -55,7 +57,8 @@ export class StripeService {
       customer: params.customerId,
       setup_future_usage: 'off_session',
       receipt_email: params.receiptEmail,
-      description: params.description ?? 'Mechanic dispatch service authorization',
+      description:
+        params.description ?? 'Mechanic dispatch service authorization',
     });
   }
 
@@ -97,14 +100,18 @@ export class StripeService {
   }
 
   constructEventFromPayload(rawBody: Buffer, signature: string): Stripe.Event {
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    );
 
     if (!webhookSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
     }
 
-    return this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    return this.stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      webhookSecret,
+    );
   }
 }
-
-

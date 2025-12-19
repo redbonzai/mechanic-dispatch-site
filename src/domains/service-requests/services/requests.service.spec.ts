@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
 import { RequestsService } from './requests.service';
 import { ServiceRequestRepository } from '../repositories/service-request.repository';
@@ -290,5 +291,3 @@ describe('RequestsService', () => {
     });
   });
 });
-
-

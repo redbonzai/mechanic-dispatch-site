@@ -1,15 +1,21 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { MechanicsService } from './mechanics.service';
 import { MechanicAbstract } from '../repositories';
 import { ReviewAbstract } from '../repositories';
 import { SkillAbstract } from '../skills/repositories';
-import { MECHANIC_REPOSITORY, REVIEW_REPOSITORY, SKILL_REPOSITORY } from '../repositories';
+import {
+  MECHANIC_REPOSITORY,
+  REVIEW_REPOSITORY,
+  SKILL_REPOSITORY,
+} from '../repositories';
 import { CreateMechanicData, UpdateMechanicData } from '../interfaces';
 import { Mechanic } from '../entities/mechanic.entity';
 
 describe('MechanicsService', () => {
   let service: MechanicsService;
   let mechanicRepository: jest.Mocked<MechanicAbstract>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let reviewRepository: jest.Mocked<ReviewAbstract>;
   let skillRepository: jest.Mocked<SkillAbstract>;
 
@@ -92,7 +98,9 @@ describe('MechanicsService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('Test Mechanic');
-      expect(mechanicRepository.findMany).toHaveBeenCalledWith({ isActive: undefined });
+      expect(mechanicRepository.findMany).toHaveBeenCalledWith({
+        isActive: undefined,
+      });
     });
 
     it('should return only active mechanics when isActive=true', async () => {
@@ -100,7 +108,9 @@ describe('MechanicsService', () => {
 
       const result = await service.getMechanics(true);
 
-      expect(mechanicRepository.findMany).toHaveBeenCalledWith({ isActive: true });
+      expect(mechanicRepository.findMany).toHaveBeenCalledWith({
+        isActive: true,
+      });
       expect(result).toHaveLength(1);
     });
 
@@ -114,7 +124,9 @@ describe('MechanicsService', () => {
 
       const result = await service.getMechanics(false);
 
-      expect(mechanicRepository.findMany).toHaveBeenCalledWith({ isActive: false });
+      expect(mechanicRepository.findMany).toHaveBeenCalledWith({
+        isActive: false,
+      });
       expect(result).toHaveLength(1);
       expect(result[0].isActive).toBe(false);
     });
@@ -156,7 +168,9 @@ describe('MechanicsService', () => {
 
       expect(result).toBeDefined();
       expect(result?.slug).toBe('test-mechanic');
-      expect(mechanicRepository.findBySlug).toHaveBeenCalledWith('test-mechanic');
+      expect(mechanicRepository.findBySlug).toHaveBeenCalledWith(
+        'test-mechanic',
+      );
     });
 
     it('should return null when mechanic not found by slug', async () => {
@@ -205,11 +219,16 @@ describe('MechanicsService', () => {
       const result = await service.updateMechanic('mech_1', updateData);
 
       expect(result.name).toBe('Updated Name');
-      expect(mechanicRepository.update).toHaveBeenCalledWith('mech_1', updateData);
+      expect(mechanicRepository.update).toHaveBeenCalledWith(
+        'mech_1',
+        updateData,
+      );
     });
 
     it('should throw error when mechanic not found', async () => {
-      mechanicRepository.update.mockRejectedValue(new Error('Mechanic not found'));
+      mechanicRepository.update.mockRejectedValue(
+        new Error('Mechanic not found'),
+      );
 
       await expect(
         service.updateMechanic('non-existent', { name: 'Test' }),
@@ -227,7 +246,9 @@ describe('MechanicsService', () => {
     });
 
     it('should throw error when mechanic not found', async () => {
-      mechanicRepository.delete.mockRejectedValue(new Error('Mechanic not found'));
+      mechanicRepository.delete.mockRejectedValue(
+        new Error('Mechanic not found'),
+      );
 
       await expect(service.deleteMechanic('non-existent')).rejects.toThrow(
         'Mechanic not found',
@@ -251,4 +272,3 @@ describe('MechanicsService', () => {
     });
   });
 });
-

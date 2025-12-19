@@ -53,7 +53,3 @@ export class MechanicWorkLogRepository implements MechanicWorkLogAbstract {
     });
   }
 }
-
-
-
-

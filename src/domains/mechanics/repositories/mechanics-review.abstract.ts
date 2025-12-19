@@ -1,6 +1,10 @@
 import { FindMechanicReviewsParams } from '../interfaces/find-mechanic-review-params.interface';
 import { CreateMechanicReviewData } from '../interfaces/create-mechanic-review-data.interface';
-import { MechanicReview, ReviewStats, UpdateMechanicReviewData } from '../interfaces';
+import {
+  MechanicReview,
+  ReviewStats,
+  UpdateMechanicReviewData,
+} from '../interfaces';
 
 export abstract class MechanicsReviewAbstract {
   abstract findMany(
@@ -17,4 +21,3 @@ export abstract class MechanicsReviewAbstract {
 }
 
 export const REVIEW_REPOSITORY = Symbol('REVIEW_REPOSITORY');
-

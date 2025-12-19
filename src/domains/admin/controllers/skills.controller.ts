@@ -10,5 +10,3 @@ export class AdminSkillsController {
     return this.adminService.getSkills();
   }
 }
-
-

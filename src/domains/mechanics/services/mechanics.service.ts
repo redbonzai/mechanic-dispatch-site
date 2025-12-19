@@ -12,10 +12,7 @@ import {
   REVIEW_REPOSITORY,
   ReviewAbstract,
 } from '../repositories';
-import {
-  SKILL_REPOSITORY,
-  SkillAbstract,
-} from '../skills';
+import { SKILL_REPOSITORY, SkillAbstract } from '../skills';
 
 @Injectable()
 export class MechanicsService {
@@ -76,4 +73,3 @@ export class MechanicsService {
     return this.skillRepository.findMany();
   }
 }
-

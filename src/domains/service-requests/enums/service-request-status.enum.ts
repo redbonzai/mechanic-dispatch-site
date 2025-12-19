@@ -6,6 +6,3 @@ export enum ServiceRequestStatus {
   FAILED = 'FAILED',
   FINALIZED = 'FINALIZED',
 }
-
-
-

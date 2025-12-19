@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import Stripe from 'stripe';
 import {
   ServiceRequestStatus,
   CreateServiceRequestData,

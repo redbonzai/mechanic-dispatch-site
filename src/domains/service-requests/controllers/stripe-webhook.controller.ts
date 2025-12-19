@@ -1,4 +1,12 @@
-import { Controller, Headers, Inject, Post, RawBodyRequest, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Headers,
+  Inject,
+  Post,
+  RawBodyRequest,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { PAYMENT_ADAPTER, PaymentAdapterAbstract } from '../payments';
@@ -19,7 +27,9 @@ export class StripeWebhookController {
     @Headers('stripe-signature') signature: string,
   ) {
     if (!signature) {
-      return res.status(400).json({ message: 'Missing stripe-signature header' });
+      return res
+        .status(400)
+        .json({ message: 'Missing stripe-signature header' });
     }
 
     if (!req.rawBody) {
@@ -33,24 +43,24 @@ export class StripeWebhookController {
       );
 
       if (event.type === 'payment_intent.amount_capturable_updated') {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await this.requestsService.markAuthorized(paymentIntent.id);
       }
 
       if (event.type === 'payment_intent.canceled') {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await this.requestsService.markCancelled(paymentIntent.id);
       }
 
       if (event.type === 'payment_intent.payment_failed') {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await this.requestsService.markFailed(paymentIntent.id);
       }
 
       return res.status(200).json({ received: true });
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(400).json({ message });
     }
   }
 }
-

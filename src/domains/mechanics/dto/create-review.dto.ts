@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
 
 export class CreateReviewDto {
   @IsNumber()
@@ -41,9 +47,3 @@ export class CreateReviewDto {
   @IsOptional()
   photoUrls?: string[];
 }
-
-
-
-
-
-

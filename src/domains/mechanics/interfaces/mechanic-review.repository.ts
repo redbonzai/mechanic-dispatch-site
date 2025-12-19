@@ -1,6 +1,5 @@
 import { MechanicReviewProps } from './mechanic-review-props.interface';
 import { CreateMechanicReviewData } from './create-mechanic-review-data.interface';
-import { FindMechanicReviewsParams } from './find-mechanic-review-params.interface';
 
 export class MechanicReview {
   private constructor(private readonly props: MechanicReviewProps) {}
@@ -67,7 +66,3 @@ export class MechanicReview {
 }
 
 export type UpdateMechanicReviewData = Partial<CreateMechanicReviewData>;
-
-
-
-

@@ -6,19 +6,17 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
 
   // Serve static files from uploads directory
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
 
-  app.use(
-    '/webhooks/stripe',
-    bodyParser.raw({
-      type: '*/*',
-    }),
-  );
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  app.use('/webhooks/stripe', bodyParser.raw({ type: '*/*' }));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -37,4 +35,4 @@ async function bootstrap() {
   await app.listen(process.env.APP_PORT ?? 3000);
 }
 
-bootstrap();
+void bootstrap();

@@ -43,7 +43,3 @@ export class MechanicWorkLog {
     return this.props.createdAt;
   }
 }
-
-
-
-

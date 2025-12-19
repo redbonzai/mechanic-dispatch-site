@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsArray, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateMechanicDto {
   @IsString()
@@ -46,9 +53,3 @@ export class CreateMechanicDto {
   @IsOptional()
   isActive?: boolean;
 }
-
-
-
-
-
-

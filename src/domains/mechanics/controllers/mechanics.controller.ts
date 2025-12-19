@@ -8,7 +8,8 @@ export class MechanicsController {
 
   @Get()
   async findAll(@Query('isActive') isActive?: string) {
-    const active = isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+    const active =
+      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
     const mechanics = await this.mechanicsService.getMechanics(active);
     // Map entity instances to plain objects for JSON serialization
     return mechanics.map((mechanic) => ({

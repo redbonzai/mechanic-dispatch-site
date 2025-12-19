@@ -44,15 +44,16 @@ export class MechanicWorkLog {
   }
 }
 
-export type CreateMechanicWorkLogData = Omit<MechanicWorkLogProps, 'id' | 'createdAt'>;
+export type CreateMechanicWorkLogData = Omit<
+  MechanicWorkLogProps,
+  'id' | 'createdAt'
+>;
 
 export abstract class MechanicWorkLogRepository {
   abstract create(data: CreateMechanicWorkLogData): Promise<MechanicWorkLog>;
   abstract listByRequest(serviceRequestId: string): Promise<MechanicWorkLog[]>;
 }
 
-export const MECHANIC_WORK_LOG_REPOSITORY = Symbol('MECHANIC_WORK_LOG_REPOSITORY');
-
-
-
-
+export const MECHANIC_WORK_LOG_REPOSITORY = Symbol(
+  'MECHANIC_WORK_LOG_REPOSITORY',
+);

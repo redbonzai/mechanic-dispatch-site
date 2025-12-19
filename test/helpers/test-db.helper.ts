@@ -32,7 +32,11 @@ export class TestDbHelper {
   /**
    * Seed test data
    */
-  async seedTestData(): Promise<{ skill1: Skill; skill2: Skill; mechanic: Mechanic }> {
+  async seedTestData(): Promise<{
+    skill1: Skill;
+    skill2: Skill;
+    mechanic: Mechanic;
+  }> {
     // Create test skills
     const skill1 = await this.prisma.skill.create({
       data: { name: 'Engine Repair', category: 'Engine' },
@@ -52,10 +56,7 @@ export class TestDbHelper {
         sinceYear: 2020,
         isActive: true,
         skills: {
-          create: [
-            { skillId: skill1.id },
-            { skillId: skill2.id },
-          ],
+          create: [{ skillId: skill1.id }, { skillId: skill2.id }],
         },
       },
     });
@@ -77,4 +78,3 @@ export class TestDbHelper {
     return this.prisma;
   }
 }
-

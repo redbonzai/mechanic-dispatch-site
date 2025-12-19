@@ -16,7 +16,9 @@ export class StripePaymentService extends PaymentAdapterAbstract {
     super();
   }
 
-  async getOrCreateCustomer(payload: CreateCustomerPayload): Promise<PaymentCustomer> {
+  async getOrCreateCustomer(
+    payload: CreateCustomerPayload,
+  ): Promise<PaymentCustomer> {
     const customer = await this.stripeService.getOrCreateCustomer({
       email: payload.email,
       name: payload.name,
@@ -31,7 +33,9 @@ export class StripePaymentService extends PaymentAdapterAbstract {
     };
   }
 
-  async createManualCaptureIntent(params: CreatePaymentIntentPayload): Promise<PaymentIntent> {
+  async createManualCaptureIntent(
+    params: CreatePaymentIntentPayload,
+  ): Promise<PaymentIntent> {
     const intent = await this.stripeService.createManualCaptureIntent({
       amountCents: params.amountCents,
       customerId: params.customerId,
@@ -58,11 +62,15 @@ export class StripePaymentService extends PaymentAdapterAbstract {
     return this.stripeService.refund(paymentIntentId);
   }
 
-  async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+  async retrievePaymentIntent(
+    paymentIntentId: string,
+  ): Promise<Stripe.PaymentIntent> {
     return this.stripeService.retrievePaymentIntent(paymentIntentId);
   }
 
-  async chargeOffSession(params: ChargeOffSessionPayload): Promise<Stripe.PaymentIntent> {
+  async chargeOffSession(
+    params: ChargeOffSessionPayload,
+  ): Promise<Stripe.PaymentIntent> {
     return this.stripeService.chargeOffSession({
       customerId: params.customerId,
       paymentMethodId: params.paymentMethodId,
@@ -75,4 +83,3 @@ export class StripePaymentService extends PaymentAdapterAbstract {
     return this.stripeService.constructEventFromPayload(rawBody, signature);
   }
 }
-

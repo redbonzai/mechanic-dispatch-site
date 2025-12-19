@@ -5,7 +5,3 @@ export class FinalizeServiceRequestDto {
   @Min(0)
   finalAmountCents!: number;
 }
-
-
-
-

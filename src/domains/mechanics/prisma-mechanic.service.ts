@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
-import {
-  CreateMechanicData,
-  UpdateMechanicData,
-  Mechanic,
-} from './interfaces';
+import { CreateMechanicData, UpdateMechanicData, Mechanic } from './interfaces';
 import { MechanicAbstract } from './repositories';
 
 type MechanicRecord = Prisma.MechanicGetPayload<Prisma.MechanicDefaultArgs>;
@@ -131,8 +127,3 @@ export class PrismaMechanicService implements MechanicAbstract {
     });
   }
 }
-
-
-
-
-

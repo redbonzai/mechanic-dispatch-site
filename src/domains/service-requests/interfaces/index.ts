@@ -4,7 +4,10 @@ export * from './payment.interface';
 export { ServiceRequestStatus } from '../enums/service-request-status.enum';
 export { ServiceRequest } from '../entities/service-request.entity';
 export { CreateServiceRequestData } from '../repositories/service-request.repository';
-export { SERVICE_REQUEST_REPOSITORY, ServiceRequestRepository } from '../repositories/service-request.repository';
+export {
+  SERVICE_REQUEST_REPOSITORY,
+  ServiceRequestRepository,
+} from '../repositories/service-request.repository';
 export {
   MechanicWorkLogAbstract as MechanicWorkLogRepository,
   MECHANIC_WORK_LOG_REPOSITORY,

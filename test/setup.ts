@@ -17,4 +17,3 @@ process.env.STRIPE_WEBHOOK_SECRET =
 jest.setTimeout(30000);
 
 export {};
-

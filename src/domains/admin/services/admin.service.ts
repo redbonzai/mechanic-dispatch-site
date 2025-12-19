@@ -50,5 +50,3 @@ export class AdminService {
     return this.mechanicsService.getSkills();
   }
 }
-
-

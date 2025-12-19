@@ -8,10 +8,13 @@ import {
 } from '../repositories/service-request.repository';
 import { ServiceRequest } from '../entities/service-request.entity';
 
-type ServiceRequestRecord = Prisma.ServiceRequestGetPayload<Prisma.ServiceRequestDefaultArgs>;
+type ServiceRequestRecord =
+  Prisma.ServiceRequestGetPayload<Prisma.ServiceRequestDefaultArgs>;
 
 @Injectable()
-export class PrismaServiceRequestRepository implements ServiceRequestRepository {
+export class PrismaServiceRequestRepository
+  implements ServiceRequestRepository
+{
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateServiceRequestData): Promise<ServiceRequest> {
@@ -81,13 +84,21 @@ export class PrismaServiceRequestRepository implements ServiceRequestRepository 
       where: { id },
       data: {
         stripeCustomerId:
-          metadata.stripeCustomerId !== undefined ? metadata.stripeCustomerId : undefined,
+          metadata.stripeCustomerId !== undefined
+            ? metadata.stripeCustomerId
+            : undefined,
         stripePaymentMethodId:
-          metadata.stripePaymentMethodId !== undefined ? metadata.stripePaymentMethodId : undefined,
+          metadata.stripePaymentMethodId !== undefined
+            ? metadata.stripePaymentMethodId
+            : undefined,
         finalAmountCents:
-          metadata.finalAmountCents !== undefined ? metadata.finalAmountCents : undefined,
+          metadata.finalAmountCents !== undefined
+            ? metadata.finalAmountCents
+            : undefined,
         finalPaymentIntentId:
-          metadata.finalPaymentIntentId !== undefined ? metadata.finalPaymentIntentId : undefined,
+          metadata.finalPaymentIntentId !== undefined
+            ? metadata.finalPaymentIntentId
+            : undefined,
       },
     });
   }
@@ -120,19 +131,21 @@ export class PrismaServiceRequestRepository implements ServiceRequestRepository 
     });
   }
 
-  private mapStatus(status: ServiceRequestRecord['status']): ServiceRequestStatus {
-    const matched = ServiceRequestStatus[status as keyof typeof ServiceRequestStatus];
+  private mapStatus(
+    status: ServiceRequestRecord['status'],
+  ): ServiceRequestStatus {
+    const matched =
+      ServiceRequestStatus[status as keyof typeof ServiceRequestStatus];
     if (!matched) {
       throw new Error(`Unknown service request status: ${status as string}`);
     }
     return matched;
   }
 
-  private mapStatusInput(status?: ServiceRequestStatus): ServiceRequestRecord['status'] {
-    return (status ?? ServiceRequestStatus.PENDING) as ServiceRequestRecord['status'];
+  private mapStatusInput(
+    status?: ServiceRequestStatus,
+  ): ServiceRequestRecord['status'] {
+    return (status ??
+      ServiceRequestStatus.PENDING) as ServiceRequestRecord['status'];
   }
 }
-
-
-
-

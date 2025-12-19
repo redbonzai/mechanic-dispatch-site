@@ -4,7 +4,6 @@ import {
   createFileUploadStorage,
   createImageFileFilter,
   DEFAULT_IMAGE_FILE_SIZE_LIMIT,
-  FileUploadConfig,
 } from '../utils/file-upload.util';
 
 export function ImageUploadInterceptor(config: {
@@ -22,10 +21,10 @@ export function ImageUploadInterceptor(config: {
           filePrefix: config.filePrefix,
         }),
         fileFilter: createImageFileFilter(),
-        limits: { fileSize: config.maxFileSize ?? DEFAULT_IMAGE_FILE_SIZE_LIMIT },
+        limits: {
+          fileSize: config.maxFileSize ?? DEFAULT_IMAGE_FILE_SIZE_LIMIT,
+        },
       }),
     ),
   );
 }
-
-
