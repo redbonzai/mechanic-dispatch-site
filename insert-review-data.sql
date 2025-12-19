@@ -67,3 +67,4 @@ ON CONFLICT ("id") DO NOTHING;
 UPDATE "Mechanic" SET 
   "rating" = COALESCE((SELECT AVG("rating")::float FROM "Review" WHERE "Review"."mechanicId" = "Mechanic"."id"), "rating"),
   "reviewCount" = COALESCE((SELECT COUNT(*) FROM "Review" WHERE "Review"."mechanicId" = "Mechanic"."id"), "reviewCount");
+

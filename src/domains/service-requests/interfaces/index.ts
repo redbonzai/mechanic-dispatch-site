@@ -9,7 +9,4 @@ export {
   MechanicWorkLogAbstract as MechanicWorkLogRepository,
   MECHANIC_WORK_LOG_REPOSITORY,
 } from '../repositories/mechanic-work-log.abstract';
-
-
-
-
+export { PAYMENT_ADAPTER } from '../payments/payment-adapter.abstract';

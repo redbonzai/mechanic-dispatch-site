@@ -23,3 +23,4 @@ export class PrismaSkillService implements SkillAbstract {
   }
 }
 
+

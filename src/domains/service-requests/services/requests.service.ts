@@ -252,6 +252,10 @@ export class RequestsService {
     const intent = await this.paymentAdapter.retrievePaymentIntent(
       request.stripePaymentIntentId,
     );
+    if (!intent) {
+      return;
+    }
+
     const paymentMethod = intent.payment_method;
     const paymentMethodId =
       typeof paymentMethod === 'string'

@@ -9,4 +9,5 @@ export interface CreateMechanicData {
   certifications?: string[];
   badges?: string[];
   skillIds?: string[];
+  isActive?: boolean;
 }

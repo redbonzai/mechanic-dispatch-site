@@ -33,3 +33,4 @@ export interface PaymentIntent {
   payment_method: string | Stripe.PaymentMethod | null;
 }
 
+

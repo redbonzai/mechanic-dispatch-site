@@ -153,6 +153,10 @@ export class ServiceRequest {
       status,
     });
   }
+
+  toJSON(): ServiceRequestProps {
+    return { ...this.props };
+  }
 }
 
 
