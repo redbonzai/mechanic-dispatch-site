@@ -84,12 +84,13 @@ describe('Mechanics E2E Tests', () => {
         });
     });
 
-    it('should return null for non-existent mechanic', () => {
+    it('should return empty object for non-existent mechanic', () => {
       return request(app.getHttpServer())
         .get('/mechanics/non-existent-id')
         .expect(200)
         .expect((res) => {
-          expect(res.body).toBeNull();
+          // NestJS serializes null as empty object {}
+          expect(res.body).toEqual({});
         });
     });
   });

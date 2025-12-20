@@ -30,7 +30,7 @@ COPY src ./src
 RUN pnpm build || (echo "❌ Build failed!" && exit 1)
 
 # Verify build output
-RUN test -f dist/src/main.js || (echo "❌ dist/src/main.js missing!" && ls -la dist/ && exit 1)
+RUN test -f dist/main.js || (echo "❌ dist/main.js missing!" && ls -la dist/ && exit 1)
 
 # =============================================================================
 # Runner stage: Production runtime
@@ -88,4 +88,4 @@ EXPOSE 3000
 # For now, docker-compose handles service dependencies via depends_on
 
 # Start application
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]
