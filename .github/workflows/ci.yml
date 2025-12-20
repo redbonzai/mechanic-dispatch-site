@@ -33,15 +33,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 9
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Install dependencies
+      - name: Install API dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Web dependencies
+        working-directory: ./web
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
@@ -60,7 +64,11 @@ jobs:
       - name: Format check
         run: pnpm format --check || true
 
-      - name: Build
+      - name: Build API
+        run: pnpm build
+
+      - name: Build Web
+        working-directory: ./web
         run: pnpm build
 
       - name: Run unit tests

@@ -31,7 +31,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 9
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -39,11 +39,19 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Install dependencies
+      - name: Install API dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build (skip tests)
+      - name: Install Web dependencies
+        working-directory: ./web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build API (skip tests)
         run: pnpm run build:release
+
+      - name: Build Web
+        working-directory: ./web
+        run: pnpm build
 
       - name: Semantic Release
         run: pnpm run release
