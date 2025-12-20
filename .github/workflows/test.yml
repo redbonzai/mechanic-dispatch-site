@@ -1,4 +1,6 @@
-name: test
+# Pull Request Validation - Runs on all PRs
+# Purpose: Validate commits, check release notes, lint, build, and test
+name: Pull Request Validation
 
 on:
   pull_request:
@@ -65,6 +67,12 @@ jobs:
 
       - name: Run database migrations
         run: pnpm prisma:migrate:deploy
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
 
       - name: Build API
         run: pnpm run build

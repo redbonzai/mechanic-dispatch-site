@@ -1,9 +1,9 @@
+# CI Pipeline - Runs on merged code (main/develop branches)
+# Purpose: Full validation, testing with coverage, and Docker image builds
 name: CI
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
     branches: [main, develop]
 
 jobs:

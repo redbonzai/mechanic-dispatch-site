@@ -15,7 +15,6 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   app.use('/webhooks/stripe', bodyParser.raw({ type: '*/*' }));
 
   app.useGlobalPipes(
