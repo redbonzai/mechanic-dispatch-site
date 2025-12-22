@@ -1,10 +1,7 @@
-name: release
+name: Release (Dry Run)
 
 on:
-  push:
-    branches:
-      - main
-      - testing-build
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -50,8 +47,8 @@ jobs:
         working-directory: ./web
         run: pnpm build
 
-      - name: Semantic Release
-        run: pnpm run release
+      - name: Semantic Release (Dry Run)
+        run: pnpm run release:dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -1,10 +1,10 @@
-# CI Pipeline - Runs on merged code (main/develop branches)
+# CI Pipeline - Runs on pull requests
 # Purpose: Full validation, testing with coverage, and Docker image builds
 name: CI
 
 on:
-  push:
-    branches: [main, develop, testing-build]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
