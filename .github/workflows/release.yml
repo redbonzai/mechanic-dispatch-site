@@ -40,11 +40,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Install API dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Web dependencies
-        working-directory: ./web
+      - name: Install dependencies (API + Web)
         run: pnpm install --frozen-lockfile
 
       - name: Build API (skip tests)

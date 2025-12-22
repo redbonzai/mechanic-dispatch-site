@@ -59,3 +59,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Angular build cache
 web/.angular/
 web/node_modules
+
+# NX
+.nx/cache
+.nx/workspace-data
+graph.html
+static/

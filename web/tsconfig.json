@@ -21,7 +21,12 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
-  }
+    ],
+    "types": []
+  },
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/test.ts"
+  ]
 }
 

@@ -32,3 +32,6 @@ export interface PaymentIntent {
   client_secret: string | null;
   payment_method: string | Stripe.PaymentMethod | null;
 }
+
+
+

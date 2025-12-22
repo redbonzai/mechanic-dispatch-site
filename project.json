@@ -22,7 +22,7 @@
     "serve:prod": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node dist/src/main",
+        "command": "node dist/main",
         "cwd": "{projectRoot}"
       }
     },
