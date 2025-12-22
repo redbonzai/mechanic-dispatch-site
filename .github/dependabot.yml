@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # API (root) dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore Angular major version updates (stay on v18)
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm_and_yarn:
+        patterns:
+          - "*"
+
+  # Web (Angular) dependencies
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    ignore:
+      # Ignore Angular major version updates (stay on v18)
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm_and_yarn:
+        patterns:
+          - "*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
