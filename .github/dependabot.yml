@@ -6,10 +6,6 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    ignore:
-      # Ignore Angular major version updates (stay on v18)
-      - dependency-name: "@angular/*"
-        update-types: ["version-update:semver-major"]
     groups:
       npm_and_yarn:
         patterns:
@@ -21,10 +17,6 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    ignore:
-      # Ignore Angular major version updates (stay on v18)
-      - dependency-name: "@angular/*"
-        update-types: ["version-update:semver-major"]
     groups:
       npm_and_yarn:
         patterns:

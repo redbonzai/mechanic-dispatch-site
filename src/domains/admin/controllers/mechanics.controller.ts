@@ -84,6 +84,3 @@ export class AdminMechanicsController {
     return { success: true };
   }
 }
-
-
-

@@ -18,6 +18,3 @@ import {
   exports: [AdminService],
 })
 export class AdminModule {}
-
-
-

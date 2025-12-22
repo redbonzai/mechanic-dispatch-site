@@ -12,9 +12,7 @@ type ServiceRequestRecord =
   Prisma.ServiceRequestGetPayload<Prisma.ServiceRequestDefaultArgs>;
 
 @Injectable()
-export class PrismaServiceRequestRepository
-  implements ServiceRequestRepository
-{
+export class PrismaServiceRequestRepository implements ServiceRequestRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateServiceRequestData): Promise<ServiceRequest> {

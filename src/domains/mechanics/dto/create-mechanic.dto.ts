@@ -53,6 +53,3 @@ export class CreateMechanicDto {
   @IsOptional()
   isActive?: boolean;
 }
-
-
-

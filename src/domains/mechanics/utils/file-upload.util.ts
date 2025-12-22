@@ -37,6 +37,3 @@ export function createImageFileFilter() {
 }
 
 export const DEFAULT_IMAGE_FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
-
-
-
