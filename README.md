@@ -29,8 +29,8 @@ Mechanic Dispatch is an end-to-end MVP for booking a mobile mechanic. The monore
 
 ## Prerequisites
 
-- Node.js 20+
-- pnpm 9+
+- Node.js 24+
+- pnpm 10+
 - Docker Desktop (recommended for database)
 - Stripe account (test mode keys)
 
