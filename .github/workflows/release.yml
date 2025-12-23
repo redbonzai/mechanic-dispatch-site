@@ -49,8 +49,8 @@ jobs:
         working-directory: ./web
         run: pnpm build
 
-      - name: Semantic Release (Dry Run)
-        run: pnpm run release:dry-run
+      - name: Semantic Release
+        run: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
