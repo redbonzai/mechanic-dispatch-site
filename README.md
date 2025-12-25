@@ -40,6 +40,8 @@ Mechanic Dispatch is an end-to-end MVP for booking a mobile mechanic. The monore
 
 **Setting up the database?** See: [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md)
 
+**Building the admin dashboard?** See: [ADMIN_SUMMARY.md](./docs/admin/ADMIN_SUMMARY.md)
+
 ## Environment
 
 Create a `.env` file in the project root with:
@@ -244,8 +246,39 @@ Notes:
 Integration tests are disabled by default (`describe.skip` in `test/app.e2e-spec.ts`).  
 Add a testing Postgres instance and Stripe test keys to re-enable end-to-end coverage.
 
+## Admin Dashboard
+
+A comprehensive Angular-based admin dashboard is planned to manage:
+- ✅ Service requests (capture, cancel, finalize payments)
+- ✅ Mechanics (CRUD operations, skills, profiles)
+- ✅ Reviews (moderate, create, edit, delete)
+- ✅ Skills management
+- ✅ Analytics and metrics
+- ✅ Admin user management (role-based access)
+
+### Admin Dashboard Documentation
+
+**Getting Started:**
+- 📋 [Admin Summary](./docs/ADMIN_SUMMARY.md) - Start here for overview and key decisions
+- 🚀 [Quick Start Guide](./docs/ADMIN_QUICK_START.md) - Step-by-step setup instructions
+
+**Detailed Documentation:**
+- 📖 [Implementation Plan](./docs/ADMIN_DASHBOARD_PLAN.md) - Complete 10-week roadmap
+- 🔌 [API Specification](./docs/ADMIN_API_SPECIFICATION.md) - All endpoint details
+- 🎨 [UI/UX Specification](./docs/ADMIN_UI_SPECIFICATION.md) - Design guidelines
+
+**Technology Stack:**
+- Frontend: Angular 19.2 (existing)
+- Backend: NestJS (existing)
+- Authentication: JWT with refresh tokens
+- Template: ngx-admin (recommended) or custom Angular Material
+
+**Timeline:** ~10 weeks for full implementation
+
 ## Next steps
 
 - Harden validation & add rate limiting (e.g., `@nestjs/throttler`)
-- Add admin UI for capturing/canceling requests
-- Containerize via Docker Compose for simplified local orchestration
+- Implement admin dashboard (see docs above)
+- Add monitoring and logging (Sentry, CloudWatch)
+- Implement automated backups
+- Add customer notification system (email/SMS)
