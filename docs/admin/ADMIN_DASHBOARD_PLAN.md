@@ -1,1280 +1,2213 @@
-# Admin Dashboard Implementation Plan
+# Admin Dashboard Implementation Plan (Constitutional Compliance)
 
-## Executive Summary
+**Version**: 2.0  
+**Date**: December 25, 2025  
+**Status**: ✅ **CONSTITUTIONALLY ALIGNED**  
+**Authority**: CLAUDE.md, docs/standards/, docs/skills/
 
-This document outlines the complete plan for integrating an Angular-based administrative dashboard into the Mechanic Dispatch application. The goal is to create a comprehensive admin interface without introducing new programming languages, maintaining the existing Angular/NestJS stack.
+---
+
+## ⚠️ Critical Notice
+
+This plan **MUST** be followed exactly as specified. Deviations require human approval.
+
+**Fail-Closed Principle**: If any information is missing, ambiguous, or conflicting → **STOP and ask**. Do NOT guess.
 
 ---
 
 ## Table of Contents
 
-1. [Current State Analysis](#current-state-analysis)
-2. [Technology Stack](#technology-stack)
-3. [Recommended Approach](#recommended-approach)
-4. [Dashboard Template Evaluation](#dashboard-template-evaluation)
-5. [Required Functionality](#required-functionality)
-6. [API Requirements](#api-requirements)
-7. [Authentication Strategy](#authentication-strategy)
-8. [Component Architecture](#component-architecture)
-9. [Implementation Roadmap](#implementation-roadmap)
-10. [File Structure](#file-structure)
+1. [Constitutional Framework](#constitutional-framework)
+2. [Current State Analysis](#current-state-analysis)
+3. [Skills-Based Workflow](#skills-based-workflow)
+4. [Phase 0: Constitutional Alignment](#phase-0-constitutional-alignment)
+5. [Phase 1: Foundation (TDD)](#phase-1-foundation-tdd)
+6. [Phase 2-N: Iterative Feature Development](#phase-2-n-iterative-feature-development)
+7. [Quality Gates](#quality-gates)
+8. [Security Requirements](#security-requirements)
+9. [Module Architecture](#module-architecture)
+10. [Success Criteria](#success-criteria)
+
+---
+
+## Constitutional Framework
+
+This plan derives authority from:
+
+### Primary Authority: CLAUDE.md
+
+- **Fail-Closed Principle** (Lines 538-546): STOP when uncertain, never guess
+- **Testing Requirements** (Lines 149-181): 80/15/5 pyramid, test-first
+- **Security-by-Default** (Lines 183-215): All defaults must be secure
+- **Quality Gates** (Lines 217-266): STOP conditions at each gate
+- **Canonical Types** (Lines 268-280): Reuse cross-cutting types
+- **Module Layout** (Lines 306-346): types.ts / functions.ts / PascalCase.ts / index.ts
+- **Skills Framework** (Lines 416-438): Skills-based development required
+
+### Supporting Standards: docs/standards/
+
+- **naming.md**: Singular/plural, presence = enablement
+- **types.md**: Canonical type catalog
+- **security.md**: Security-by-default checklist
+- **typescript.md**: SOLID principles, ≤50 line functions
+- **anti-patterns.md**: Patterns to avoid
+- **modules.md**: Module layout rules
+
+### Supporting Skills: docs/skills/
+
+- **admin-dashboard-implementation.md**: Orchestrating skill (THIS IS MANDATORY)
+- **interface-designer.md**: API contract design
+- **canonical-type-reuse.md**: Identify shared types
+- **module-layout-enforcer.md**: Validate file structure
+- **testing.md**: TDD with 80/15/5 pyramid
+- **coding-conventions.md**: SOLID principles enforcement
 
 ---
 
 ## Current State Analysis
 
-### Existing Infrastructure
+### What Exists ✅
 
 **Backend (NestJS)**
-- ✅ Admin module structure exists (`src/domains/admin/`)
-- ✅ Admin controllers for mechanics, reviews, and skills
-- ✅ Service layer delegates to MechanicsService
-- ✅ Image upload handling with multer
+- ✅ Admin module structure (`src/domains/admin/`)
+- ✅ Admin controllers (mechanics, reviews, skills)
+- ✅ AdminService (delegates to MechanicsService)
+- ✅ Image upload (multer decorators)
 - ✅ Prisma database integration
+- ✅ Existing API endpoints:
+  - `GET/POST/PUT/DELETE /admin/mechanics`
+  - `POST/PUT/DELETE /admin/reviews`
+  - `GET /admin/skills`
 
-**Database Schema**
-- ✅ ServiceRequest (with status workflow)
+**Database Schema (Prisma)**
+- ✅ ServiceRequest (status workflow, payments)
 - ✅ Mechanic (profiles, ratings, skills)
 - ✅ Skill (categorized skills)
-- ✅ MechanicSkill (many-to-many relationship)
-- ✅ Review (with photos and ratings)
-- ✅ MechanicWorkLog (time tracking and payouts)
+- ✅ MechanicSkill (many-to-many)
+- ✅ Review (photos, ratings)
+- ✅ MechanicWorkLog (time tracking, payouts)
 
 **Frontend (Angular 19.2)**
-- ✅ Customer-facing website (landing, services, request forms)
-- ✅ Mechanic profile pages
+- ✅ Customer-facing website
 - ✅ Service request creation
 - ✅ Stripe payment integration
-- ❌ No admin interface exists yet
+- ❌ **No admin interface** (TO BE BUILT)
 
-### Existing Admin API Endpoints
+### What's Missing ❌
 
-```
-GET    /admin/mechanics           # List mechanics (filter by isActive)
-GET    /admin/mechanics/:id       # Get single mechanic
-POST   /admin/mechanics           # Create mechanic (with image upload)
-PUT    /admin/mechanics/:id       # Update mechanic (with image upload)
-DELETE /admin/mechanics/:id       # Delete mechanic
+**Backend**
+- ❌ Admin authentication (JWT + refresh tokens)
+- ❌ Admin authorization (role-based access control)
+- ❌ Admin user model in database
+- ❌ Service request management endpoints
+- ❌ Analytics/dashboard endpoints
+- ❌ Audit logging
 
-POST   /admin/reviews             # Create review (with photos)
-PUT    /admin/reviews/:id         # Update review (with photos)
-DELETE /admin/reviews/:id         # Delete review
+**Frontend**
+- ❌ Admin dashboard interface (entire module)
+- ❌ Authentication UI (login, logout)
+- ❌ Service request management UI
+- ❌ Analytics dashboards
+- ❌ Admin user management UI
 
-GET    /admin/skills              # List all skills
-```
+**Testing**
+- ❌ Admin API tests (unit, integration, E2E)
+- ❌ Admin UI tests (Angular component tests)
 
-### Missing API Endpoints (To Be Built)
-
-```
-# Service Requests Management
-GET    /admin/service-requests           # List all service requests
-GET    /admin/service-requests/:id       # Get single service request
-PUT    /admin/service-requests/:id       # Update service request
-POST   /admin/service-requests/:id/capture    # Capture payment
-POST   /admin/service-requests/:id/cancel     # Cancel request
-POST   /admin/service-requests/:id/finalize   # Finalize with final amount
-POST   /admin/service-requests/:id/work-logs  # Add work log
-
-# Reviews Management (Additional)
-GET    /admin/reviews                    # List all reviews
-GET    /admin/reviews/:id                # Get single review
-
-# Skills Management (Additional)
-POST   /admin/skills                     # Create skill
-PUT    /admin/skills/:id                 # Update skill
-DELETE /admin/skills/:id                 # Delete skill
-
-# Analytics/Dashboard
-GET    /admin/analytics/overview         # Dashboard statistics
-GET    /admin/analytics/revenue          # Revenue metrics
-GET    /admin/analytics/mechanics        # Mechanic performance
-
-# Authentication (To Be Implemented)
-POST   /admin/auth/login                 # Admin login
-POST   /admin/auth/logout                # Admin logout
-GET    /admin/auth/profile               # Get current admin user
-POST   /admin/auth/refresh               # Refresh token
-
-# Users Management (To Be Implemented)
-GET    /admin/users                      # List admin users
-POST   /admin/users                      # Create admin user
-PUT    /admin/users/:id                  # Update admin user
-DELETE /admin/users/:id                  # Delete admin user
-```
+**Security**
+- ❌ JWT authentication strategy
+- ❌ Auth guards for admin routes
+- ❌ Rate limiting configuration
+- ❌ CSRF protection
+- ❌ Security headers (helmet.js)
 
 ---
 
-## Technology Stack
+## Skills-Based Workflow
 
-### Recommended Stack (All Angular)
-- **Frontend Framework**: Angular 19.2
-- **Admin Template**: ngx-admin (recommended) or Custom Material Design
-- **UI Components**: Angular Material or Nebular (if using ngx-admin)
-- **State Management**: RxJS + Angular Services (or NgRx if complexity grows)
-- **Forms**: Reactive Forms
-- **HTTP Client**: Angular HttpClient
-- **Authentication**: JWT with HTTP Interceptors
-- **Charts**: ng2-charts or ngx-charts
-- **File Upload**: ng2-file-upload or custom implementation
-- **Routing**: Angular Router with Guards
+**This is NOT a traditional waterfall project.** We use a **skills-based, fail-closed, iterative approach**.
+
+### Core Principle
+
+Every feature follows this workflow:
+
+```
+┌─────────────────────────────────────────────┐
+│ Phase 0: Constitutional Alignment           │
+│ - Apply Interface Designer skill            │
+│ - Apply Canonical Type Reuse skill          │
+│ - Apply Module Layout Enforcer skill        │
+│ - Define security requirements              │
+│ - Get human approval                        │
+│ STOP ← Quality gate checkpoint              │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Phase 1: Test-Driven Development            │
+│ - Write tests FIRST (80/15/5 pyramid)      │
+│ - Implement to make tests pass              │
+│ - Apply Coding Conventions skill (SOLID)    │
+│ - Measure coverage (≥ 85%)                  │
+│ STOP ← Quality gate checkpoint              │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Phase 2: Standards Compliance               │
+│ - Run build gate                            │
+│ - Run linter gate                           │
+│ - Run test gate                             │
+│ - Run standards gate                        │
+│ STOP ← Quality gate checkpoint              │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Phase 3: Security Review                    │
+│ - Validate authentication                   │
+│ - Validate authorization                    │
+│ - Validate input validation                 │
+│ - Validate security headers                 │
+│ STOP ← Quality gate checkpoint              │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Phase 4: Human Approval                     │
+│ - Submit for human review                   │
+│ - Address feedback                          │
+│ - Get approval                              │
+│ STOP ← If not approved                      │
+└─────────────────────────────────────────────┘
+                    ↓
+           ✅ FEATURE COMPLETE
+           (Proceed to next feature)
+```
+
+**Rule**: At EVERY "STOP" checkpoint, if checks fail → **STOP**. Do NOT proceed.
 
 ---
 
-## Recommended Approach
+## Phase 0: Constitutional Alignment
 
-### Option 1: ngx-admin Template (Recommended)
+**Goal**: Design all admin dashboard features following constitutional requirements.
 
-**Pros:**
-- ✅ Most popular Angular admin template (25k+ GitHub stars)
-- ✅ Built with Angular + Nebular UI components
-- ✅ 40+ components, 60+ usage examples
-- ✅ Built-in theming, dark mode
-- ✅ Responsive design
-- ✅ Active maintenance
-- ✅ Extensive documentation
-- ✅ Dashboard widgets, charts, tables ready to use
+**Duration**: 1 week (iterative)
 
-**Cons:**
-- ⚠️ Adds Nebular dependency (~3MB)
-- ⚠️ May require stripping unused features
-- ⚠️ Learning curve for Nebular components
+**Status**: ⏳ **NOT STARTED** (awaiting this approval)
 
-**Integration Approach:**
-Create `web/src/app/admin/` module as a lazy-loaded route with ngx-admin components.
+### Preconditions (Fail-Closed)
 
-### Option 2: Custom Angular Material Dashboard
+Before starting Phase 0:
 
-**Pros:**
-- ✅ Full control over codebase
-- ✅ Angular Material is lightweight
-- ✅ Consistent with Angular ecosystem
-- ✅ No template bloat
+- [ ] ✅ CLAUDE.md reviewed and understood
+- [ ] ✅ docs/standards/ reviewed
+- [ ] ✅ docs/skills/ reviewed
+- [ ] ✅ Admin Dashboard Implementation skill created
+- [ ] ✅ Constitutional alignment evaluation complete
+- [ ] ⏳ Human approval to proceed
 
-**Cons:**
-- ⚠️ More development time
-- ⚠️ Need to build all dashboard components from scratch
-- ⚠️ More maintenance burden
-
-**Integration Approach:**
-Build custom admin module from scratch using Angular Material components.
-
-### **Final Recommendation: ngx-admin**
-
-Given the timeline and requirements, **ngx-admin** is recommended because:
-1. Reduces development time by 70-80%
-2. Provides production-ready components
-3. Excellent foundation that can be customized
-4. Active community and documentation
-5. Can be integrated as a separate lazy-loaded module
+**STOP**: If any precondition not met → ask for clarification.
 
 ---
 
-## Dashboard Template Evaluation
+### Task 1: Apply Interface Designer Skill (2 days)
 
-### ngx-admin Features We'll Use
+**Skill**: `docs/skills/interface-designer.md`
 
-1. **Dashboard Components**
-   - Cards for key metrics (total requests, active mechanics, revenue)
-   - Charts for trends (requests over time, mechanic performance)
-   - Tables for recent activities
+**Objective**: Design all API contracts as YAML interface contracts.
 
-2. **Data Tables**
-   - Service requests listing with sorting, filtering, pagination
-   - Mechanics management table
-   - Reviews moderation table
-   - Skills management table
+**Features to Design**:
 
-3. **Forms**
-   - Create/edit mechanic profiles
-   - Create/edit reviews
-   - Service request management
-   - Skill management
-   - Admin user management
+1. **Admin Authentication**
+   - POST /admin/auth/login (email, password → tokens)
+   - POST /admin/auth/logout (invalidate tokens)
+   - POST /admin/auth/refresh (refresh token → new access token)
+   - GET /admin/auth/profile (get current admin user)
 
-4. **Navigation**
-   - Sidebar menu
-   - Top navigation bar
-   - Breadcrumbs
+2. **Service Request Management**
+   - GET /admin/service-requests (list with filters)
+   - GET /admin/service-requests/:id (detail view)
+   - PUT /admin/service-requests/:id (update request)
+   - POST /admin/service-requests/:id/capture (capture payment)
+   - POST /admin/service-requests/:id/cancel (cancel request)
+   - POST /admin/service-requests/:id/finalize (finalize with final amount)
+   - POST /admin/service-requests/:id/work-logs (add work log)
 
-5. **UI Components**
-   - Cards
-   - Modals
-   - Notifications/toasts
-   - Progress bars
-   - Status badges
-   - Action buttons
+3. **Admin User Management**
+   - GET /admin/users (list admin users)
+   - GET /admin/users/:id (get admin user)
+   - POST /admin/users (create admin user)
+   - PUT /admin/users/:id (update admin user)
+   - DELETE /admin/users/:id (delete admin user)
 
----
+4. **Analytics/Dashboard**
+   - GET /admin/analytics/overview (dashboard statistics)
+   - GET /admin/analytics/revenue (revenue metrics)
+   - GET /admin/analytics/mechanics (mechanic performance)
 
-## Required Functionality
+5. **Existing Endpoints Enhancement**
+   - GET /admin/reviews (list reviews - new)
+   - GET /admin/reviews/:id (get review - new)
+   - POST /admin/skills (create skill - new)
+   - PUT /admin/skills/:id (update skill - new)
+   - DELETE /admin/skills/:id (delete skill - new)
 
-### 1. Dashboard/Analytics View
-- **Overview Cards**
-  - Total service requests (all time, this month)
-  - Active service requests count
-  - Total mechanics (active/inactive)
-  - Revenue metrics (total, this month)
-  - Average rating
-  
-- **Charts**
-  - Service requests trend (line chart)
-  - Revenue trend (bar chart)
-  - Requests by status (pie chart)
-  - Top-performing mechanics (horizontal bar)
-  
-- **Recent Activity**
-  - Latest service requests (table)
-  - Recent reviews
-  - Pending actions
+**Workflow**:
 
-### 2. Service Requests Management
-- **List View**
-  - Sortable, filterable table
-  - Columns: ID, Customer Name, Vehicle, Status, Amount, Created Date, Actions
-  - Filter by status, date range, amount
-  - Search by customer name, email, phone
-  
-- **Detail View**
-  - Customer information
-  - Vehicle details
-  - Service location (map view optional)
-  - Payment information
-  - Stripe PaymentIntent details
-  - Status timeline
-  - Work logs
-  - Associated reviews
-  
-- **Actions**
-  - Capture payment ($60 deposit)
-  - Cancel request
-  - Finalize with final amount
-  - Add work log
-  - Update status manually (if needed)
-  - Send notification to customer
-  - View in Stripe dashboard (link)
+1. **Conversational Design** (with human)
+   - Enumerate requirements per endpoint
+   - Identify extension points
+   - Decide required vs optional fields
+   - Call out non-goals and out-of-scope
 
-### 3. Mechanics Management
-- **List View**
-  - Grid or table view toggle
-  - Columns: Photo, Name, Location, Rating, Jobs Completed, Active Status, Actions
-  - Filter by active status, rating, location
-  - Search by name
-  
-- **Create/Edit Form**
-  - Name, slug (auto-generated)
-  - Bio (rich text editor optional)
-  - Profile image upload with preview
-  - Location
-  - Years of experience, since year
-  - Certifications (array input)
-  - Badges (array input)
-  - Skills (multi-select)
-  - Active status toggle
-  
-- **Detail View**
-  - Profile summary
-  - Statistics (rating, reviews, jobs completed)
-  - Skills list
-  - Reviews for this mechanic
-  - Work logs for this mechanic
-  - Performance charts
+2. **YAML Interface Contracts** (design artifact)
+   - Produce fully commented YAML for each endpoint
+   - Include example requests/responses
+   - Document validation rules
+   - Document error responses
 
-### 4. Reviews Management
-- **List View**
-  - Table with columns: Reviewer, Mechanic, Rating, Date, Service, Actions
-  - Filter by rating, mechanic, date range
-  - Search by reviewer name, text content
-  - Bulk actions (approve, delete)
-  
-- **Create/Edit Form**
-  - Mechanic (dropdown)
-  - Service request (optional dropdown)
-  - Reviewer name, location
-  - Car model, year
-  - Service description
-  - Rating (1-5 stars)
-  - Review text (textarea)
-  - Photos (multi-upload with preview)
-  
-- **Moderation**
-  - Flag inappropriate content
-  - Edit review text
-  - Delete reviews
-  - Feature review on homepage
+3. **Handoff Package**
+   - Final YAML contracts
+   - Mapping table: YAML → TypeScript types
+   - Canonical type imports
+   - Approval gates
 
-### 5. Skills Management
-- **List View**
-  - Simple table: Name, Category, Mechanics Count, Actions
-  - Search by name
-  - Filter by category
-  
-- **Create/Edit Form**
-  - Name
-  - Category (dropdown or text input)
-  
-- **Bulk Operations**
-  - Assign skills to multiple mechanics
-  - Merge duplicate skills
+**Output Contract**:
 
-### 6. Admin Users Management
-- **List View**
-  - Table: Name, Email, Role, Last Login, Status, Actions
-  - Filter by role, status
-  
-- **Create/Edit Form**
-  - Name, email
-  - Password (on create, optional on update)
-  - Role (dropdown: admin, manager, viewer)
-  - Active status toggle
-  
-- **Permissions**
-  - Role-based access control
-  - Admin: full access
-  - Manager: cannot manage users
-  - Viewer: read-only
+- [ ] All API endpoints documented as YAML contracts
+- [ ] TypeScript mapping table created
+- [ ] Example requests/responses included
+- [ ] Validation rules documented
+- [ ] Error responses documented
 
-### 7. Settings/Configuration
-- **General Settings**
-  - Company information
-  - Contact details
-  - Default service amount
-  
-- **Payment Settings**
-  - Stripe configuration (view only)
-  - Deposit amount
-  - Tax rates
-  
-- **Notification Settings**
-  - Email templates
-  - SMS configuration (future)
+**Quality Gate**:
+- [ ] Interface Designer skill applied to ALL endpoints
+- [ ] Human approval obtained for ALL contracts
+- **STOP if**: Contracts not approved
+
+**Estimated Time**: 2 days
+
+**See**: `docs/admin/ADMIN_API_SPECIFICATION.md` (will be revised with YAML contracts)
 
 ---
 
-## API Requirements
+### Task 2: Apply Canonical Type Reuse Skill (1 day)
 
-### Phase 1: Core Admin API (High Priority)
+**Skill**: `docs/skills/canonical-type-reuse.md`
 
-#### 1. Service Requests API
-```typescript
-// Controller: src/domains/admin/controllers/service-requests.controller.ts
+**Objective**: Identify cross-cutting concerns and reuse canonical types.
 
-GET    /admin/service-requests
-  Query params: ?status=PENDING&search=john&page=1&limit=20&sortBy=createdAt&order=desc
-  Response: { data: ServiceRequest[], total: number, page: number, limit: number }
+**Cross-Cutting Concerns to Evaluate**:
 
-GET    /admin/service-requests/:id
-  Response: ServiceRequest with relations (workLogs, reviews)
+1. **Logging**
+   - Admin action logs (who did what when)
+   - API request logs
+   - → Use `logging.LogConfig` or equivalent
 
-PUT    /admin/service-requests/:id
-  Body: Partial<ServiceRequest>
-  Response: ServiceRequest
+2. **Observability**
+   - Performance metrics (API response times)
+   - Error tracking
+   - → Use `observability.MetricConfig` or equivalent
 
-POST   /admin/service-requests/:id/capture
-  Response: ServiceRequest (status changed to CAPTURED)
+3. **Tags**
+   - Resource tagging (admin users, service requests)
+   - → Use `tags.TagMap` or equivalent
 
-POST   /admin/service-requests/:id/cancel
-  Response: ServiceRequest (status changed to CANCELLED)
+4. **Encryption**
+   - Password hashing (bcrypt)
+   - JWT secret encryption
+   - → Use `encryption.EncryptionConfig` or equivalent
 
-POST   /admin/service-requests/:id/finalize
-  Body: { finalAmountCents: number }
-  Response: ServiceRequest (status changed to FINALIZED)
+5. **Naming**
+   - Resource naming patterns (admin users, roles)
+   - → Use `naming.NamingStrategy` or equivalent
 
-POST   /admin/service-requests/:id/work-logs
-  Body: CreateWorkLogDto
-  Response: MechanicWorkLog
-```
+**Note**: This project uses **NestJS/Prisma/Angular**, not AWS CDK. Canonical types may need to be **created** or **adapted** from existing patterns.
 
-#### 2. Reviews API (Complete CRUD)
-```typescript
-// Controller: src/domains/admin/controllers/reviews.controller.ts
+**Workflow**:
 
-GET    /admin/reviews
-  Query params: ?mechanicId=xxx&rating=5&page=1&limit=20
-  Response: { data: Review[], total: number, page: number, limit: number }
+1. **Search for Existing Canonical Types**
+   - Search `src/` for existing shared types
+   - Check `src/core/` or equivalent utility modules
+   - **STOP if**: No canonical types found → propose creation
 
-GET    /admin/reviews/:id
-  Response: Review with relations (mechanic, serviceRequest)
-```
+2. **Propose Canonical Type Creation** (if needed)
+   - Location: `src/core/common/` or `src/core/logging/`, etc.
+   - Follow structure:
+     ```
+     src/core/
+     ├── logging/
+     │   ├── types.ts       # LogConfig interface
+     │   ├── functions.ts   # Log helpers
+     │   └── index.ts       # Barrel exports
+     ├── encryption/
+     │   ├── types.ts       # EncryptionConfig interface
+     │   ├── functions.ts   # Encryption helpers (bcrypt)
+     │   └── index.ts       # Barrel exports
+     └── auth/
+         ├── types.ts       # JwtConfig, AuthTokens interfaces
+         ├── functions.ts   # Auth helpers
+         └── index.ts       # Barrel exports
+     ```
 
-#### 3. Skills API (Complete CRUD)
-```typescript
-// Controller: src/domains/admin/controllers/skills.controller.ts
+3. **Document Canonical Type Usage**
+   - List all canonical types to be used
+   - Document access paths (namespace imports)
+   - Document composition patterns (if extending)
 
-POST   /admin/skills
-  Body: { name: string, category?: string }
-  Response: Skill
+**Output Contract**:
 
-PUT    /admin/skills/:id
-  Body: { name?: string, category?: string }
-  Response: Skill
+- [ ] Canonical types identified or proposed
+- [ ] Access paths documented (namespace imports)
+- [ ] Bespoke types eliminated (replaced with canonical)
+- [ ] Composition patterns documented (if extending)
 
-DELETE /admin/skills/:id
-  Response: { success: boolean }
-```
+**Quality Gate**:
+- [ ] Canonical Type Reuse skill applied
+- [ ] Zero bespoke types for cross-cutting concerns
+- [ ] Human approval obtained for new canonical types
+- **STOP if**: Bespoke types found or new canonical types not approved
 
-#### 4. Analytics API
-```typescript
-// Controller: src/domains/admin/controllers/analytics.controller.ts
-
-GET    /admin/analytics/overview
-  Response: {
-    totalRequests: number,
-    totalRevenue: number,
-    activeMechanics: number,
-    averageRating: number,
-    monthlyRequests: number,
-    monthlyRevenue: number
-  }
-
-GET    /admin/analytics/revenue
-  Query params: ?startDate=2025-01-01&endDate=2025-12-31&groupBy=month
-  Response: { date: string, revenue: number }[]
-
-GET    /admin/analytics/requests-trend
-  Query params: ?startDate=2025-01-01&endDate=2025-12-31&groupBy=week
-  Response: { date: string, count: number, status: string }[]
-
-GET    /admin/analytics/mechanics-performance
-  Response: { mechanicId: string, name: string, jobsCompleted: number, rating: number, revenue: number }[]
-```
-
-### Phase 2: Authentication & User Management (High Priority)
-
-#### 5. Authentication API
-```typescript
-// Controller: src/domains/admin/controllers/auth.controller.ts
-// Service: src/domains/admin/services/auth.service.ts
-
-POST   /admin/auth/login
-  Body: { email: string, password: string }
-  Response: { accessToken: string, refreshToken: string, user: AdminUser }
-
-POST   /admin/auth/logout
-  Body: { refreshToken: string }
-  Response: { success: boolean }
-
-POST   /admin/auth/refresh
-  Body: { refreshToken: string }
-  Response: { accessToken: string }
-
-GET    /admin/auth/profile
-  Headers: Authorization: Bearer <token>
-  Response: AdminUser
-```
-
-#### 6. Admin Users API
-```typescript
-// Controller: src/domains/admin/controllers/users.controller.ts
-
-GET    /admin/users
-  Query params: ?role=admin&status=active
-  Response: AdminUser[]
-
-POST   /admin/users
-  Body: { name: string, email: string, password: string, role: string }
-  Response: AdminUser
-
-PUT    /admin/users/:id
-  Body: Partial<AdminUser>
-  Response: AdminUser
-
-DELETE /admin/users/:id
-  Response: { success: boolean }
-```
-
-### Phase 3: Advanced Features (Medium Priority)
-
-#### 7. File Management API
-```typescript
-GET    /admin/uploads
-  Query params: ?type=mechanic|review&page=1&limit=50
-  Response: { data: FileInfo[], total: number }
-
-DELETE /admin/uploads/:filename
-  Response: { success: boolean }
-```
-
-#### 8. Audit Log API
-```typescript
-GET    /admin/audit-logs
-  Query params: ?userId=xxx&action=UPDATE&resource=mechanic&page=1
-  Response: { data: AuditLog[], total: number }
-```
+**Estimated Time**: 1 day
 
 ---
 
-## Authentication Strategy
+### Task 3: Apply Module Layout Enforcer Skill (1 day)
 
-### Two Authentication Mechanisms Required
+**Skill**: `docs/skills/module-layout-enforcer.md`
 
-#### 1. Admin User Authentication (Human Users)
+**Objective**: Design module file structure following constitutional standards.
 
-**Technology:** JWT (JSON Web Tokens)
+**Required Module Layout**:
 
-**Flow:**
-1. Admin logs in with email/password via `/admin/auth/login`
-2. Backend validates credentials against AdminUser table (bcrypt)
-3. Backend generates JWT access token (short-lived, 15 min) and refresh token (long-lived, 7 days)
-4. Frontend stores tokens in httpOnly cookies or localStorage
-5. Frontend includes access token in Authorization header for all admin API requests
-6. Angular HTTP Interceptor automatically adds token to requests
-7. Angular Route Guards protect admin routes
-8. Backend middleware verifies JWT on all `/admin/*` endpoints
-9. Frontend refreshes access token when expired using refresh token
+From CLAUDE.md (Lines 306-346):
+> "Pure capability modules: types.ts, functions.ts, index.ts
+> Construct modules: types.ts, functions.ts, PascalCase.ts, index.ts"
 
-**Database Schema Addition:**
-```prisma
-model AdminUser {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  name          String
-  email         String   @unique
-  passwordHash  String
-  role          AdminRole @default(ADMIN)
-  isActive      Boolean  @default(true)
-  lastLoginAt   DateTime?
-  refreshTokens RefreshToken[]
-}
-
-enum AdminRole {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  VIEWER
-}
-
-model RefreshToken {
-  id          String    @id @default(cuid())
-  token       String    @unique
-  userId      String
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-  user        AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([token])
-}
-```
-
-**Implementation:**
-- Use `@nestjs/jwt` and `@nestjs/passport`
-- Implement JWT strategy with passport
-- Create auth guard decorator
-- Hash passwords with bcrypt
-- Implement rate limiting on login endpoint
-
-#### 2. Machine-to-Machine Authentication (API Integration)
-
-**Technology:** API Keys
-
-**Flow:**
-1. Generate API key for each external service/integration
-2. External service includes API key in `X-API-Key` header
-3. Backend validates API key against ApiKey table
-4. Track usage and enforce rate limits per API key
-
-**Database Schema Addition:**
-```prisma
-model ApiKey {
-  id          String    @id @default(cuid())
-  name        String
-  key         String    @unique
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime?
-  lastUsedAt  DateTime?
-  permissions String[]  // e.g., ['read:mechanics', 'write:service-requests']
-  
-  @@index([key])
-}
-```
-
-**Use Cases:**
-- Stripe webhooks (verify webhook signature + API key)
-- Mobile mechanic app (future)
-- Third-party integrations
-- Automated scripts
-
-**Implementation:**
-- Generate cryptographically secure API keys
-- Implement API key guard/middleware
-- Log API key usage
-- Implement rate limiting per key
-
-### Security Best Practices
-
-1. **HTTPS Only:** Enforce HTTPS in production
-2. **CORS:** Restrict CORS to admin.yourdomain.com
-3. **CSRF Protection:** Implement CSRF tokens for state-changing operations
-4. **Rate Limiting:** Use `@nestjs/throttler`
-5. **Input Validation:** Use class-validator on all DTOs
-6. **SQL Injection:** Prisma handles this, but validate inputs
-7. **XSS Protection:** Sanitize user inputs, use Angular's built-in sanitization
-8. **Password Policy:** Minimum 12 characters, complexity requirements
-9. **Session Management:** Invalidate refresh tokens on logout
-10. **Audit Logging:** Log all admin actions
-
----
-
-## Component Architecture
-
-### Angular Module Structure
-
-```
-web/src/app/
-├── admin/                              # Admin module (lazy-loaded)
-│   ├── admin.module.ts
-│   ├── admin-routing.module.ts
-│   ├── admin.component.ts              # Admin layout wrapper
-│   │
-│   ├── core/                           # Core admin services
-│   │   ├── guards/
-│   │   │   ├── auth.guard.ts           # Route protection
-│   │   │   └── role.guard.ts           # Role-based access
-│   │   ├── interceptors/
-│   │   │   ├── auth.interceptor.ts     # Add JWT to requests
-│   │   │   └── error.interceptor.ts    # Global error handling
-│   │   ├── services/
-│   │   │   ├── auth.service.ts         # Authentication
-│   │   │   ├── admin-api.service.ts    # API calls
-│   │   │   └── notification.service.ts # Toast notifications
-│   │   └── models/
-│   │       ├── admin-user.model.ts
-│   │       ├── service-request.model.ts
-│   │       └── [other models]
-│   │
-│   ├── shared/                         # Shared admin components
-│   │   ├── components/
-│   │   │   ├── page-header/
-│   │   │   ├── data-table/             # Reusable table component
-│   │   │   ├── status-badge/
-│   │   │   ├── confirm-dialog/
-│   │   │   └── image-upload/
-│   │   ├── pipes/
-│   │   │   ├── currency.pipe.ts
-│   │   │   └── date-time.pipe.ts
-│   │   └── directives/
-│   │
-│   ├── pages/
-│   │   ├── auth/
-│   │   │   ├── login/
-│   │   │   │   ├── login.component.ts
-│   │   │   │   ├── login.component.html
-│   │   │   │   └── login.component.scss
-│   │   │   └── forgot-password/
-│   │   │
-│   │   ├── dashboard/
-│   │   │   ├── dashboard.component.ts
-│   │   │   ├── dashboard.component.html
-│   │   │   ├── dashboard.component.scss
-│   │   │   └── widgets/
-│   │   │       ├── stats-card/
-│   │   │       ├── revenue-chart/
-│   │   │       └── recent-requests/
-│   │   │
-│   │   ├── service-requests/
-│   │   │   ├── service-requests-list/
-│   │   │   │   ├── service-requests-list.component.ts
-│   │   │   │   ├── service-requests-list.component.html
-│   │   │   │   └── service-requests-list.component.scss
-│   │   │   ├── service-request-detail/
-│   │   │   │   ├── service-request-detail.component.ts
-│   │   │   │   ├── service-request-detail.component.html
-│   │   │   │   └── components/
-│   │   │   │       ├── customer-info/
-│   │   │   │       ├── payment-info/
-│   │   │   │       ├── work-logs-section/
-│   │   │   │       └── status-timeline/
-│   │   │   └── service-requests-routing.module.ts
-│   │   │
-│   │   ├── mechanics/
-│   │   │   ├── mechanics-list/
-│   │   │   ├── mechanic-form/          # Create/edit
-│   │   │   ├── mechanic-detail/
-│   │   │   └── mechanics-routing.module.ts
-│   │   │
-│   │   ├── reviews/
-│   │   │   ├── reviews-list/
-│   │   │   ├── review-form/
-│   │   │   └── reviews-routing.module.ts
-│   │   │
-│   │   ├── skills/
-│   │   │   ├── skills-list/
-│   │   │   ├── skill-form/
-│   │   │   └── skills-routing.module.ts
-│   │   │
-│   │   ├── users/                      # Admin users management
-│   │   │   ├── users-list/
-│   │   │   ├── user-form/
-│   │   │   └── users-routing.module.ts
-│   │   │
-│   │   └── settings/
-│   │       ├── general/
-│   │       ├── payment/
-│   │       └── notifications/
-│   │
-│   └── layout/
-│       ├── admin-layout/
-│       │   ├── admin-layout.component.ts
-│       │   ├── admin-layout.component.html
-│       │   └── admin-layout.component.scss
-│       ├── header/
-│       │   ├── header.component.ts      # Top nav with user menu
-│       │   └── header.component.html
-│       └── sidebar/
-│           ├── sidebar.component.ts     # Side navigation
-│           └── sidebar.component.html
-│
-├── app.routes.ts                        # Add admin route
-└── [existing customer-facing components]
-```
-
-### Key Component Responsibilities
-
-#### 1. AdminLayoutComponent
-- Wrapper for all admin pages
-- Sidebar navigation
-- Top header with user menu
-- Breadcrumbs
-- Handles responsive layout
-
-#### 2. DataTableComponent (Reusable)
-- Generic table with sorting, filtering, pagination
-- Column configuration
-- Row actions
-- Bulk selection
-- Export functionality
-
-#### 3. ServiceRequestsListComponent
-- Uses DataTableComponent
-- Custom filters (status, date range, amount)
-- Search functionality
-- Quick actions (capture, cancel, view)
-
-#### 4. ServiceRequestDetailComponent
-- Tabbed interface:
-  - Overview (customer, vehicle, location)
-  - Payment (Stripe details, amounts, status)
-  - Work Logs (add, edit, view)
-  - Reviews (if any)
-  - Timeline (status changes, actions)
-- Action buttons (capture, cancel, finalize)
-- Real-time status updates
-
-#### 5. MechanicFormComponent
-- Reactive form with validation
-- Image upload with preview and crop
-- Skills multi-select
-- Array inputs for certifications/badges
-- Slug auto-generation
-- Live preview (optional)
-
-#### 6. DashboardComponent
-- Stats cards (metrics)
-- Charts (revenue, requests, performance)
-- Recent activity tables
-- Quick links
-
----
-
-## Implementation Roadmap
-
-### Phase 0: Preparation & Setup (Week 1)
-
-#### Step 0.1: Project Analysis ✅
-- [x] Analyze existing codebase
-- [x] Document current API endpoints
-- [x] Identify missing API endpoints
-- [x] Create comprehensive plan
-
-#### Step 0.2: Template Selection & Evaluation
-- [ ] Clone ngx-admin repository
-- [ ] Run ngx-admin locally
-- [ ] Evaluate components we'll use
-- [ ] Create proof-of-concept integration
-- [ ] Document customization approach
-
-#### Step 0.3: Database Schema Updates
-- [ ] Create AdminUser model in Prisma schema
-- [ ] Create RefreshToken model
-- [ ] Create ApiKey model (optional for M2M)
-- [ ] Create AuditLog model (optional)
-- [ ] Generate migration
-- [ ] Run migration on local database
-- [ ] Update seed file to create initial admin user
-
-#### Step 0.4: Backend Dependencies
-- [ ] Install `@nestjs/jwt`
-- [ ] Install `@nestjs/passport`
-- [ ] Install `passport-jwt`
-- [ ] Install `bcrypt` and `@types/bcrypt`
-- [ ] Install `@nestjs/throttler` (rate limiting)
-
-### Phase 1: Authentication Implementation (Week 2)
-
-#### Step 1.1: Backend Auth Service
-- [ ] Create AdminUser entity
-- [ ] Create auth DTOs (LoginDto, RegisterDto, etc.)
-- [ ] Create AdminAuthService with:
-  - validateUser() - verify email/password
-  - login() - generate tokens
-  - refresh() - refresh access token
-  - logout() - invalidate refresh token
-- [ ] Create JWT strategy
-- [ ] Create JWT auth guard
-- [ ] Create roles decorator and guard
-- [ ] Create auth controller with login/logout/refresh endpoints
-
-#### Step 1.2: Backend User Management
-- [ ] Create AdminUsersService (CRUD operations)
-- [ ] Create admin users controller
-- [ ] Add password hashing middleware
-- [ ] Implement role-based access control
-
-#### Step 1.3: Frontend Auth Service
-- [ ] Create Angular auth service
-- [ ] Create login component
-- [ ] Create auth interceptor (add JWT to headers)
-- [ ] Create error interceptor (handle 401)
-- [ ] Create auth guard (protect routes)
-- [ ] Create role guard (role-based routing)
-- [ ] Implement token storage (httpOnly cookies or localStorage)
-- [ ] Implement automatic token refresh
-
-#### Step 1.4: Testing Auth Flow
-- [ ] Test login with valid credentials
-- [ ] Test login with invalid credentials
-- [ ] Test token expiration and refresh
-- [ ] Test logout
-- [ ] Test protected routes
-- [ ] Test role-based access
-
-### Phase 2: Admin Module Setup (Week 2-3)
-
-#### Step 2.1: ngx-admin Integration
-- [ ] Install ngx-admin dependencies (Nebular, etc.)
-- [ ] Create admin module (lazy-loaded)
-- [ ] Create admin routing module
-- [ ] Create admin layout component
-- [ ] Create header component
-- [ ] Create sidebar component
-- [ ] Configure theme and styling
-- [ ] Add admin route to main app routes
-
-#### Step 2.2: Core Services & Infrastructure
-- [ ] Create admin-api.service (base service for API calls)
-- [ ] Create notification.service (toast notifications)
-- [ ] Create loading.service (global loading indicator)
-- [ ] Create models/interfaces for all entities
-- [ ] Create shared components:
-  - DataTableComponent
-  - StatusBadgeComponent
-  - ConfirmDialogComponent
-  - ImageUploadComponent
-  - PageHeaderComponent
-
-### Phase 3: Dashboard & Analytics (Week 3-4)
-
-#### Step 3.1: Backend Analytics API
-- [ ] Create AnalyticsController
-- [ ] Create AnalyticsService with:
-  - getOverview() - dashboard metrics
-  - getRevenueTrend() - revenue over time
-  - getRequestsTrend() - requests over time
-  - getMechanicsPerformance() - mechanic stats
-- [ ] Add database queries with Prisma aggregations
-- [ ] Add caching for expensive queries (optional)
-
-#### Step 3.2: Frontend Dashboard
-- [ ] Create dashboard component
-- [ ] Create stats card component
-- [ ] Create revenue chart component (using ng2-charts)
-- [ ] Create requests trend chart
-- [ ] Create recent requests table component
-- [ ] Connect to analytics API
-- [ ] Add refresh functionality
-- [ ] Add date range selector
-
-### Phase 4: Service Requests Management (Week 4-5)
-
-#### Step 4.1: Backend Service Requests API
-- [ ] Create AdminServiceRequestsController
-- [ ] Create AdminServiceRequestsService with:
-  - getServiceRequests() - list with filters, pagination
-  - getServiceRequest() - detail with relations
-  - updateServiceRequest() - update fields
-  - capturePayment() - capture $60 deposit
-  - cancelRequest() - cancel request
-  - finalizeRequest() - charge final amount
-  - addWorkLog() - create work log
-- [ ] Add DTOs for all operations
-- [ ] Add validation
-- [ ] Add error handling
-- [ ] Test all endpoints
-
-#### Step 4.2: Frontend Service Requests List
-- [ ] Create service-requests-list component
-- [ ] Implement data table with:
-  - Sorting (by date, amount, status)
-  - Filtering (by status, date range)
-  - Search (by customer name, email, phone)
-  - Pagination
-- [ ] Add status badges
-- [ ] Add quick action buttons (view, capture, cancel)
-- [ ] Add export functionality (CSV)
-
-#### Step 4.3: Frontend Service Request Detail
-- [ ] Create service-request-detail component
-- [ ] Create customer info section
-- [ ] Create vehicle info section
-- [ ] Create payment info section (Stripe details)
-- [ ] Create work logs section with add form
-- [ ] Create status timeline
-- [ ] Implement capture payment action
-- [ ] Implement cancel request action
-- [ ] Implement finalize request modal
-- [ ] Add navigation to Stripe dashboard
-- [ ] Add edit functionality (if needed)
-
-### Phase 5: Mechanics Management (Week 5-6)
-
-#### Step 5.1: Backend Mechanics API Extensions
-- [ ] Update AdminMechanicsController to add pagination
-- [ ] Add filters (active status, rating, location)
-- [ ] Add search functionality
-- [ ] Ensure proper error handling
-
-#### Step 5.2: Frontend Mechanics List
-- [ ] Create mechanics-list component
-- [ ] Implement data table with sorting, filtering
-- [ ] Add grid/list view toggle
-- [ ] Add active/inactive filter
-- [ ] Add search by name
-- [ ] Add create button
-- [ ] Add edit/delete/view actions
-
-#### Step 5.3: Frontend Mechanic Form
-- [ ] Create mechanic-form component (create/edit)
-- [ ] Implement reactive form with validation
-- [ ] Add image upload with preview
-- [ ] Add skills multi-select dropdown
-- [ ] Add array inputs for certifications/badges
-- [ ] Implement slug auto-generation
-- [ ] Add active status toggle
-- [ ] Handle form submission (create/update)
-- [ ] Add success/error notifications
-
-#### Step 5.4: Frontend Mechanic Detail
-- [ ] Create mechanic-detail component
-- [ ] Display profile summary
-- [ ] Display statistics (jobs, rating)
-- [ ] Display skills list
-- [ ] Display reviews for this mechanic
-- [ ] Display work logs for this mechanic
-- [ ] Add edit button
-- [ ] Add deactivate/activate button
-
-### Phase 6: Reviews Management (Week 6-7)
-
-#### Step 6.1: Backend Reviews API Extensions
-- [ ] Update AdminReviewsController to add:
-  - getReviews() - list with pagination, filters
-  - getReview() - detail view
-- [ ] Add filters (mechanic, rating, date range)
-- [ ] Add search functionality
-
-#### Step 6.2: Frontend Reviews List
-- [ ] Create reviews-list component
-- [ ] Implement data table
-- [ ] Add filters (mechanic, rating, date)
-- [ ] Add search functionality
-- [ ] Add create button
-- [ ] Add edit/delete/view actions
-- [ ] Add bulk delete functionality
-
-#### Step 6.3: Frontend Review Form
-- [ ] Create review-form component
-- [ ] Implement reactive form
-- [ ] Add mechanic dropdown (with search)
-- [ ] Add service request dropdown (optional)
-- [ ] Add star rating input
-- [ ] Add photo upload (multiple files)
-- [ ] Handle form submission
-- [ ] Add preview of review
-
-### Phase 7: Skills Management (Week 7)
-
-#### Step 7.1: Backend Skills API
-- [ ] Update AdminSkillsController to add:
-  - createSkill()
-  - updateSkill()
-  - deleteSkill()
-- [ ] Add validation
-- [ ] Handle cascading deletes properly
-
-#### Step 7.2: Frontend Skills Management
-- [ ] Create skills-list component
-- [ ] Create simple table (name, category, mechanics count)
-- [ ] Add create/edit inline or modal
-- [ ] Add delete with confirmation
-- [ ] Add search and filter by category
-
-### Phase 8: Admin Users Management (Week 7-8)
-
-#### Step 8.1: Backend Implementation
-- [ ] Already covered in Phase 1.2
-
-#### Step 8.2: Frontend Users Management
-- [ ] Create users-list component
-- [ ] Create user-form component (create/edit)
-- [ ] Implement password strength indicator
-- [ ] Add role dropdown
-- [ ] Add active status toggle
-- [ ] Show last login timestamp
-- [ ] Add delete with confirmation
-- [ ] Restrict access to SUPER_ADMIN role
-
-### Phase 9: Additional Features (Week 8-9)
-
-#### Step 9.1: File Management
-- [ ] Create file management page (optional)
-- [ ] List all uploaded files
-- [ ] Add delete functionality
-- [ ] Add bulk delete
-- [ ] Show file size and dimensions
-
-#### Step 9.2: Audit Logging
-- [ ] Create AuditLog model in Prisma
-- [ ] Create audit logging middleware
-- [ ] Log all admin actions (create, update, delete)
-- [ ] Create audit log viewer page
-- [ ] Add filters (user, action, resource, date)
-
-#### Step 9.3: Settings Pages
-- [ ] Create general settings page
-- [ ] Create payment settings page (Stripe config)
-- [ ] Create notification settings page
-- [ ] Implement settings save functionality
-
-#### Step 9.4: Notifications
-- [ ] Implement toast notifications (success, error, warning)
-- [ ] Add loading indicators
-- [ ] Add confirmation dialogs for destructive actions
-
-### Phase 10: Testing & Refinement (Week 9-10)
-
-#### Step 10.1: Unit Testing
-- [ ] Write unit tests for auth service
-- [ ] Write unit tests for admin services
-- [ ] Write unit tests for analytics service
-- [ ] Write unit tests for Angular components
-
-#### Step 10.2: Integration Testing
-- [ ] Write e2e tests for auth flow
-- [ ] Write e2e tests for service requests management
-- [ ] Write e2e tests for mechanics CRUD
-- [ ] Write e2e tests for reviews CRUD
-
-#### Step 10.3: Manual Testing
-- [ ] Test all user flows
-- [ ] Test error scenarios
-- [ ] Test responsive design (mobile, tablet, desktop)
-- [ ] Test browser compatibility
-- [ ] Test performance with large datasets
-
-#### Step 10.4: Security Audit
-- [ ] Review authentication implementation
-- [ ] Review authorization checks
-- [ ] Review input validation
-- [ ] Review CORS configuration
-- [ ] Review rate limiting
-- [ ] Test for common vulnerabilities (XSS, CSRF, SQL injection)
-
-#### Step 10.5: Documentation
-- [ ] Document API endpoints (Swagger/OpenAPI)
-- [ ] Write admin user guide
-- [ ] Document deployment process
-- [ ] Create video walkthrough (optional)
-
-### Phase 11: Deployment (Week 10)
-
-#### Step 11.1: Production Preparation
-- [ ] Set up environment variables for production
-- [ ] Configure HTTPS
-- [ ] Set up proper CORS
-- [ ] Enable rate limiting
-- [ ] Set up logging (Winston, Sentry)
-- [ ] Set up monitoring (Datadog, New Relic)
-
-#### Step 11.2: Deployment
-- [ ] Deploy backend to production
-- [ ] Deploy frontend to production
-- [ ] Run database migrations
-- [ ] Create initial admin user
-- [ ] Test production environment
-- [ ] Set up automated backups
-
-#### Step 11.3: Post-Deployment
-- [ ] Monitor error logs
-- [ ] Monitor performance
-- [ ] Gather user feedback
-- [ ] Create bug fix backlog
-- [ ] Plan next iteration
-
----
-
-## File Structure
-
-### Backend Structure (After Implementation)
+**Proposed Admin Module Structure**:
 
 ```
 src/domains/admin/
-├── admin.module.ts
+├── types.ts                    # Public interfaces (AdminUserProps, AdminAuthConfig)
+├── functions.ts                # Shared helpers (validateAdminUser, hashPassword)
+├── index.ts                    # Barrel exports (MANDATORY)
+│
+├── auth/
+│   ├── types.ts                # Auth types (LoginDto, LoginResponse, JwtPayload)
+│   ├── functions.ts            # Auth helpers (comparePassword, hashPassword)
+│   ├── AdminAuthService.ts     # Auth service construct
+│   ├── AdminAuthController.ts  # Auth controller construct
+│   ├── JwtStrategy.ts          # Passport JWT strategy
+│   ├── AdminAuthGuard.ts       # Auth guard construct
+│   └── index.ts                # Barrel exports
+│
+├── users/
+│   ├── types.ts                # User types (CreateAdminUserDto, AdminUserResponse)
+│   ├── functions.ts            # User helpers (validateEmail, generateUsername)
+│   ├── AdminUsersService.ts    # Users service construct
+│   ├── AdminUsersController.ts # Users controller construct
+│   └── index.ts                # Barrel exports
+│
+├── service-requests/
+│   ├── types.ts                # Service request types
+│   ├── functions.ts            # Service request helpers
+│   ├── AdminServiceRequestsService.ts
+│   ├── AdminServiceRequestsController.ts
+│   └── index.ts                # Barrel exports
+│
+├── analytics/
+│   ├── types.ts                # Analytics types
+│   ├── functions.ts            # Analytics helpers
+│   ├── AdminAnalyticsService.ts
+│   ├── AdminAnalyticsController.ts
+│   └── index.ts                # Barrel exports
+│
 ├── controllers/
-│   ├── index.ts
-│   ├── auth.controller.ts              # NEW
-│   ├── users.controller.ts             # NEW
-│   ├── analytics.controller.ts         # NEW
-│   ├── service-requests.controller.ts  # NEW
-│   ├── mechanics.controller.ts         # EXISTS
-│   ├── reviews.controller.ts           # EXISTS
-│   └── skills.controller.ts            # EXISTS
-├── services/
-│   ├── index.ts
-│   ├── admin.service.ts                # EXISTS
-│   ├── auth.service.ts                 # NEW
-│   ├── users.service.ts                # NEW
-│   ├── analytics.service.ts            # NEW
-│   └── service-requests.service.ts     # NEW
-├── dto/
-│   ├── index.ts
-│   ├── login.dto.ts                    # NEW
-│   ├── create-admin-user.dto.ts        # NEW
-│   ├── update-service-request.dto.ts   # NEW
-│   └── finalize-request.dto.ts         # NEW
-├── entities/
-│   ├── admin-user.entity.ts            # NEW
-│   └── refresh-token.entity.ts         # NEW
-├── guards/
-│   ├── jwt-auth.guard.ts               # NEW
-│   └── roles.guard.ts                  # NEW
-├── strategies/
-│   └── jwt.strategy.ts                 # NEW
-└── decorators/
-    └── roles.decorator.ts              # NEW
+│   ├── AdminMechanicsController.ts  # (existing, may need refactor)
+│   ├── AdminReviewsController.ts    # (existing, may need refactor)
+│   ├── AdminSkillsController.ts     # (existing, may need refactor)
+│   └── index.ts                     # Barrel exports
+│
+└── services/
+    ├── AdminService.ts          # (existing, may need refactor)
+    └── index.ts                 # Barrel exports
 ```
 
-### Frontend Structure (After Implementation)
+**Angular Frontend Structure**:
 
 ```
 web/src/app/admin/
-├── admin.module.ts
-├── admin-routing.module.ts
-├── admin.component.ts
-├── admin.component.html
-├── admin.component.scss
+├── models/                      # TypeScript interfaces
+│   ├── admin-user.model.ts
+│   ├── service-request.model.ts
+│   ├── analytics.model.ts
+│   └── index.ts                 # Barrel exports
 │
-├── core/
-│   ├── guards/
-│   │   ├── auth.guard.ts
-│   │   └── role.guard.ts
-│   ├── interceptors/
-│   │   ├── auth.interceptor.ts
-│   │   └── error.interceptor.ts
-│   ├── services/
-│   │   ├── auth.service.ts
-│   │   ├── admin-api.service.ts
-│   │   ├── mechanics-api.service.ts
-│   │   ├── service-requests-api.service.ts
-│   │   ├── reviews-api.service.ts
-│   │   ├── skills-api.service.ts
-│   │   ├── analytics-api.service.ts
-│   │   └── notification.service.ts
-│   └── models/
-│       ├── admin-user.model.ts
-│       ├── service-request.model.ts
-│       ├── mechanic.model.ts
-│       ├── review.model.ts
-│       └── skill.model.ts
+├── services/                    # Angular services
+│   ├── admin-auth.service.ts
+│   ├── admin-users.service.ts
+│   ├── service-requests.service.ts
+│   ├── analytics.service.ts
+│   └── index.ts                 # Barrel exports
 │
-├── shared/
-│   ├── components/
-│   │   ├── page-header/
-│   │   ├── data-table/
-│   │   ├── status-badge/
-│   │   ├── confirm-dialog/
-│   │   └── image-upload/
-│   ├── pipes/
-│   └── directives/
+├── guards/                      # Route guards
+│   ├── admin-auth.guard.ts
+│   ├── role.guard.ts
+│   └── index.ts                 # Barrel exports
 │
-├── pages/
-│   ├── auth/
-│   │   └── login/
+├── interceptors/                # HTTP interceptors
+│   ├── jwt.interceptor.ts
+│   ├── error.interceptor.ts
+│   └── index.ts                 # Barrel exports
+│
+├── components/                  # UI components
 │   ├── dashboard/
+│   │   ├── dashboard.component.ts
+│   │   ├── dashboard.component.html
+│   │   ├── dashboard.component.scss
+│   │   └── dashboard.component.spec.ts
+│   │
+│   ├── login/
+│   │   └── ...
+│   │
 │   ├── service-requests/
+│   │   ├── service-requests-list/
+│   │   ├── service-request-detail/
+│   │   └── ...
+│   │
+│   └── ...
+│
+├── admin-routing.module.ts      # Admin routes
+├── admin.module.ts              # Admin module definition
+└── index.ts                     # Barrel exports
+```
+
+**Workflow**:
+
+1. **Validate Backend Structure**
+   - Ensure types.ts / functions.ts / PascalCase.ts / index.ts pattern
+   - Validate barrel exports in all modules
+   - Validate namespace imports (not piecemeal)
+
+2. **Validate Frontend Structure**
+   - Ensure models/ services/ guards/ interceptors/ components/ separation
+   - Validate barrel exports in all directories
+   - Validate lazy-loaded module pattern
+
+3. **Document Module Boundaries**
+   - Define what goes in each module
+   - Document import paths
+   - Document consumption patterns
+
+**Output Contract**:
+
+- [ ] Module layout validated against standards
+- [ ] Barrel exports (index.ts) in all modules
+- [ ] Namespace import pattern documented
+- [ ] Module boundaries defined
+
+**Quality Gate**:
+- [ ] Module Layout Enforcer skill applied
+- [ ] All modules follow types.ts / functions.ts / PascalCase.ts / index.ts
+- [ ] All modules have barrel exports
+- [ ] Human approval obtained for structure
+- **STOP if**: Layout non-compliant or not approved
+
+**Estimated Time**: 1 day
+
+---
+
+### Task 4: Define Security Requirements (1 day)
+
+**Reference**: `docs/standards/common/security.md`
+
+**Objective**: Define security-by-default requirements for all admin features.
+
+**Security-by-Default Checklist**:
+
+#### Authentication
+- [ ] ✅ JWT with refresh tokens (access: 15min, refresh: 7 days)
+- [ ] ✅ httpOnly cookies for token storage (prevent XSS)
+- [ ] ✅ Secure password hashing (bcrypt, cost factor ≥ 12)
+- [ ] ✅ Password reset with time-limited tokens (1 hour expiry)
+- [ ] ✅ Account lockout after 5 failed login attempts (15 min lockout)
+- [ ] ✅ CSRF protection enabled (csurf middleware)
+
+#### Authorization
+- [ ] ✅ Role-based access control (RBAC)
+  - super-admin: Full access
+  - admin: Read/write access (no user management)
+  - moderator: Read-only access
+- [ ] ✅ Auth guards on ALL admin routes (backend + frontend)
+- [ ] ✅ Least privilege principle (default: read-only)
+- [ ] ✅ Route-level permissions (controller decorators)
+
+#### API Security
+- [ ] ✅ Rate limiting (100 requests per 15 minutes per IP)
+- [ ] ✅ CORS properly configured (whitelist admin origins)
+- [ ] ✅ HTTPS enforced (redirect HTTP → HTTPS)
+- [ ] ✅ Security headers configured (helmet.js):
+  - Content-Security-Policy
+  - X-Frame-Options: DENY
+  - X-Content-Type-Options: nosniff
+  - Strict-Transport-Security
+
+#### Input Validation
+- [ ] ✅ class-validator on ALL DTOs (backend)
+- [ ] ✅ Fail-fast validation (reject before processing)
+- [ ] ✅ SQL injection prevention (Prisma ORM)
+- [ ] ✅ XSS prevention (Angular sanitization + CSP)
+- [ ] ✅ File upload validation (type, size, content)
+
+#### Data Security
+- [ ] ✅ Password never logged or returned in API responses
+- [ ] ✅ Sensitive data encrypted at rest (database encryption)
+- [ ] ✅ Audit logging (who did what when)
+- [ ] ✅ PII handling (GDPR-compliant data retention)
+
+#### Session Security
+- [ ] ✅ Token rotation on refresh
+- [ ] ✅ Token revocation on logout
+- [ ] ✅ Session timeout (30 min inactivity)
+- [ ] ✅ Concurrent session limits (1 active session per admin user)
+
+**Workflow**:
+
+1. **Review Security Standards**
+   - Read docs/standards/common/security.md
+   - Identify applicable security requirements
+   - Document security architecture
+
+2. **Define Security Architecture**
+   - JWT token structure (payload, expiry)
+   - Refresh token flow
+   - Role hierarchy
+   - Permission matrix
+
+3. **Security Implementation Plan**
+   - Middleware configuration (helmet, cors, rate-limit)
+   - Guard implementation (JwtStrategy, RoleGuard)
+   - Interceptor implementation (JwtInterceptor, ErrorInterceptor)
+   - Validation configuration (class-validator, class-transformer)
+
+**Output Contract**:
+
+- [ ] Security-by-default checklist complete
+- [ ] Security architecture documented
+- [ ] JWT token structure defined
+- [ ] Role hierarchy and permissions defined
+- [ ] Middleware configuration planned
+
+**Quality Gate**:
+- [ ] Security requirements defined
+- [ ] All defaults are secure (opt-in to less secure)
+- [ ] Human approval obtained for security architecture
+- **STOP if**: Defaults not secure or not approved
+
+**Estimated Time**: 1 day
+
+---
+
+### Task 5: Define Test Strategy (1 day)
+
+**Reference**: `docs/skills/testing.md`
+
+**Objective**: Define 80/15/5 test pyramid for admin dashboard.
+
+**Test Pyramid** (80/15/5 Split):
+
+```
+       /\
+      /E2E\       ← 5% - Expensive, slow, full stack
+     /______\
+    /        \
+   /Integration\ ← 15% - Moderate cost, API flows
+  /____________\
+ /              \
+/     UNIT       \ ← 80% - Fast, cheap, isolated
+/__________________\
+```
+
+**80% Unit Tests** (Fast, Isolated):
+
+Backend:
+- AdminAuthService (login, logout, refresh, validateToken)
+- AdminUsersService (CRUD operations)
+- AdminServiceRequestsService (CRUD, capture, finalize)
+- AdminAnalyticsService (metrics calculation)
+- Validators (fail-fast validation)
+- Functions (pure functions in functions.ts)
+- Guards (AdminAuthGuard, RoleGuard)
+
+Frontend:
+- AdminAuthService (login, logout, refresh)
+- AdminUsersService (HTTP calls)
+- ServiceRequestsService (HTTP calls)
+- AnalyticsService (HTTP calls)
+- Components (dashboard, login, lists, forms)
+- Guards (AdminAuthGuard, RoleGuard)
+- Interceptors (JwtInterceptor, ErrorInterceptor)
+
+**15% Integration Tests** (API Flows):
+
+Backend:
+- Admin auth flow (login → protected route)
+- Service request flow (list → detail → capture)
+- Admin user management flow (create → update → delete)
+- Database operations (Prisma integration)
+- File upload flow (mechanic images, review photos)
+
+Frontend:
+- Login flow (login → redirect to dashboard)
+- Protected route access (guard checks)
+- API error handling (interceptors)
+
+**5% E2E Tests** (Critical Journeys):
+
+Full Stack (Playwright or Cypress):
+- Admin login → dashboard → view service requests
+- Admin login → create mechanic → upload image
+- Admin login → capture payment → finalize service request
+- Admin login → create admin user → logout → login as new user
+
+**AAA Pattern** (Mandatory):
+
+All tests MUST follow Arrange-Act-Assert pattern:
+
+```typescript
+describe('AdminAuthService', () => {
+  let service: AdminAuthService;
+  let prisma: PrismaService;
+
+  beforeEach(() => {
+    // Arrange: Setup
+  });
+
+  it('should authenticate admin with valid credentials', async () => {
+    // Arrange: Prepare test data
+    const loginDto = { email: 'admin@test.com', password: 'password123' };
+
+    // Act: Execute operation
+    const result = await service.login(loginDto);
+
+    // Assert: Verify outcome
+    expect(result.accessToken).toBeDefined();
+    expect(result.refreshToken).toBeDefined();
+    expect(result.user.email).toBe('admin@test.com');
+  });
+});
+```
+
+**Coverage Requirements**:
+
+- [ ] ≥ 85% overall coverage (hard requirement)
+- [ ] ≥ 90% unit test coverage
+- [ ] ≥ 70% integration test coverage
+- [ ] 100% critical path coverage (E2E)
+
+**Workflow**:
+
+1. **Define Test Suites**
+   - List all unit tests (80%)
+   - List all integration tests (15%)
+   - List all E2E tests (5%)
+
+2. **Define Test Infrastructure**
+   - Jest configuration (backend)
+   - Jasmine/Karma configuration (frontend)
+   - Test database setup (Prisma test environment)
+   - Mock/stub strategy (PrismaService, HttpClient)
+
+3. **Define Test Execution Plan**
+   - Test execution order
+   - Test parallelization strategy
+   - Coverage measurement tools
+   - CI/CD integration
+
+**Output Contract**:
+
+- [ ] Test pyramid defined (80/15/5 split)
+- [ ] All test suites listed
+- [ ] Test infrastructure configured
+- [ ] Coverage requirements defined (≥ 85%)
+- [ ] AAA pattern enforced
+
+**Quality Gate**:
+- [ ] Test strategy defined
+- [ ] 80/15/5 split validated
+- [ ] AAA pattern documented
+- [ ] Coverage requirements set
+- [ ] Human approval obtained
+- **STOP if**: Test strategy not approved
+
+**Estimated Time**: 1 day
+
+---
+
+### Phase 0 Completion Checklist
+
+Before proceeding to Phase 1:
+
+- [ ] Task 1: Interface Designer skill applied (all API contracts designed)
+- [ ] Task 2: Canonical Type Reuse skill applied (canonical types identified)
+- [ ] Task 3: Module Layout Enforcer skill applied (module structure validated)
+- [ ] Task 4: Security requirements defined (security-by-default)
+- [ ] Task 5: Test strategy defined (80/15/5 pyramid)
+- [ ] Human approval obtained for all Phase 0 outputs
+
+**Quality Gate: Phase 0 Complete**
+
+**STOP if**: Any task incomplete or not approved.
+
+**Next Step**: Proceed to Phase 1 (TDD Foundation)
+
+**Estimated Total Time**: 1 week (5 business days)
+
+---
+
+## Phase 1: Foundation (TDD)
+
+**Goal**: Establish test-first development workflow and implement core admin authentication.
+
+**Duration**: 1 week (iterative)
+
+**Status**: ⏳ **PENDING** (waiting for Phase 0 completion)
+
+### Preconditions (Fail-Closed)
+
+Before starting Phase 1:
+
+- [ ] Phase 0 complete (all tasks approved)
+- [ ] Database schema updated (AdminUser table added)
+- [ ] Prisma migrations run
+- [ ] Test infrastructure configured
+
+**STOP**: If any precondition not met → complete Phase 0 first.
+
+---
+
+### Feature 1: Admin Authentication (Backend)
+
+**Apply**: Admin Dashboard Implementation skill
+
+**Workflow**:
+
+#### Step 1: Write Tests FIRST (TDD)
+
+```typescript
+// src/domains/admin/auth/AdminAuthService.spec.ts
+
+describe('AdminAuthService (Unit Tests - 80%)', () => {
+  // Arrange: Setup
+  let service: AdminAuthService;
+  let prisma: PrismaService;
+  let jwt: JwtService;
+  let config: ConfigService;
+
+  beforeEach(async () => {
+    // Test module setup
+  });
+
+  describe('login', () => {
+    it('should return tokens for valid credentials', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw UnauthorizedException for invalid email', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw UnauthorizedException for invalid password', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw UnauthorizedException for inactive user', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw BadRequestException for missing email (fail-fast)', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw BadRequestException for missing password (fail-fast)', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should increment failedLoginAttempts on failed login', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should lock account after 5 failed attempts', async () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('refresh', () => {
+    it('should return new access token for valid refresh token', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw UnauthorizedException for invalid refresh token', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should throw UnauthorizedException for expired refresh token', async () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('logout', () => {
+    it('should invalidate refresh token', async () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('validateUser', () => {
+    it('should return user for valid JWT payload', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should return null for invalid user ID', async () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should return null for inactive user', async () => {
+      // Arrange, Act, Assert
+    });
+  });
+});
+
+describe('AdminAuthController (Integration Tests - 15%)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    // App setup with test database
+  });
+
+  describe('POST /admin/auth/login', () => {
+    it('should return 200 and tokens for valid credentials', async () => {
+      // Supertest request
+    });
+
+    it('should return 401 for invalid credentials', async () => {
+      // Supertest request
+    });
+
+    it('should return 400 for missing fields', async () => {
+      // Supertest request
+    });
+
+    it('should return 429 after too many failed attempts', async () => {
+      // Supertest request (rate limiting)
+    });
+  });
+
+  describe('POST /admin/auth/refresh', () => {
+    it('should return 200 and new access token', async () => {
+      // Supertest request
+    });
+
+    it('should return 401 for invalid refresh token', async () => {
+      // Supertest request
+    });
+  });
+
+  describe('POST /admin/auth/logout', () => {
+    it('should return 200 and invalidate token', async () => {
+      // Supertest request
+    });
+  });
+
+  describe('GET /admin/auth/profile', () => {
+    it('should return 200 and user profile with valid token', async () => {
+      // Supertest request
+    });
+
+    it('should return 401 without token', async () => {
+      // Supertest request
+    });
+  });
+});
+```
+
+**Test Coverage Checkpoint**:
+- [ ] All unit tests written (80%)
+- [ ] All integration tests written (15%)
+- [ ] AAA pattern followed
+- [ ] Fail-fast validation tests included
+- [ ] Error case tests included
+
+**STOP if**: Tests not written BEFORE implementation
+
+#### Step 2: Implement to Make Tests Pass
+
+**Apply Coding Conventions Skill** (SOLID principles):
+
+```typescript
+// src/domains/admin/auth/types.ts
+
+export interface LoginDto {
+  readonly email: string;
+  readonly password: string;
+}
+
+export interface LoginResponse {
+  readonly accessToken: string;
+  readonly refreshToken: string;
+  readonly user: AdminUserResponse;
+}
+
+export interface AdminUserResponse {
+  readonly id: string;
+  readonly email: string;
+  readonly name: string;
+  readonly role: 'super-admin' | 'admin' | 'moderator';
+}
+
+export interface JwtPayload {
+  readonly sub: string;  // user ID
+  readonly email: string;
+  readonly role: string;
+}
+```
+
+```typescript
+// src/domains/admin/auth/functions.ts
+
+import * as bcrypt from 'bcrypt';
+
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12;  // Security requirement: ≥ 12
+  return bcrypt.hash(password, saltRounds);
+}
+
+export async function comparePassword(
+  password: string,
+  hash: string
+): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+export function validateEmail(email: string): boolean {
+  // Fail-fast validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+export function validatePassword(password: string): boolean {
+  // Fail-fast validation: min 8 chars
+  return password && password.length >= 8;
+}
+```
+
+```typescript
+// src/domains/admin/auth/AdminAuthService.ts
+
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../../prisma/prisma.service';
+import * as authFunctions from './functions';
+import { LoginDto, LoginResponse, JwtPayload } from './types';
+
+/**
+ * Admin authentication service.
+ * 
+ * Handles:
+ * - Login with email/password
+ * - JWT token generation (access + refresh)
+ * - Token refresh
+ * - Logout (token invalidation)
+ * - User validation
+ * 
+ * Security:
+ * - bcrypt password hashing (cost factor: 12)
+ * - JWT with short-lived access tokens (15min)
+ * - Long-lived refresh tokens (7 days)
+ * - Account lockout after 5 failed attempts
+ * - Fail-fast validation
+ */
+@Injectable()
+export class AdminAuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService
+  ) {
+    // Dependency Injection (SOLID D principle)
+  }
+
+  /**
+   * Authenticate admin user.
+   * 
+   * @param loginDto - Email and password
+   * @returns Access token, refresh token, and user profile
+   * @throws BadRequestException - Missing or invalid fields (fail-fast)
+   * @throws UnauthorizedException - Invalid credentials or inactive user
+   */
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
+    // Fail-fast validation (SOLID S principle: Single Responsibility)
+    this.validateLoginDto(loginDto);
+
+    // Find user by email
+    const user = await this.prisma.adminUser.findUnique({
+      where: { email: loginDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if account is locked
+    if (this.isAccountLocked(user)) {
+      throw new UnauthorizedException('Account is locked due to too many failed attempts');
+    }
+
+    // Verify password
+    const isPasswordValid = await authFunctions.comparePassword(
+      loginDto.password,
+      user.passwordHash
+    );
+
+    if (!isPasswordValid) {
+      // Increment failed login attempts
+      await this.incrementFailedLoginAttempts(user.id);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    // Reset failed login attempts on successful login
+    await this.resetFailedLoginAttempts(user.id);
+
+    // Generate tokens
+    const tokens = this.generateTokens(user);
+
+    // Save refresh token to database
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    };
+  }
+
+  /**
+   * Refresh access token using refresh token.
+   * 
+   * @param refreshToken - Refresh token
+   * @returns New access token
+   * @throws UnauthorizedException - Invalid or expired refresh token
+   */
+  async refresh(refreshToken: string): Promise<{ accessToken: string }> {
+    // Fail-fast validation
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is required');
+    }
+
+    // Verify refresh token
+    let payload: JwtPayload;
+    try {
+      payload = this.jwt.verify(refreshToken);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // Check if refresh token exists in database
+    const tokenRecord = await this.prisma.adminRefreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    // Validate user still exists and is active
+    const user = await this.prisma.adminUser.findUnique({
+      where: { id: payload.sub },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    // Generate new access token
+    const accessToken = this.jwt.sign(
+      { sub: user.id, email: user.email, role: user.role },
+      { expiresIn: '15m' }
+    );
+
+    return { accessToken };
+  }
+
+  /**
+   * Logout admin user (invalidate refresh token).
+   * 
+   * @param refreshToken - Refresh token to invalidate
+   */
+  async logout(refreshToken: string): Promise<void> {
+    if (!refreshToken) {
+      return;  // Already logged out
+    }
+
+    // Delete refresh token from database
+    await this.prisma.adminRefreshToken.deleteMany({
+      where: { token: refreshToken },
+    });
+  }
+
+  /**
+   * Validate user from JWT payload (for JwtStrategy).
+   * 
+   * @param payload - JWT payload
+   * @returns User or null if invalid
+   */
+  async validateUser(payload: JwtPayload): Promise<any> {
+    const user = await this.prisma.adminUser.findUnique({
+      where: { id: payload.sub },
+    });
+
+    if (!user || !user.isActive) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+  }
+
+  /**
+   * Validate login DTO (fail-fast).
+   * 
+   * @private
+   * @param loginDto - Login DTO
+   * @throws BadRequestException - Missing or invalid fields
+   */
+  private validateLoginDto(loginDto: LoginDto): void {
+    if (!loginDto.email || !loginDto.password) {
+      throw new BadRequestException('Email and password are required');
+    }
+
+    if (!authFunctions.validateEmail(loginDto.email)) {
+      throw new BadRequestException('Invalid email format');
+    }
+
+    if (!authFunctions.validatePassword(loginDto.password)) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+  }
+
+  /**
+   * Generate JWT tokens (access + refresh).
+   * 
+   * @private
+   * @param user - Admin user
+   * @returns Access token and refresh token
+   */
+  private generateTokens(user: any): { accessToken: string; refreshToken: string } {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken = this.jwt.sign(payload, { expiresIn: '15m' });
+    const refreshToken = this.jwt.sign(payload, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Save refresh token to database.
+   * 
+   * @private
+   * @param userId - User ID
+   * @param token - Refresh token
+   */
+  private async saveRefreshToken(userId: string, token: string): Promise<void> {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);  // 7 days
+
+    await this.prisma.adminRefreshToken.create({
+      data: {
+        userId,
+        token,
+        expiresAt,
+      },
+    });
+  }
+
+  /**
+   * Increment failed login attempts.
+   * 
+   * @private
+   * @param userId - User ID
+   */
+  private async incrementFailedLoginAttempts(userId: string): Promise<void> {
+    await this.prisma.adminUser.update({
+      where: { id: userId },
+      data: {
+        failedLoginAttempts: { increment: 1 },
+        lastFailedLoginAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Reset failed login attempts.
+   * 
+   * @private
+   * @param userId - User ID
+   */
+  private async resetFailedLoginAttempts(userId: string): Promise<void> {
+    await this.prisma.adminUser.update({
+      where: { id: userId },
+      data: {
+        failedLoginAttempts: 0,
+        lastFailedLoginAt: null,
+      },
+    });
+  }
+
+  /**
+   * Check if account is locked.
+   * 
+   * @private
+   * @param user - Admin user
+   * @returns True if locked, false otherwise
+   */
+  private isAccountLocked(user: any): boolean {
+    if (user.failedLoginAttempts >= 5) {
+      // Lockout for 15 minutes
+      const lockoutDuration = 15 * 60 * 1000;  // 15 minutes in ms
+      const lockoutEnd = new Date(user.lastFailedLoginAt.getTime() + lockoutDuration);
+
+      if (new Date() < lockoutEnd) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+```
+
+**Implementation Checkpoint**:
+- [ ] Functions ≤ 50 lines (SOLID S principle)
+- [ ] Class ≤ 300 lines (checked)
+- [ ] No `any` types (TypeScript strict mode)
+- [ ] Dependency injection used (SOLID D principle)
+- [ ] Fail-fast validation (validateLoginDto)
+- [ ] Error handling comprehensive
+- [ ] Code documented (JSDoc comments)
+
+**STOP if**: Implementation doesn't follow SOLID principles
+
+#### Step 3: Run Tests
+
+```bash
+# Run unit tests
+pnpm test -- AdminAuthService.spec.ts
+
+# Run integration tests
+pnpm test:e2e -- admin-auth.e2e-spec.ts
+
+# Run coverage
+pnpm test:cov
+```
+
+**Test Checkpoint**:
+- [ ] All unit tests pass (80%)
+- [ ] All integration tests pass (15%)
+- [ ] Coverage ≥ 85%
+
+**STOP if**: Any test fails or coverage < 85%
+
+---
+
+### Feature 2: Admin Authentication (Frontend)
+
+**Apply**: Admin Dashboard Implementation skill
+
+**Workflow**:
+
+#### Step 1: Write Tests FIRST (TDD)
+
+```typescript
+// web/src/app/admin/services/admin-auth.service.spec.ts
+
+describe('AdminAuthService', () => {
+  let service: AdminAuthService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [AdminAuthService]
+    });
+
+    service = TestBed.inject(AdminAuthService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  describe('login', () => {
+    it('should return tokens for valid credentials', () => {
+      // Arrange
+      const mockResponse = {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        user: { id: '1', email: 'admin@test.com', name: 'Admin', role: 'admin' }
+      };
+
+      // Act
+      service.login('admin@test.com', 'password').subscribe(response => {
+        // Assert
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne('/api/admin/auth/login');
+      expect(req.request.method).toBe('POST');
+      req.flush(mockResponse);
+    });
+
+    it('should handle 401 error for invalid credentials', () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should handle 400 error for missing fields', () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('logout', () => {
+    it('should call logout endpoint', () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('refresh', () => {
+    it('should return new access token', () => {
+      // Arrange, Act, Assert
+    });
+  });
+
+  describe('isAuthenticated', () => {
+    it('should return true if access token exists', () => {
+      // Arrange, Act, Assert
+    });
+
+    it('should return false if no access token', () => {
+      // Arrange, Act, Assert
+    });
+  });
+});
+```
+
+#### Step 2: Implement to Make Tests Pass
+
+```typescript
+// web/src/app/admin/models/admin-user.model.ts
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'super-admin' | 'admin' | 'moderator';
+}
+
+export interface AdminAuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  user: AdminUser;
+}
+```
+
+```typescript
+// web/src/app/admin/services/admin-auth.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { AdminAuthTokens, AdminUser } from '../models/admin-user.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminAuthService {
+  private readonly apiUrl = '/api/admin/auth';
+  private currentUserSubject = new BehaviorSubject<AdminUser | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+
+  constructor(private http: HttpClient) {
+    // Load user from localStorage on init
+    const user = this.getUserFromStorage();
+    if (user) {
+      this.currentUserSubject.next(user);
+    }
+  }
+
+  login(email: string, password: string): Observable<AdminAuthTokens> {
+    // Fail-fast validation
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+
+    return this.http.post<AdminAuthTokens>(`${this.apiUrl}/login`, {
+      email,
+      password
+    }).pipe(
+      tap(response => {
+        // Store tokens and user
+        this.storeTokens(response.accessToken, response.refreshToken);
+        this.storeUser(response.user);
+        this.currentUserSubject.next(response.user);
+      })
+    );
+  }
+
+  logout(): Observable<void> {
+    const refreshToken = this.getRefreshToken();
+    
+    return this.http.post<void>(`${this.apiUrl}/logout`, { refreshToken }).pipe(
+      tap(() => {
+        // Clear tokens and user
+        this.clearTokens();
+        this.clearUser();
+        this.currentUserSubject.next(null);
+      })
+    );
+  }
+
+  refresh(): Observable<{ accessToken: string }> {
+    const refreshToken = this.getRefreshToken();
+    
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    return this.http.post<{ accessToken: string }>(`${this.apiUrl}/refresh`, {
+      refreshToken
+    }).pipe(
+      tap(response => {
+        this.storeAccessToken(response.accessToken);
+      })
+    );
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('admin_access_token');
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem('admin_refresh_token');
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getAccessToken();
+  }
+
+  getCurrentUser(): AdminUser | null {
+    return this.currentUserSubject.value;
+  }
+
+  private storeTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem('admin_access_token', accessToken);
+    localStorage.setItem('admin_refresh_token', refreshToken);
+  }
+
+  private storeAccessToken(accessToken: string): void {
+    localStorage.setItem('admin_access_token', accessToken);
+  }
+
+  private storeUser(user: AdminUser): void {
+    localStorage.setItem('admin_user', JSON.stringify(user));
+  }
+
+  private clearTokens(): void {
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('admin_refresh_token');
+  }
+
+  private clearUser(): void {
+    localStorage.removeItem('admin_user');
+  }
+
+  private getUserFromStorage(): AdminUser | null {
+    const userJson = localStorage.getItem('admin_user');
+    return userJson ? JSON.parse(userJson) : null;
+  }
+}
+```
+
+#### Step 3: Implement Guards and Interceptors
+
+```typescript
+// web/src/app/admin/guards/admin-auth.guard.ts
+
+import { Injectable } from '@angular/core';
+import { Router, CanActivate } from '@angular/router';
+import { AdminAuthService } from '../services/admin-auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminAuthGuard implements CanActivate {
+  constructor(
+    private authService: AdminAuthService,
+    private router: Router
+  ) {}
+
+  canActivate(): boolean {
+    if (this.authService.isAuthenticated()) {
+      return true;
+    }
+
+    // Redirect to login
+    this.router.navigate(['/admin/login']);
+    return false;
+  }
+}
+```
+
+```typescript
+// web/src/app/admin/interceptors/jwt.interceptor.ts
+
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AdminAuthService } from '../services/admin-auth.service';
+
+@Injectable()
+export class JwtInterceptor implements HttpInterceptor {
+  constructor(private authService: AdminAuthService) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Add JWT token to request headers
+    const accessToken = this.authService.getAccessToken();
+
+    if (accessToken && req.url.startsWith('/api/admin')) {
+      req = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+    }
+
+    return next.handle(req);
+  }
+}
+```
+
+#### Step 4: Implement Login Component
+
+```typescript
+// web/src/app/admin/components/login/login.component.ts
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AdminAuthService } from '../../services/admin-auth.service';
+
+@Component({
+  selector: 'app-admin-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
+})
+export class LoginComponent {
+  loginForm: FormGroup;
+  loading = false;
+  error: string | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AdminAuthService,
+    private router: Router
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]]
+    });
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+
+    const { email, password } = this.loginForm.value;
+
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        // Redirect to dashboard
+        this.router.navigate(['/admin/dashboard']);
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Login failed. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
+}
+```
+
+#### Step 5: Run Tests
+
+```bash
+# Run Angular tests
+cd web
+ng test --watch=false --code-coverage
+```
+
+**Test Checkpoint**:
+- [ ] All frontend tests pass
+- [ ] Coverage ≥ 85%
+
+**STOP if**: Any test fails or coverage < 85%
+
+---
+
+### Phase 1 Completion Checklist
+
+Before proceeding to Phase 2:
+
+- [ ] Feature 1: Admin Authentication (Backend) complete
+  - [ ] Tests written first (80/15/5)
+  - [ ] Implementation follows SOLID
+  - [ ] All tests pass
+  - [ ] Coverage ≥ 85%
+
+- [ ] Feature 2: Admin Authentication (Frontend) complete
+  - [ ] Tests written first
+  - [ ] Implementation complete
+  - [ ] All tests pass
+  - [ ] Coverage ≥ 85%
+
+- [ ] Database migrations run
+  - [ ] AdminUser table created
+  - [ ] AdminRefreshToken table created
+  - [ ] Seed data loaded (test admin user)
+
+- [ ] Manual testing complete
+  - [ ] Login flow works end-to-end
+  - [ ] Token refresh works
+  - [ ] Logout works
+  - [ ] Protected routes blocked without auth
+
+**Quality Gate: Phase 1 Complete**
+
+**STOP if**: Any checkpoint fails.
+
+**Next Step**: Proceed to Phase 2 (Standards Compliance)
+
+**Estimated Total Time**: 1 week (5 business days)
+
+---
+
+## Phase 2-N: Iterative Feature Development
+
+**Goal**: Implement remaining admin features iteratively using the same skills-based workflow.
+
+**Duration**: 6-8 weeks (iterative)
+
+**Status**: ⏳ **PENDING** (waiting for Phase 1 completion)
+
+### Feature Roadmap
+
+Each feature follows the **EXACT SAME WORKFLOW** as Phase 1:
+
+```
+Phase 0 (Design) → Phase 1 (TDD) → Phase 2 (Standards) → Phase 3 (Security) → Phase 4 (Approval)
+```
+
+**Feature List** (Priority Order):
+
+1. ✅ Admin Authentication (Phase 1)
+2. ⏳ Admin Dashboard/Analytics (Phase 2)
+3. ⏳ Service Request Management (Phase 3)
+4. ⏳ Admin User Management (Phase 4)
+5. ⏳ Enhanced Mechanics Management (Phase 5)
+6. ⏳ Enhanced Reviews Management (Phase 6)
+7. ⏳ Enhanced Skills Management (Phase 7)
+8. ⏳ Audit Logging (Phase 8)
+9. ⏳ System Settings (Phase 9)
+
+**Each feature must complete ALL phases before starting the next feature.**
+
+---
+
+### Phase 2: Admin Dashboard/Analytics
+
+**Backend**: Analytics endpoints
+**Frontend**: Dashboard UI with charts
+
+**API Endpoints**:
+- GET /admin/analytics/overview
+- GET /admin/analytics/revenue
+- GET /admin/analytics/mechanics
+
+**UI Components**:
+- Dashboard component
+- Metrics cards
+- Charts (line, bar, pie)
+- Recent activity table
+
+**Follow Same Workflow**:
+1. Apply Interface Designer skill → design API contracts
+2. Apply Canonical Type Reuse skill → identify types
+3. Write tests FIRST (80/15/5)
+4. Implement to make tests pass (SOLID)
+5. Run quality gates (build, lint, test, standards)
+6. Security review
+7. Human approval
+
+**Estimated Time**: 1 week
+
+---
+
+### Phase 3: Service Request Management
+
+**Backend**: Service request endpoints
+**Frontend**: Service request UI
+
+**API Endpoints**:
+- GET /admin/service-requests
+- GET /admin/service-requests/:id
+- PUT /admin/service-requests/:id
+- POST /admin/service-requests/:id/capture
+- POST /admin/service-requests/:id/cancel
+- POST /admin/service-requests/:id/finalize
+- POST /admin/service-requests/:id/work-logs
+
+**UI Components**:
+- Service requests list
+- Service request detail
+- Capture payment modal
+- Finalize request modal
+- Work log form
+
+**Follow Same Workflow**: (as described above)
+
+**Estimated Time**: 1-2 weeks
+
+---
+
+### Phase 4: Admin User Management
+
+**Backend**: Admin user endpoints
+**Frontend**: Admin user UI
+
+**API Endpoints**:
+- GET /admin/users
+- GET /admin/users/:id
+- POST /admin/users
+- PUT /admin/users/:id
+- DELETE /admin/users/:id
+
+**UI Components**:
+- Admin users list
+- Create admin user form
+- Edit admin user form
+- Role management
+
+**Follow Same Workflow**: (as described above)
+
+**Estimated Time**: 1 week
+
+---
+
+### Phase 5-7: Enhanced Management (Mechanics, Reviews, Skills)
+
+**Objective**: Enhance existing management with list views and filters.
+
+**Estimated Time**: 2-3 weeks total
+
+---
+
+### Phase 8: Audit Logging
+
+**Objective**: Log all admin actions for security auditing.
+
+**Estimated Time**: 1 week
+
+---
+
+### Phase 9: System Settings
+
+**Objective**: Configurable system settings (rates, fees, etc.).
+
+**Estimated Time**: 1 week
+
+---
+
+## Quality Gates
+
+**MANDATORY CHECKPOINTS** at every phase.
+
+### Build Gate
+
+```bash
+# Backend
+pnpm build
+
+# Frontend
+cd web && ng build --configuration production
+```
+
+**STOP if**: Build fails
+
+---
+
+### Linter Gate
+
+```bash
+# Backend
+pnpm lint
+
+# Frontend
+cd web && ng lint
+```
+
+**STOP if**: Lint errors exist
+
+---
+
+### Test Gate
+
+```bash
+# Backend
+pnpm test:cov
+
+# Frontend
+cd web && ng test --code-coverage
+```
+
+**Requirements**:
+- [ ] All tests pass
+- [ ] Coverage ≥ 85%
+- [ ] 80/15/5 pyramid followed
+- [ ] AAA pattern used
+
+**STOP if**: Any test fails or coverage < 85%
+
+---
+
+### Standards Compliance Gate
+
+**Checklist**:
+
+- [ ] **Naming** (docs/standards/common/naming.md)
+  - Singular for objects, plural for arrays
+  - Presence implies enablement (no `enabled` flag)
+  - Mutual exclusivity validated
+
+- [ ] **Types** (docs/standards/common/types.md)
+  - Canonical types reused (not bespoke)
+  - Namespace imports used (`import * as`)
+
+- [ ] **Security** (docs/standards/common/security.md)
+  - Security by default
+  - Fail-fast validation
+  - No sensitive data in logs
+
+- [ ] **TypeScript** (docs/standards/common/typescript.md)
+  - Functions ≤ 50 lines
+  - Classes ≤ 300 lines
+  - No `any` types
+  - SOLID principles applied
+
+- [ ] **Anti-Patterns** (docs/standards/common/anti-patterns.md)
+  - AP-002: No validation after resource creation
+  - AP-008: No bespoke objects for common concepts
+  - AP-016: No piecemeal imports
+
+- [ ] **Modules** (docs/standards/common/modules.md)
+  - types.ts / functions.ts / PascalCase.ts / index.ts layout
+  - Barrel exports used
+  - Namespace imports used
+
+**STOP if**: Standards violations found
+
+---
+
+## Security Requirements
+
+**Security-by-Default Checklist** (Applied to ALL Features):
+
+### Authentication ✅
+- [ ] JWT with refresh tokens (access: 15min, refresh: 7 days)
+- [ ] httpOnly cookies for token storage
+- [ ] bcrypt password hashing (cost ≥ 12)
+- [ ] Password reset with time-limited tokens (1 hour)
+- [ ] Account lockout after 5 failed attempts (15 min)
+- [ ] CSRF protection enabled
+
+### Authorization ✅
+- [ ] RBAC (super-admin, admin, moderator)
+- [ ] Auth guards on ALL admin routes
+- [ ] Least privilege principle
+- [ ] Route-level permissions
+
+### API Security ✅
+- [ ] Rate limiting (100 req/15min per IP)
+- [ ] CORS properly configured
+- [ ] HTTPS enforced
+- [ ] Security headers (helmet.js)
+
+### Input Validation ✅
+- [ ] class-validator on ALL DTOs
+- [ ] Fail-fast validation
+- [ ] SQL injection prevention (Prisma ORM)
+- [ ] XSS prevention (Angular sanitization + CSP)
+
+### Data Security ✅
+- [ ] Password never logged
+- [ ] Sensitive data encrypted at rest
+- [ ] Audit logging enabled
+- [ ] PII handling (GDPR-compliant)
+
+### Session Security ✅
+- [ ] Token rotation on refresh
+- [ ] Token revocation on logout
+- [ ] Session timeout (30 min inactivity)
+- [ ] Concurrent session limits (1 per user)
+
+**STOP if**: Any security requirement not met
+
+---
+
+## Module Architecture
+
+### Backend Module Structure
+
+```
+src/
+├── core/                        # Canonical types (NEW)
+│   ├── auth/
+│   │   ├── types.ts             # JwtConfig, AuthTokens
+│   │   ├── functions.ts         # Auth helpers
+│   │   └── index.ts
+│   ├── encryption/
+│   │   ├── types.ts             # EncryptionConfig
+│   │   ├── functions.ts         # bcrypt helpers
+│   │   └── index.ts
+│   └── logging/
+│       ├── types.ts             # LogConfig
+│       ├── functions.ts         # Log helpers
+│       └── index.ts
+│
+└── domains/
+    └── admin/
+        ├── types.ts             # Top-level admin types
+        ├── functions.ts         # Top-level admin helpers
+        ├── index.ts             # Barrel exports
+        │
+        ├── auth/                # Authentication module
+        │   ├── types.ts
+        │   ├── functions.ts
+        │   ├── AdminAuthService.ts
+        │   ├── AdminAuthController.ts
+        │   ├── JwtStrategy.ts
+        │   ├── AdminAuthGuard.ts
+        │   └── index.ts
+        │
+        ├── users/               # User management module
+        │   ├── types.ts
+        │   ├── functions.ts
+        │   ├── AdminUsersService.ts
+        │   ├── AdminUsersController.ts
+        │   └── index.ts
+        │
+        ├── service-requests/    # Service request management
+        │   ├── types.ts
+        │   ├── functions.ts
+        │   ├── AdminServiceRequestsService.ts
+        │   ├── AdminServiceRequestsController.ts
+        │   └── index.ts
+        │
+        ├── analytics/           # Analytics module
+        │   ├── types.ts
+        │   ├── functions.ts
+        │   ├── AdminAnalyticsService.ts
+        │   ├── AdminAnalyticsController.ts
+        │   └── index.ts
+        │
+        ├── controllers/         # (existing, may refactor)
+        │   └── ...
+        │
+        └── services/            # (existing, may refactor)
+            └── ...
+```
+
+### Frontend Module Structure
+
+```
+web/src/app/
+└── admin/
+    ├── models/                  # TypeScript interfaces
+    │   ├── admin-user.model.ts
+    │   ├── service-request.model.ts
+    │   ├── analytics.model.ts
+    │   └── index.ts
+    │
+    ├── services/                # Angular services
+    │   ├── admin-auth.service.ts
+    │   ├── admin-users.service.ts
+    │   ├── service-requests.service.ts
+    │   ├── analytics.service.ts
+    │   └── index.ts
+    │
+    ├── guards/                  # Route guards
+    │   ├── admin-auth.guard.ts
+    │   ├── role.guard.ts
+    │   └── index.ts
+    │
+    ├── interceptors/            # HTTP interceptors
+    │   ├── jwt.interceptor.ts
+    │   ├── error.interceptor.ts
+    │   └── index.ts
+    │
+    ├── components/              # UI components
+│   ├── dashboard/
+    │   ├── login/
+│   ├── service-requests/
+    │   ├── admin-users/
 │   ├── mechanics/
 │   ├── reviews/
 │   ├── skills/
-│   ├── users/
 │   └── settings/
 │
-└── layout/
-    ├── admin-layout/
-    ├── header/
-    └── sidebar/
+    ├── admin-routing.module.ts
+    ├── admin.module.ts
+    └── index.ts
 ```
 
 ---
 
-## Next Steps
+## Success Criteria
 
-### Immediate Actions
+### Phase 0 Success Criteria
 
-1. **Review this plan** with the team and get approval
-2. **Clone ngx-admin** and evaluate it locally
-3. **Create database migrations** for AdminUser, RefreshToken, ApiKey
-4. **Set up development environment** for admin module
-5. **Begin Phase 1** - Authentication implementation
+- [ ] All API contracts designed (YAML)
+- [ ] All canonical types identified
+- [ ] Module layout validated
+- [ ] Security requirements defined
+- [ ] Test strategy defined (80/15/5)
+- [ ] Human approval obtained
 
-### Questions to Answer
+### Phase 1 Success Criteria
 
-1. **User Roles:** Do we need more granular roles beyond SUPER_ADMIN, ADMIN, MANAGER, VIEWER?
-2. **Permissions:** Should permissions be role-based or permission-based (more granular)?
-3. **Audit Logging:** Is audit logging required from day 1 or can it be added later?
-4. **API Keys:** Do we need M2M authentication immediately or can it be deferred?
-5. **Template Choice:** Final confirmation on ngx-admin vs custom Material design?
-6. **Deployment:** Where will the admin dashboard be hosted? Same domain or subdomain?
+- [ ] Admin authentication working (backend + frontend)
+- [ ] All tests pass (≥ 85% coverage)
+- [ ] Quality gates pass (build, lint, test, standards)
+- [ ] Security review passed
+- [ ] Human approval obtained
 
-### Success Metrics
+### Phase 2-N Success Criteria (Per Feature)
 
-- [ ] Admin users can log in securely
-- [ ] All CRUD operations work for mechanics, reviews, skills
-- [ ] Service requests can be managed (captured, cancelled, finalized)
-- [ ] Dashboard displays accurate metrics and charts
-- [ ] All components are responsive
-- [ ] No security vulnerabilities
-- [ ] Page load time < 2 seconds
-- [ ] API response time < 500ms (95th percentile)
+- [ ] Feature designed (API contracts)
+- [ ] Tests written first (80/15/5)
+- [ ] Implementation complete (SOLID)
+- [ ] All tests pass (≥ 85% coverage)
+- [ ] Quality gates pass
+- [ ] Security review passed
+- [ ] Human approval obtained
 
----
+### Final Success Criteria (All Phases Complete)
 
-## Conclusion
-
-This plan provides a comprehensive roadmap for building a fully-featured Angular admin dashboard for the Mechanic Dispatch application. By leveraging ngx-admin and following this phased approach, we can deliver a production-ready admin interface in approximately 10 weeks.
-
-The key advantages of this approach:
-- ✅ No new programming languages (pure Angular)
-- ✅ Leverages existing NestJS backend
-- ✅ Modular and maintainable architecture
-- ✅ Secure authentication and authorization
-- ✅ Comprehensive feature set
-- ✅ Scalable for future enhancements
+- [ ] All features implemented
+- [ ] All tests pass (≥ 85% coverage overall)
+- [ ] Zero security vulnerabilities
+- [ ] Zero anti-patterns
+- [ ] Production deployment ready
+- [ ] Documentation complete
+- [ ] Human acceptance obtained
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** December 25, 2025  
-**Author:** AI Assistant  
-**Status:** Pending Review
+## Approval Gates
 
+Human approval required at:
+
+1. **Phase 0 Completion** - All design artifacts approved
+2. **Phase 1 Completion** - Authentication foundation approved
+3. **Each Feature Completion** - Feature approved before next feature
+4. **Final Deployment** - Full system approved for production
+
+**STOP if**: Approval not obtained
+
+---
+
+## Timeline Estimate
+
+| Phase | Duration | Status |
+|-------|----------|--------|
+| **Phase 0: Constitutional Alignment** | 1 week | ⏳ Pending |
+| **Phase 1: Foundation (TDD)** | 1 week | ⏳ Pending |
+| **Phase 2: Dashboard/Analytics** | 1 week | ⏳ Pending |
+| **Phase 3: Service Requests** | 1-2 weeks | ⏳ Pending |
+| **Phase 4: Admin Users** | 1 week | ⏳ Pending |
+| **Phase 5-7: Enhanced Management** | 2-3 weeks | ⏳ Pending |
+| **Phase 8: Audit Logging** | 1 week | ⏳ Pending |
+| **Phase 9: System Settings** | 1 week | ⏳ Pending |
+| **Total** | **9-12 weeks** | ⏳ Pending |
+
+**Note**: Timeline assumes STOP conditions are met at each gate. If gates fail, add rework time.
+
+---
+
+## Related Documents
+
+- **CLAUDE.md** - Repository constitution (PRIMARY AUTHORITY)
+- **docs/skills/admin-dashboard-implementation.md** - Orchestrating skill (MANDATORY)
+- **docs/skills/interface-designer.md** - API contract design
+- **docs/skills/canonical-type-reuse.md** - Canonical types
+- **docs/skills/module-layout-enforcer.md** - Module structure
+- **docs/skills/testing.md** - TDD with 80/15/5 pyramid
+- **docs/skills/coding-conventions.md** - SOLID principles
+- **docs/standards/common/** - All standards (naming, types, security, etc.)
+- **docs/admin/ADMIN_API_SPECIFICATION.md** - API contracts (to be revised)
+- **docs/admin/ADMIN_UI_SPECIFICATION.md** - UI/UX specifications
+- **docs/admin/ADMIN_QUICK_START.md** - Quick start guide (to be revised)
+
+---
+
+## Constitutional Compliance Statement
+
+This plan is **CONSTITUTIONALLY COMPLIANT** with:
+
+- ✅ Fail-Closed Principle (CLAUDE.md, Lines 538-546)
+- ✅ Testing Requirements (CLAUDE.md, Lines 149-181)
+- ✅ Security-by-Default (CLAUDE.md, Lines 183-215)
+- ✅ Quality Gates (CLAUDE.md, Lines 217-266)
+- ✅ Canonical Types (CLAUDE.md, Lines 268-280)
+- ✅ Module Layout (CLAUDE.md, Lines 306-346)
+- ✅ Skills Framework (CLAUDE.md, Lines 416-438)
+
+**Deviations from this plan require human approval.**
+
+---
+
+**Document Version**: 2.0  
+**Last Updated**: December 25, 2025  
+**Status**: ✅ **CONSTITUTIONALLY ALIGNED**  
+**Authority**: CLAUDE.md, docs/standards/, docs/skills/  
+**Next Action**: Human approval to proceed with Phase 0
+
+---
+
+## End of Admin Dashboard Implementation Plan

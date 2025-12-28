@@ -1,1061 +1,1190 @@
-# Admin API Specification
+# Admin API Specification (Constitutional Compliance)
 
-## Overview
+**Version**: 2.0  
+**Date**: December 25, 2025  
+**Status**: 🟡 **PHASE 0 DELIVERABLE** (To be completed via Interface Designer skill)  
+**Authority**: CLAUDE.md, docs/skills/interface-designer.md
 
-This document provides detailed API specifications for all admin endpoints, including request/response schemas, validation rules, error codes, and example payloads.
+---
+
+## ⚠️ Critical Notice
+
+This document will be completed during **Phase 0** by applying the **Interface Designer skill** (docs/skills/interface-designer.md).
+
+**Current Status**: Requirements documented  
+**Phase 0 Goal**: Convert to YAML interface contracts  
+**Authority**: CLAUDE.md (Lines 416-438), docs/skills/interface-designer.md
+
+**Fail-Closed Principle**: All API contracts MUST be approved before implementation begins.
 
 ---
 
 ## Table of Contents
 
-1. [Authentication API](#authentication-api)
-2. [Service Requests API](#service-requests-api)
-3. [Mechanics API](#mechanics-api)
-4. [Reviews API](#reviews-api)
-5. [Skills API](#skills-api)
-6. [Analytics API](#analytics-api)
-7. [Admin Users API](#admin-users-api)
-8. [Error Codes](#error-codes)
-9. [Rate Limiting](#rate-limiting)
+1. [Constitutional Framework](#constitutional-framework)
+2. [Interface Design Workflow](#interface-design-workflow)
+3. [API Requirements Summary](#api-requirements-summary)
+4. [Authentication API Requirements](#authentication-api-requirements)
+5. [Service Requests API Requirements](#service-requests-api-requirements)
+6. [Mechanics API Requirements](#mechanics-api-requirements)
+7. [Reviews API Requirements](#reviews-api-requirements)
+8. [Skills API Requirements](#skills-api-requirements)
+9. [Analytics API Requirements](#analytics-api-requirements)
+10. [Admin Users API Requirements](#admin-users-api-requirements)
+11. [Error Handling Requirements](#error-handling-requirements)
+12. [Security Requirements](#security-requirements)
+13. [Canonical Types](#canonical-types)
+14. [Phase 0 Deliverables](#phase-0-deliverables)
 
 ---
 
-## Base URL
+## Constitutional Framework
+
+This specification derives authority from:
+
+### Primary Authority: docs/skills/interface-designer.md
+
+From Interface Designer skill:
+> "This skill is interface-first and optimized for:
+> - long-term evolution
+> - multi-team consumption
+> - composition over inheritance
+> - canonical type reuse (no reinvention)"
+
+**Workflow (Hard Requirement)**:
+1. **Phase 1: Conversational design** - Enumerate requirements with human
+2. **Phase 2: YAML interface contract** - Produce fully commented YAML
+3. **Phase 3: Handoff for implementation** - Mapping table, canonical types, approval gates
+
+### Supporting Authority: CLAUDE.md
+
+- **Fail-Closed Principle** (Lines 538-546): STOP when uncertain
+- **Canonical Types** (Lines 268-280): Reuse cross-cutting types
+- **Security-by-Default** (Lines 183-215): All defaults secure
+- **Quality Gates** (Lines 217-266): Approval gates mandatory
+
+### Supporting Authority: docs/standards/common/
+
+- **naming.md**: Singular/plural, presence = enablement
+- **types.md**: Canonical type catalog
+- **security.md**: Security-by-default checklist
+
+---
+
+## Interface Design Workflow
+
+**Phase 0 Workflow** (Apply Interface Designer Skill):
 
 ```
-Development: http://localhost:3000/admin
-Production: https://api.mechanicdispatch.com/admin
+┌─────────────────────────────────────────────┐
+│ Step 1: Conversational Design               │
+│ - Review requirements (this document)       │
+│ - Enumerate constraints per endpoint        │
+│ - Identify extension points                 │
+│ - Decide required vs optional fields        │
+│ - Call out non-goals and out-of-scope       │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Step 2: YAML Interface Contracts            │
+│ - Convert to fully commented YAML           │
+│ - Include example values                    │
+│ - Document validation rules                 │
+│ - Document error responses                  │
+│ - Note stability and evolution              │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│ Step 3: Handoff Package                     │
+│ - Final YAML contracts                      │
+│ - Mapping table: YAML → TypeScript          │
+│ - Canonical type imports                    │
+│ - Approval gates                            │
+└─────────────────────────────────────────────┘
+                    ↓
+           ✅ HUMAN APPROVAL
+           (Proceed to Phase 1: TDD)
 ```
 
-## Authentication
+**STOP Conditions**:
+- ❌ Requirements ambiguous → STOP and ask
+- ❌ Canonical type unclear → STOP and ask
+- ❌ Security requirement missing → STOP and ask
+- ❌ Human approval not obtained → STOP
 
-All endpoints (except login) require JWT authentication:
+---
+
+## API Requirements Summary
+
+### Base URL
+
+```
+Development: http://localhost:3000
+Production: https://api.mechanicdispatch.com
+```
+
+### Authentication
+
+All endpoints (except `/admin/auth/login`) require JWT authentication:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
+**Token Expiry**:
+- Access token: 15 minutes
+- Refresh token: 7 days
+
+**Security**:
+- httpOnly cookies for token storage (XSS prevention)
+- CSRF protection enabled
+- Rate limiting: 100 requests per 15 minutes per IP
+
 ---
 
-## Authentication API
+### API Endpoints Overview
+
+| Category | Endpoint | Method | Status |
+|----------|----------|--------|--------|
+| **Authentication** | /admin/auth/login | POST | ✅ Exists (needs YAML) |
+| | /admin/auth/logout | POST | ❌ New |
+| | /admin/auth/refresh | POST | ❌ New |
+| | /admin/auth/profile | GET | ❌ New |
+| **Service Requests** | /admin/service-requests | GET | ❌ New |
+| | /admin/service-requests/:id | GET | ❌ New |
+| | /admin/service-requests/:id | PUT | ❌ New |
+| | /admin/service-requests/:id/capture | POST | ❌ New |
+| | /admin/service-requests/:id/cancel | POST | ❌ New |
+| | /admin/service-requests/:id/finalize | POST | ❌ New |
+| | /admin/service-requests/:id/work-logs | POST | ❌ New |
+| **Mechanics** | /admin/mechanics | GET | ✅ Exists (needs YAML) |
+| | /admin/mechanics/:id | GET | ✅ Exists (needs YAML) |
+| | /admin/mechanics | POST | ✅ Exists (needs YAML) |
+| | /admin/mechanics/:id | PUT | ✅ Exists (needs YAML) |
+| | /admin/mechanics/:id | DELETE | ✅ Exists (needs YAML) |
+| **Reviews** | /admin/reviews | GET | ❌ New |
+| | /admin/reviews/:id | GET | ❌ New |
+| | /admin/reviews | POST | ✅ Exists (needs YAML) |
+| | /admin/reviews/:id | PUT | ✅ Exists (needs YAML) |
+| | /admin/reviews/:id | DELETE | ✅ Exists (needs YAML) |
+| **Skills** | /admin/skills | GET | ✅ Exists (needs YAML) |
+| | /admin/skills | POST | ❌ New |
+| | /admin/skills/:id | PUT | ❌ New |
+| | /admin/skills/:id | DELETE | ❌ New |
+| **Analytics** | /admin/analytics/overview | GET | ❌ New |
+| | /admin/analytics/revenue | GET | ❌ New |
+| | /admin/analytics/mechanics | GET | ❌ New |
+| **Admin Users** | /admin/users | GET | ❌ New |
+| | /admin/users/:id | GET | ❌ New |
+| | /admin/users | POST | ❌ New |
+| | /admin/users/:id | PUT | ❌ New |
+| | /admin/users/:id | DELETE | ❌ New |
+
+**Total Endpoints**: 31  
+**Existing**: 9  
+**New**: 22
+
+---
+
+## Authentication API Requirements
 
 ### POST /admin/auth/login
 
-Authenticate admin user and receive JWT tokens.
+**Purpose**: Authenticate admin user and receive JWT tokens.
 
-**Request:**
-```json
-{
-  "email": "admin@example.com",
-  "password": "SecurePassword123!"
-}
-```
+**Requirements**:
+- Email and password authentication
+- Return access token (15min) + refresh token (7 days)
+- Fail-fast validation (email format, password length)
+- Account lockout after 5 failed attempts (15 min lockout)
+- Rate limiting (100 requests per 15 min per IP)
 
-**Validation:**
-- `email`: Required, valid email format
-- `password`: Required, min 8 characters
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| email | string | Yes | Valid email format |
+| password | string | Yes | Min 8 characters |
 
-**Success Response (200):**
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "clx123abc",
-    "name": "Admin User",
-    "email": "admin@example.com",
-    "role": "ADMIN",
-    "lastLoginAt": "2025-12-25T10:30:00.000Z"
-  }
-}
-```
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| accessToken | string | JWT access token (expires 15min) |
+| refreshToken | string | JWT refresh token (expires 7 days) |
+| user | object | Admin user profile |
+| user.id | string | User ID (CUID) |
+| user.email | string | User email |
+| user.name | string | User name |
+| user.role | enum | 'super-admin' \| 'admin' \| 'moderator' |
 
-**Error Responses:**
-- `401 Unauthorized`: Invalid credentials
-  ```json
-  {
-    "statusCode": 401,
-    "message": "Invalid email or password",
-    "error": "Unauthorized"
-  }
-  ```
-- `429 Too Many Requests`: Rate limit exceeded
-  ```json
-  {
-    "statusCode": 429,
-    "message": "Too many login attempts. Please try again in 15 minutes."
-  }
-  ```
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 400 | BAD_REQUEST | Email and password are required |
+| 400 | BAD_REQUEST | Invalid email format |
+| 400 | BAD_REQUEST | Password must be at least 8 characters |
+| 401 | UNAUTHORIZED | Invalid credentials |
+| 401 | UNAUTHORIZED | Account is locked due to too many failed attempts |
+| 401 | UNAUTHORIZED | Account is inactive |
+| 429 | TOO_MANY_REQUESTS | Too many login attempts. Please try again in 15 minutes. |
+
+**Security Considerations**:
+- [ ] bcrypt password hashing (cost factor ≥ 12)
+- [ ] Generic error message (don't reveal if email exists)
+- [ ] No password in response or logs
+- [ ] CSRF protection enabled
+- [ ] Rate limiting per IP address
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/auth/logout
 
-Invalidate refresh token.
+**Purpose**: Invalidate refresh token (logout).
 
-**Request:**
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
+**Requirements**:
+- Invalidate refresh token in database
+- No error if token already invalid (idempotent)
+- Requires authentication (access token)
 
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Logged out successfully"
-}
-```
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| refreshToken | string | Yes | Valid JWT format |
+
+**Response**: 
+- 200 OK (no body)
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/auth/refresh
 
-Refresh access token using refresh token.
+**Purpose**: Refresh access token using refresh token.
 
-**Request:**
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
+**Requirements**:
+- Validate refresh token exists in database
+- Check token expiration
+- Generate new access token (15min)
+- Do NOT generate new refresh token (token rotation disabled for simplicity)
 
-**Success Response (200):**
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| refreshToken | string | Yes | Valid JWT, exists in DB, not expired |
 
-**Error Responses:**
-- `401 Unauthorized`: Invalid or expired refresh token
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| accessToken | string | New JWT access token (expires 15min) |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 400 | BAD_REQUEST | Refresh token is required |
+| 401 | UNAUTHORIZED | Invalid refresh token |
+| 401 | UNAUTHORIZED | Refresh token has expired |
+| 401 | UNAUTHORIZED | User not found or inactive |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### GET /admin/auth/profile
 
-Get current authenticated admin user profile.
+**Purpose**: Get current admin user profile.
 
-**Headers:**
-```
-Authorization: Bearer <access_token>
-```
+**Requirements**:
+- Requires authentication (access token)
+- Return current user profile
 
-**Success Response (200):**
-```json
-{
-  "id": "clx123abc",
-  "name": "Admin User",
-  "email": "admin@example.com",
-  "role": "ADMIN",
-  "isActive": true,
-  "lastLoginAt": "2025-12-25T10:30:00.000Z",
-  "createdAt": "2025-01-15T08:00:00.000Z"
-}
-```
+**Request**: No body (JWT in Authorization header)
+
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | User ID (CUID) |
+| email | string | User email |
+| name | string | User name |
+| role | enum | 'super-admin' \| 'admin' \| 'moderator' |
+| createdAt | string | ISO 8601 timestamp |
+| lastLoginAt | string | ISO 8601 timestamp |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 401 | UNAUTHORIZED | Invalid or expired token |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
-## Service Requests API
+## Service Requests API Requirements
 
 ### GET /admin/service-requests
 
-List all service requests with filtering, sorting, and pagination.
+**Purpose**: List all service requests with filtering, sorting, and pagination.
 
-**Query Parameters:**
-- `page` (number, default: 1): Page number
-- `limit` (number, default: 20, max: 100): Items per page
-- `sortBy` (string, default: "createdAt"): Field to sort by
-  - Options: `createdAt`, `updatedAt`, `amountCents`, `status`
-- `order` (string, default: "desc"): Sort order
-  - Options: `asc`, `desc`
-- `status` (string): Filter by status
-  - Options: `PENDING`, `AUTHORIZED`, `CAPTURED`, `CANCELLED`, `FAILED`, `FINALIZED`
-- `search` (string): Search by customer name, email, or phone
-- `startDate` (ISO date): Filter by created date (from)
-- `endDate` (ISO date): Filter by created date (to)
-- `minAmount` (number): Filter by minimum amount in cents
-- `maxAmount` (number): Filter by maximum amount in cents
+**Requirements**:
+- Paginated list (default: 20 per page, max: 100)
+- Filter by status, date range, amount range
+- Search by customer name, email, phone
+- Sort by created date, amount, status
+- Requires authentication
 
-**Example Request:**
-```
-GET /admin/service-requests?page=1&limit=20&status=AUTHORIZED&sortBy=createdAt&order=desc
-```
+**Query Parameters**:
+| Parameter | Type | Required | Default | Validation |
+|-----------|------|----------|---------|------------|
+| page | number | No | 1 | ≥ 1 |
+| limit | number | No | 20 | 1-100 |
+| status | enum | No | all | PENDING \| AUTHORIZED \| CAPTURED \| CANCELLED \| FAILED \| FINALIZED |
+| startDate | string | No | - | ISO 8601 date |
+| endDate | string | No | - | ISO 8601 date |
+| minAmount | number | No | - | ≥ 0 (in cents) |
+| maxAmount | number | No | - | ≥ 0 (in cents) |
+| search | string | No | - | Search customer name/email/phone |
+| sortBy | enum | No | createdAt | createdAt \| amount \| status |
+| sortOrder | enum | No | desc | asc \| desc |
 
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "id": "clx456def",
-      "createdAt": "2025-12-25T09:00:00.000Z",
-      "updatedAt": "2025-12-25T09:15:00.000Z",
-      "firstName": "John",
-      "lastName": "Doe",
-      "email": "john.doe@example.com",
-      "phone": "555-123-4567",
-      "addressLine1": "123 Main St",
-      "addressLine2": "Apt 4B",
-      "city": "Austin",
-      "state": "TX",
-      "postalCode": "78701",
-      "country": "US",
-      "vehicleMake": "Toyota",
-      "vehicleModel": "Camry",
-      "vehicleYear": 2020,
-      "amountCents": 6000,
-      "finalAmountCents": null,
-      "status": "AUTHORIZED",
-      "stripePaymentIntentId": "pi_abc123",
-      "stripeCustomerId": "cus_xyz789",
-      "workLogsCount": 0,
-      "reviewsCount": 0
-    }
-  ],
-  "meta": {
-    "total": 150,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 8
-  }
-}
-```
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| data | array | Array of service requests |
+| data[].id | string | Service request ID (CUID) |
+| data[].createdAt | string | ISO 8601 timestamp |
+| data[].firstName | string | Customer first name |
+| data[].lastName | string | Customer last name |
+| data[].email | string | Customer email |
+| data[].phone | string | Customer phone |
+| data[].vehicleMake | string | Vehicle make |
+| data[].vehicleModel | string | Vehicle model |
+| data[].vehicleYear | number | Vehicle year |
+| data[].amountCents | number | Initial amount in cents |
+| data[].finalAmountCents | number \| null | Final amount in cents (if finalized) |
+| data[].status | enum | Request status |
+| data[].stripePaymentIntentId | string \| null | Stripe payment intent ID |
+| pagination | object | Pagination metadata |
+| pagination.page | number | Current page |
+| pagination.limit | number | Items per page |
+| pagination.total | number | Total items |
+| pagination.totalPages | number | Total pages |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 400 | BAD_REQUEST | Invalid query parameters |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### GET /admin/service-requests/:id
 
-Get single service request with all relations.
+**Purpose**: Get single service request details.
 
-**Success Response (200):**
-```json
-{
-  "id": "clx456def",
-  "createdAt": "2025-12-25T09:00:00.000Z",
-  "updatedAt": "2025-12-25T09:15:00.000Z",
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "phone": "555-123-4567",
-  "addressLine1": "123 Main St",
-  "addressLine2": "Apt 4B",
-  "city": "Austin",
-  "state": "TX",
-  "postalCode": "78701",
-  "country": "US",
-  "vehicleMake": "Toyota",
-  "vehicleModel": "Camry",
-  "vehicleYear": 2020,
-  "amountCents": 6000,
-  "finalAmountCents": null,
-  "status": "AUTHORIZED",
-  "stripePaymentIntentId": "pi_abc123",
-  "finalPaymentIntentId": null,
-  "stripeCustomerId": "cus_xyz789",
-  "stripePaymentMethodId": "pm_card_visa",
-  "workLogs": [
-    {
-      "id": "clx789ghi",
-      "createdAt": "2025-12-25T11:00:00.000Z",
-      "mechanicId": "clx111aaa",
-      "mechanicName": "Mike Johnson",
-      "hoursWorkedMinutes": 120,
-      "payoutPercentage": 70,
-      "notes": "Oil change completed"
-    }
-  ],
-  "reviews": []
-}
-```
+**Requirements**:
+- Include all fields from ServiceRequest model
+- Include related work logs
+- Include related reviews
+- Requires authentication
 
-**Error Responses:**
-- `404 Not Found`: Service request not found
+**URL Parameters**:
+| Parameter | Type | Required | Validation |
+|-----------|------|----------|------------|
+| id | string | Yes | Valid CUID |
 
----
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Service request ID |
+| createdAt | string | ISO 8601 timestamp |
+| updatedAt | string | ISO 8601 timestamp |
+| firstName | string | Customer first name |
+| lastName | string | Customer last name |
+| email | string | Customer email |
+| phone | string | Customer phone |
+| addressLine1 | string | Address line 1 |
+| addressLine2 | string \| null | Address line 2 |
+| city | string | City |
+| state | string | State |
+| postalCode | string | Postal code |
+| country | string | Country (default: US) |
+| vehicleMake | string | Vehicle make |
+| vehicleModel | string | Vehicle model |
+| vehicleYear | number | Vehicle year |
+| amountCents | number | Initial amount in cents |
+| finalAmountCents | number \| null | Final amount in cents (if finalized) |
+| stripePaymentIntentId | string \| null | Stripe payment intent ID |
+| finalPaymentIntentId | string \| null | Stripe final payment intent ID |
+| stripeCustomerId | string \| null | Stripe customer ID |
+| stripePaymentMethodId | string \| null | Stripe payment method ID |
+| status | enum | Request status |
+| workLogs | array | Array of work logs |
+| reviews | array | Array of reviews |
 
-### PUT /admin/service-requests/:id
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 404 | NOT_FOUND | Service request not found |
 
-Update service request details.
-
-**Request:**
-```json
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "phone": "555-123-4567",
-  "addressLine1": "456 Oak Ave",
-  "city": "Austin",
-  "state": "TX",
-  "postalCode": "78701"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "id": "clx456def",
-  "firstName": "John",
-  "lastName": "Doe",
-  // ... full updated object
-}
-```
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/service-requests/:id/capture
 
-Capture the $60 deposit payment.
+**Purpose**: Capture authorized payment (move from AUTHORIZED → CAPTURED).
 
-**Success Response (200):**
-```json
-{
-  "id": "clx456def",
-  "status": "CAPTURED",
-  "stripePaymentIntentId": "pi_abc123",
-  "amountCents": 6000,
-  "updatedAt": "2025-12-25T12:00:00.000Z"
-}
-```
+**Requirements**:
+- Service request must be in AUTHORIZED status
+- Capture $60 deposit via Stripe
+- Update status to CAPTURED
+- Fail-fast validation
+- Requires authentication
 
-**Error Responses:**
-- `400 Bad Request`: Payment already captured or invalid status
-  ```json
-  {
-    "statusCode": 400,
-    "message": "Payment has already been captured",
-    "error": "Bad Request"
-  }
-  ```
-- `402 Payment Required`: Stripe capture failed
-  ```json
-  {
-    "statusCode": 402,
-    "message": "Failed to capture payment: Insufficient funds",
-    "error": "Payment Required"
-  }
-  ```
+**URL Parameters**:
+| Parameter | Type | Required | Validation |
+|-----------|------|----------|------------|
+| id | string | Yes | Valid CUID |
 
----
+**Request**: No body
 
-### POST /admin/service-requests/:id/cancel
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Service request ID |
+| status | enum | CAPTURED |
+| stripePaymentIntentId | string | Stripe payment intent ID |
+| amountCents | number | Captured amount (6000 cents = $60) |
 
-Cancel service request and void authorization.
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 404 | NOT_FOUND | Service request not found |
+| 400 | BAD_REQUEST | Service request is not in AUTHORIZED status |
+| 500 | INTERNAL_SERVER_ERROR | Stripe capture failed |
 
-**Success Response (200):**
-```json
-{
-  "id": "clx456def",
-  "status": "CANCELLED",
-  "updatedAt": "2025-12-25T12:00:00.000Z"
-}
-```
+**Security Considerations**:
+- [ ] Idempotency (check if already captured)
+- [ ] Stripe webhook verification
+- [ ] Transaction logging (audit trail)
 
-**Error Responses:**
-- `400 Bad Request`: Cannot cancel in current status
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/service-requests/:id/finalize
 
-Finalize service request and charge final amount.
+**Purpose**: Finalize service request with final amount (create additional charge if needed).
 
-**Request:**
-```json
-{
-  "finalAmountCents": 47500
-}
-```
+**Requirements**:
+- Service request must be in CAPTURED status
+- Calculate additional amount if finalAmount > initialAmount
+- Create Stripe PaymentIntent for additional charge
+- Update status to FINALIZED
+- Requires authentication
 
-**Validation:**
-- `finalAmountCents`: Required, positive integer, >= 6000 (deposit amount)
+**URL Parameters**:
+| Parameter | Type | Required | Validation |
+|-----------|------|----------|------------|
+| id | string | Yes | Valid CUID |
 
-**Success Response (200):**
-```json
-{
-  "id": "clx456def",
-  "status": "FINALIZED",
-  "finalAmountCents": 47500,
-  "finalPaymentIntentId": "pi_final_abc123",
-  "updatedAt": "2025-12-25T13:00:00.000Z",
-  "chargedAmount": 41500
-}
-```
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| finalAmountCents | number | Yes | ≥ initial amount (6000 cents) |
 
-**Error Responses:**
-- `400 Bad Request`: Invalid status or amount
-- `402 Payment Required`: Stripe charge failed
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Service request ID |
+| status | enum | FINALIZED |
+| finalAmountCents | number | Final amount in cents |
+| finalPaymentIntentId | string \| null | Stripe payment intent ID (if additional charge) |
+| additionalChargeCents | number | Additional charge amount (finalAmount - initialAmount) |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 404 | NOT_FOUND | Service request not found |
+| 400 | BAD_REQUEST | Service request is not in CAPTURED status |
+| 400 | BAD_REQUEST | Final amount must be at least initial amount |
+| 500 | INTERNAL_SERVER_ERROR | Stripe charge failed |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/service-requests/:id/work-logs
 
-Add work log to service request.
+**Purpose**: Add work log to service request.
 
-**Request:**
-```json
-{
-  "mechanicId": "clx111aaa",
-  "mechanicName": "Mike Johnson",
-  "hoursWorkedMinutes": 120,
-  "payoutPercentage": 70,
-  "notes": "Oil change and tire rotation completed"
-}
-```
+**Requirements**:
+- Record mechanic work hours and payout
+- Associate with mechanic (optional)
+- Requires authentication
 
-**Validation:**
-- `mechanicId`: Optional, valid mechanic ID
-- `mechanicName`: Required if mechanicId not provided
-- `hoursWorkedMinutes`: Required, positive integer
-- `payoutPercentage`: Required, integer 0-100
-- `notes`: Optional, max 1000 characters
+**URL Parameters**:
+| Parameter | Type | Required | Validation |
+|-----------|------|----------|------------|
+| id | string | Yes | Valid CUID |
 
-**Success Response (201):**
-```json
-{
-  "id": "clx789ghi",
-  "serviceRequestId": "clx456def",
-  "mechanicId": "clx111aaa",
-  "mechanicName": "Mike Johnson",
-  "hoursWorkedMinutes": 120,
-  "payoutPercentage": 70,
-  "notes": "Oil change and tire rotation completed",
-  "createdAt": "2025-12-25T14:00:00.000Z"
-}
-```
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| mechanicId | string | No | Valid CUID (if provided) |
+| mechanicName | string | Yes | Non-empty string |
+| hoursWorkedMinutes | number | Yes | ≥ 0 (in minutes) |
+| payoutPercentage | number | Yes | 0-100 |
+| notes | string | No | Max 1000 chars |
 
----
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Work log ID (CUID) |
+| createdAt | string | ISO 8601 timestamp |
+| serviceRequestId | string | Service request ID |
+| mechanicId | string \| null | Mechanic ID |
+| mechanicName | string | Mechanic name |
+| hoursWorkedMinutes | number | Hours worked in minutes |
+| payoutPercentage | number | Payout percentage |
+| notes | string \| null | Notes |
 
-## Mechanics API
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 404 | NOT_FOUND | Service request not found |
+| 400 | BAD_REQUEST | Invalid work log data |
 
-### GET /admin/mechanics
-
-List all mechanics with filtering.
-
-**Query Parameters:**
-- `page` (number, default: 1)
-- `limit` (number, default: 20)
-- `isActive` (boolean): Filter by active status
-- `sortBy` (string, default: "createdAt")
-- `order` (string, default: "desc")
-- `search` (string): Search by name or location
-- `minRating` (number): Filter by minimum rating
-
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "id": "clx111aaa",
-      "name": "Mike Johnson",
-      "slug": "mike-johnson",
-      "bio": "Experienced mechanic with 15 years...",
-      "imageUrl": "/uploads/mechanics/mechanic-123.jpg",
-      "location": "Austin, TX",
-      "yearsExperience": 15,
-      "rating": 4.8,
-      "reviewCount": 42,
-      "jobsCompleted": 156,
-      "sinceYear": 2010,
-      "certifications": ["ASE Certified", "Master Technician"],
-      "badges": ["Top Rated", "Quick Response"],
-      "isActive": true,
-      "createdAt": "2025-01-15T08:00:00.000Z",
-      "skillsCount": 8
-    }
-  ],
-  "meta": {
-    "total": 45,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 3
-  }
-}
-```
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
-### GET /admin/mechanics/:id
+## Mechanics API Requirements
 
-Get single mechanic with relations.
+**Note**: Existing endpoints `/admin/mechanics` already exist. Phase 0 will convert to YAML contracts.
 
-**Success Response (200):**
-```json
-{
-  "id": "clx111aaa",
-  "name": "Mike Johnson",
-  "slug": "mike-johnson",
-  "bio": "Experienced mechanic...",
-  "imageUrl": "/uploads/mechanics/mechanic-123.jpg",
-  "location": "Austin, TX",
-  "yearsExperience": 15,
-  "rating": 4.8,
-  "reviewCount": 42,
-  "jobsCompleted": 156,
-  "sinceYear": 2010,
-  "certifications": ["ASE Certified", "Master Technician"],
-  "badges": ["Top Rated", "Quick Response"],
-  "isActive": true,
-  "createdAt": "2025-01-15T08:00:00.000Z",
-  "updatedAt": "2025-12-20T10:30:00.000Z",
-  "skills": [
-    {
-      "id": "clx222bbb",
-      "name": "Oil Change",
-      "category": "Maintenance"
-    },
-    {
-      "id": "clx333ccc",
-      "name": "Brake Repair",
-      "category": "Brakes"
-    }
-  ],
-  "reviews": [
-    {
-      "id": "clx444ddd",
-      "rating": 5,
-      "reviewerName": "Sarah Smith",
-      "reviewText": "Excellent service!",
-      "createdAt": "2025-12-15T14:00:00.000Z"
-    }
-  ],
-  "workLogs": [
-    {
-      "id": "clx555eee",
-      "serviceRequestId": "clx456def",
-      "hoursWorkedMinutes": 120,
-      "payoutPercentage": 70,
-      "createdAt": "2025-12-10T09:00:00.000Z"
-    }
-  ]
-}
-```
+### Required Enhancements:
+- Add pagination to GET /admin/mechanics
+- Add filtering by skills, rating, location
+- Add sorting by rating, jobs completed, years experience
+
+**Phase 0 Deliverable**: YAML interface contracts for all mechanics endpoints
 
 ---
 
-### POST /admin/mechanics
+## Reviews API Requirements
 
-Create new mechanic.
+**Note**: POST/PUT/DELETE endpoints exist. GET endpoints are new.
 
-**Request (multipart/form-data):**
-```
-name: Mike Johnson
-bio: Experienced mechanic with 15 years...
-location: Austin, TX
-yearsExperience: 15
-sinceYear: 2010
-certifications: ["ASE Certified", "Master Technician"]
-badges: ["Top Rated"]
-isActive: true
-skillIds: ["clx222bbb", "clx333ccc"]
-image: [file]
-```
+### New Endpoints:
+- GET /admin/reviews (list with pagination, filters)
+- GET /admin/reviews/:id (detail view)
 
-**Validation:**
-- `name`: Required, 2-100 characters
-- `bio`: Optional, max 5000 characters
-- `location`: Required, 2-100 characters
-- `yearsExperience`: Required, integer 0-70
-- `sinceYear`: Required, integer 1900-current year
-- `certifications`: Optional array of strings
-- `badges`: Optional array of strings
-- `isActive`: Optional boolean, default true
-- `skillIds`: Optional array of valid skill IDs
-- `image`: Optional, max 5MB, jpeg/png/webp
-
-**Success Response (201):**
-```json
-{
-  "id": "clx111aaa",
-  "name": "Mike Johnson",
-  "slug": "mike-johnson",
-  // ... full mechanic object
-}
-```
-
-**Error Responses:**
-- `400 Bad Request`: Validation failed
-- `409 Conflict`: Mechanic with slug already exists
+**Phase 0 Deliverable**: YAML interface contracts for all reviews endpoints
 
 ---
 
-### PUT /admin/mechanics/:id
+## Skills API Requirements
 
-Update mechanic (same format as POST).
+**Note**: GET /admin/skills exists. CRUD operations are new.
 
----
+### New Endpoints:
+- POST /admin/skills (create skill)
+- PUT /admin/skills/:id (update skill)
+- DELETE /admin/skills/:id (delete skill)
 
-### DELETE /admin/mechanics/:id
-
-Delete mechanic.
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Mechanic deleted successfully"
-}
-```
-
-**Error Responses:**
-- `404 Not Found`: Mechanic not found
-- `409 Conflict`: Cannot delete mechanic with active work logs
+**Phase 0 Deliverable**: YAML interface contracts for all skills endpoints
 
 ---
 
-## Reviews API
-
-### GET /admin/reviews
-
-List all reviews with filtering.
-
-**Query Parameters:**
-- `page`, `limit`, `sortBy`, `order` (same as other endpoints)
-- `mechanicId` (string): Filter by mechanic
-- `rating` (number): Filter by exact rating
-- `minRating` (number): Filter by minimum rating
-- `search` (string): Search in review text or reviewer name
-- `startDate`, `endDate`: Filter by creation date
-
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "id": "clx444ddd",
-      "rating": 5,
-      "reviewerName": "Sarah Smith",
-      "reviewerLocation": "Austin, TX",
-      "reviewText": "Excellent service! Very professional...",
-      "carModel": "Toyota Camry",
-      "carYear": 2020,
-      "serviceDescription": "Oil change and inspection",
-      "mechanicId": "clx111aaa",
-      "mechanicName": "Mike Johnson",
-      "serviceRequestId": "clx456def",
-      "photoUrls": ["/uploads/reviews/review-1.jpg"],
-      "createdAt": "2025-12-15T14:00:00.000Z"
-    }
-  ],
-  "meta": {
-    "total": 320,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 16
-  }
-}
-```
-
----
-
-### GET /admin/reviews/:id
-
-Get single review with relations.
-
----
-
-### POST /admin/reviews
-
-Create review (multipart/form-data).
-
-**Request:**
-```
-mechanicId: clx111aaa
-rating: 5
-reviewerName: Sarah Smith
-reviewerLocation: Austin, TX
-reviewText: Excellent service!
-carModel: Toyota Camry
-carYear: 2020
-serviceDescription: Oil change
-serviceRequestId: clx456def (optional)
-photos: [file1, file2]
-```
-
-**Validation:**
-- `mechanicId`: Required, valid mechanic ID
-- `rating`: Required, integer 1-5
-- `reviewerName`: Required, 2-100 characters
-- `reviewerLocation`: Required, 2-100 characters
-- `reviewText`: Required, 10-5000 characters
-- `carModel`: Required, 2-100 characters
-- `carYear`: Required, integer 1900-current year + 1
-- `serviceDescription`: Required, 5-500 characters
-- `serviceRequestId`: Optional, valid service request ID
-- `photos`: Optional, max 10 files, 5MB each, jpeg/png/webp
-
----
-
-### PUT /admin/reviews/:id
-
-Update review (same format as POST).
-
----
-
-### DELETE /admin/reviews/:id
-
-Delete review.
-
----
-
-## Skills API
-
-### GET /admin/skills
-
-List all skills.
-
-**Query Parameters:**
-- `search` (string): Search by name
-- `category` (string): Filter by category
-
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "id": "clx222bbb",
-      "name": "Oil Change",
-      "category": "Maintenance",
-      "mechanicsCount": 35
-    },
-    {
-      "id": "clx333ccc",
-      "name": "Brake Repair",
-      "category": "Brakes",
-      "mechanicsCount": 28
-    }
-  ],
-  "total": 45
-}
-```
-
----
-
-### POST /admin/skills
-
-Create skill.
-
-**Request:**
-```json
-{
-  "name": "Transmission Repair",
-  "category": "Transmission"
-}
-```
-
-**Validation:**
-- `name`: Required, unique, 2-100 characters
-- `category`: Optional, 2-50 characters
-
-**Success Response (201):**
-```json
-{
-  "id": "clx666fff",
-  "name": "Transmission Repair",
-  "category": "Transmission"
-}
-```
-
----
-
-### PUT /admin/skills/:id
-
-Update skill.
-
----
-
-### DELETE /admin/skills/:id
-
-Delete skill (removes all MechanicSkill relationships).
-
----
-
-## Analytics API
+## Analytics API Requirements
 
 ### GET /admin/analytics/overview
 
-Dashboard overview statistics.
+**Purpose**: Dashboard overview statistics.
 
-**Success Response (200):**
-```json
-{
-  "totalRequests": 1523,
-  "totalRevenue": 91380000,
-  "activeMechanics": 42,
-  "averageRating": 4.7,
-  "monthlyRequests": 127,
-  "monthlyRevenue": 7620000,
-  "pendingRequests": 15,
-  "authorizedRequests": 8,
-  "capturedRequests": 18,
-  "finalizedRequests": 86,
-  "totalReviews": 320
-}
-```
+**Requirements**:
+- Total service requests (all time, this month)
+- Active service requests count
+- Total mechanics (active/inactive)
+- Revenue metrics (total, this month)
+- Average rating
+- Requires authentication
+
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| serviceRequests | object | Service request metrics |
+| serviceRequests.total | number | Total all time |
+| serviceRequests.thisMonth | number | Total this month |
+| serviceRequests.active | number | Currently active |
+| serviceRequests.byStatus | object | Count by status |
+| mechanics | object | Mechanic metrics |
+| mechanics.total | number | Total mechanics |
+| mechanics.active | number | Active mechanics |
+| mechanics.inactive | number | Inactive mechanics |
+| revenue | object | Revenue metrics |
+| revenue.total | number | Total revenue (cents) |
+| revenue.thisMonth | number | This month revenue (cents) |
+| reviews | object | Review metrics |
+| reviews.total | number | Total reviews |
+| reviews.averageRating | number | Average rating (1-5) |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### GET /admin/analytics/revenue
 
-Revenue trend over time.
+**Purpose**: Revenue trend data for charts.
 
-**Query Parameters:**
-- `startDate` (ISO date, required)
-- `endDate` (ISO date, required)
-- `groupBy` (string, default: "day"): Options: `day`, `week`, `month`
+**Requirements**:
+- Daily/weekly/monthly revenue aggregation
+- Date range filtering
+- Requires authentication
 
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "date": "2025-12-01",
-      "revenue": 180000,
-      "count": 3
-    },
-    {
-      "date": "2025-12-02",
-      "revenue": 240000,
-      "count": 4
-    }
-  ]
-}
-```
+**Query Parameters**:
+| Parameter | Type | Required | Default | Validation |
+|-----------|------|----------|---------|------------|
+| startDate | string | No | 30 days ago | ISO 8601 date |
+| endDate | string | No | today | ISO 8601 date |
+| groupBy | enum | No | day | day \| week \| month |
 
----
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| data | array | Array of revenue data points |
+| data[].date | string | Date (ISO 8601) |
+| data[].revenueCents | number | Revenue in cents |
+| data[].requestCount | number | Number of requests |
 
-### GET /admin/analytics/requests-trend
-
-Service requests trend over time.
-
-**Query Parameters:**
-- `startDate` (ISO date, required)
-- `endDate` (ISO date, required)
-- `groupBy` (string, default: "day")
-- `status` (string, optional): Filter by status
-
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "date": "2025-12-01",
-      "count": 12,
-      "status": "CAPTURED"
-    },
-    {
-      "date": "2025-12-01",
-      "count": 5,
-      "status": "PENDING"
-    }
-  ]
-}
-```
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
-### GET /admin/analytics/mechanics-performance
+### GET /admin/analytics/mechanics
 
-Mechanic performance metrics.
+**Purpose**: Mechanic performance metrics.
 
-**Query Parameters:**
-- `limit` (number, default: 10): Top N mechanics
-- `sortBy` (string, default: "revenue"): Options: `revenue`, `jobsCompleted`, `rating`
+**Requirements**:
+- Jobs completed, revenue generated, average rating per mechanic
+- Sortable by performance metrics
+- Requires authentication
 
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "mechanicId": "clx111aaa",
-      "name": "Mike Johnson",
-      "jobsCompleted": 156,
-      "rating": 4.8,
-      "revenue": 4680000,
-      "averageJobValue": 30000
-    }
-  ]
-}
-```
+**Query Parameters**:
+| Parameter | Type | Required | Default | Validation |
+|-----------|------|----------|---------|------------|
+| sortBy | enum | No | jobsCompleted | jobsCompleted \| revenue \| rating |
+| sortOrder | enum | No | desc | asc \| desc |
+| limit | number | No | 10 | 1-50 |
+
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| data | array | Array of mechanic performance |
+| data[].mechanicId | string | Mechanic ID |
+| data[].mechanicName | string | Mechanic name |
+| data[].jobsCompleted | number | Jobs completed |
+| data[].revenueCents | number | Revenue generated (cents) |
+| data[].averageRating | number | Average rating (1-5) |
+| data[].reviewCount | number | Number of reviews |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
-## Admin Users API
+## Admin Users API Requirements
 
 ### GET /admin/users
 
-List admin users.
+**Purpose**: List admin users.
 
-**Query Parameters:**
-- `role` (string): Filter by role
-- `isActive` (boolean): Filter by active status
+**Requirements**:
+- Paginated list
+- Filter by role, active status
+- Requires authentication (super-admin only)
 
-**Success Response (200):**
-```json
-{
-  "data": [
-    {
-      "id": "clx777ggg",
-      "name": "Admin User",
-      "email": "admin@example.com",
-      "role": "ADMIN",
-      "isActive": true,
-      "lastLoginAt": "2025-12-25T10:30:00.000Z",
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
-}
-```
+**Query Parameters**:
+| Parameter | Type | Required | Default | Validation |
+|-----------|------|----------|---------|------------|
+| page | number | No | 1 | ≥ 1 |
+| limit | number | No | 20 | 1-100 |
+| role | enum | No | all | super-admin \| admin \| moderator |
+| isActive | boolean | No | all | true \| false |
+
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| data | array | Array of admin users |
+| data[].id | string | User ID (CUID) |
+| data[].email | string | User email |
+| data[].name | string | User name |
+| data[].role | enum | User role |
+| data[].isActive | boolean | Active status |
+| data[].createdAt | string | ISO 8601 timestamp |
+| data[].lastLoginAt | string | ISO 8601 timestamp |
+| pagination | object | Pagination metadata |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 403 | FORBIDDEN | Super-admin access required |
+
+**Phase 0 Deliverable**: YAML interface contract
 
 ---
 
 ### POST /admin/users
 
-Create admin user.
+**Purpose**: Create new admin user.
 
-**Request:**
-```json
-{
-  "name": "New Admin",
-  "email": "newadmin@example.com",
-  "password": "SecurePassword123!",
-  "role": "MANAGER",
-  "isActive": true
+**Requirements**:
+- Email uniqueness validation
+- Password hashing (bcrypt, cost ≥ 12)
+- Email verification (optional)
+- Requires authentication (super-admin only)
+
+**Request Fields**:
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| email | string | Yes | Valid email, unique |
+| name | string | Yes | Non-empty |
+| password | string | Yes | Min 8 chars |
+| role | enum | Yes | super-admin \| admin \| moderator |
+
+**Response Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | User ID (CUID) |
+| email | string | User email |
+| name | string | User name |
+| role | enum | User role |
+| isActive | boolean | Active status (default: true) |
+| createdAt | string | ISO 8601 timestamp |
+
+**Error Responses**:
+| Status | Code | Message |
+|--------|------|---------|
+| 401 | UNAUTHORIZED | Access token required |
+| 403 | FORBIDDEN | Super-admin access required |
+| 400 | BAD_REQUEST | Email already exists |
+| 400 | BAD_REQUEST | Invalid user data |
+
+**Security Considerations**:
+- [ ] bcrypt password hashing (cost ≥ 12)
+- [ ] No password in response
+- [ ] Email verification (optional Phase 2)
+- [ ] Audit logging (who created whom)
+
+**Phase 0 Deliverable**: YAML interface contract
+
+---
+
+## Error Handling Requirements
+
+**Standard Error Response Format**:
+
+```yaml
+error:
+  statusCode: number          # HTTP status code
+  code: string                # Error code (UPPERCASE_SNAKE_CASE)
+  message: string             # Human-readable message
+  details: object | null      # Additional error details (optional)
+  timestamp: string           # ISO 8601 timestamp
+  path: string                # Request path
+```
+
+**Error Codes**:
+
+| Code | Status | Description |
+|------|--------|-------------|
+| BAD_REQUEST | 400 | Invalid request data |
+| UNAUTHORIZED | 401 | Authentication required |
+| FORBIDDEN | 403 | Insufficient permissions |
+| NOT_FOUND | 404 | Resource not found |
+| CONFLICT | 409 | Resource conflict (e.g., duplicate email) |
+| UNPROCESSABLE_ENTITY | 422 | Validation failed |
+| TOO_MANY_REQUESTS | 429 | Rate limit exceeded |
+| INTERNAL_SERVER_ERROR | 500 | Server error |
+
+**Fail-Fast Principle**:
+- Validate ALL inputs before processing
+- Reject invalid requests immediately (400)
+- Never proceed with partial/ambiguous data
+
+**Phase 0 Deliverable**: YAML error response contracts
+
+---
+
+## Security Requirements
+
+**Security-by-Default Checklist**:
+
+### Authentication ✅
+- [ ] JWT with refresh tokens (access: 15min, refresh: 7 days)
+- [ ] httpOnly cookies for token storage
+- [ ] bcrypt password hashing (cost ≥ 12)
+- [ ] Account lockout after 5 failed attempts (15 min)
+- [ ] CSRF protection enabled
+
+### Authorization ✅
+- [ ] RBAC (super-admin, admin, moderator)
+- [ ] Auth guards on ALL admin routes
+- [ ] Least privilege principle
+- [ ] Route-level permissions
+
+### API Security ✅
+- [ ] Rate limiting (100 req/15min per IP)
+- [ ] CORS properly configured
+- [ ] HTTPS enforced
+- [ ] Security headers (helmet.js)
+
+### Input Validation ✅
+- [ ] class-validator on ALL DTOs
+- [ ] Fail-fast validation
+- [ ] SQL injection prevention (Prisma ORM)
+- [ ] XSS prevention (Angular sanitization + CSP)
+
+### Data Security ✅
+- [ ] Password never logged
+- [ ] Sensitive data encrypted at rest
+- [ ] Audit logging enabled
+- [ ] PII handling (GDPR-compliant)
+
+**Phase 0 Deliverable**: Security review checklist for each endpoint
+
+---
+
+## Canonical Types
+
+**From**: docs/standards/common/types.md
+
+**Canonical Types to Consider**:
+
+| Concern | Canonical Type | Usage |
+|---------|---------------|-------|
+| Logging | `logging.LogConfig` | Admin action logs |
+| Observability | `observability.MetricConfig` | API performance metrics |
+| Tags | `tags.TagMap` | Resource tagging |
+| Encryption | `encryption.EncryptionConfig` | Password hashing config |
+| Auth | `auth.JwtConfig` | JWT configuration |
+
+**Note**: Some canonical types may need to be **created** in `src/core/` as they don't exist yet for NestJS/Prisma/Angular projects (this project is not AWS CDK-based).
+
+**Phase 0 Task**: Apply Canonical Type Reuse skill to identify which types to create/reuse.
+
+**See**: Task 2 in ADMIN_DASHBOARD_PLAN.md (Phase 0)
+
+---
+
+## Phase 0 Deliverables
+
+**To be completed during Phase 0** (Apply Interface Designer skill):
+
+### Task 1: YAML Interface Contracts (2 days)
+
+For EACH endpoint, produce:
+
+1. **Fully Commented YAML Contract**
+   ```yaml
+   # Example: Admin Login API Contract
+   apiVersion: admin/v1
+   kind: AdminAuth
+   metadata:
+     name: admin-login
+     description: Authenticate admin user and receive JWT tokens
+
+   spec:
+     endpoint:
+       method: POST
+       path: /api/admin/auth/login
+
+     request:
+       body:
+         email:
+           type: string
+           required: true
+           validation: Valid email format
+           example: admin@example.com
+
+         password:
+           type: string
+           required: true
+           validation: Min 8 characters
+           example: SecurePassword123!
+
+     response:
+       success:
+         status: 200
+         body:
+           accessToken:
+             type: string
+             description: JWT access token, expires in 15 minutes
+             example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+           refreshToken:
+             type: string
+             description: JWT refresh token, expires in 7 days
+             example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+           user:
+             type: object
+             properties:
+               id:
+                 type: string
+                 description: User ID (CUID)
+               email:
+                 type: string
+                 description: User email
+               name:
+                 type: string
+                 description: User name
+               role:
+                 type: enum
+                 values: [super-admin, admin, moderator]
+                 description: User role
+
+       errors:
+         - status: 400
+           code: BAD_REQUEST
+           message: Email and password are required
+           
+         - status: 401
+           code: UNAUTHORIZED
+           message: Invalid credentials
+           
+         - status: 401
+           code: UNAUTHORIZED
+           message: Account is locked due to too many failed attempts
+           
+         - status: 429
+           code: TOO_MANY_REQUESTS
+           message: Too many login attempts. Please try again in 15 minutes.
+
+     security:
+       - bcrypt password hashing (cost factor >= 12)
+       - Generic error message (don't reveal if email exists)
+       - No password in response or logs
+       - CSRF protection enabled
+       - Rate limiting per IP address
+
+     notes:
+       - Access token expires in 15 minutes
+       - Refresh token expires in 7 days
+       - Account locked after 5 failed attempts for 15 minutes
+       - Supports RBAC (super-admin, admin, moderator)
+   ```
+
+2. **Mapping Table** (YAML → TypeScript)
+   ```markdown
+   | YAML Field | TypeScript Type | Location |
+   |------------|----------------|----------|
+   | request.body.email | string | src/domains/admin/auth/types.ts: LoginDto |
+   | request.body.password | string | src/domains/admin/auth/types.ts: LoginDto |
+   | response.success.body | object | src/domains/admin/auth/types.ts: LoginResponse |
+   | response.success.body.accessToken | string | src/domains/admin/auth/types.ts: LoginResponse |
+   | response.success.body.refreshToken | string | src/domains/admin/auth/types.ts: LoginResponse |
+   | response.success.body.user | object | src/domains/admin/auth/types.ts: AdminUserResponse |
+   ```
+
+3. **Canonical Type Imports**
+   ```typescript
+   // src/domains/admin/auth/types.ts
+   // import * as auth from '../../../core/auth';  // If auth canonical type exists
+   // import * as logging from '../../../core/logging';  // If logging canonical type exists
+   ```
+
+4. **Approval Gates**
+   - Human approval required before implementation
+   - Security review required for auth endpoints
+   - STOP if approval not obtained
+
+**Total YAML Contracts**: 31 endpoints
+
+---
+
+### Task 2: TypeScript Interface Definitions (1 day)
+
+Convert YAML contracts to TypeScript interfaces in `types.ts` files:
+
+```typescript
+// src/domains/admin/auth/types.ts
+
+/**
+ * Login request DTO.
+ * 
+ * @see ADMIN_API_SPECIFICATION.md: POST /admin/auth/login
+ */
+export interface LoginDto {
+  /**
+   * Admin email address.
+   * 
+   * @validation Valid email format
+   */
+  readonly email: string;
+
+  /**
+   * Admin password.
+   * 
+   * @validation Min 8 characters
+   */
+  readonly password: string;
+}
+
+/**
+ * Login response.
+ * 
+ * @see ADMIN_API_SPECIFICATION.md: POST /admin/auth/login
+ */
+export interface LoginResponse {
+  /**
+   * JWT access token (expires 15min).
+   */
+  readonly accessToken: string;
+
+  /**
+   * JWT refresh token (expires 7 days).
+   */
+  readonly refreshToken: string;
+
+  /**
+   * Admin user profile.
+   */
+  readonly user: AdminUserResponse;
+}
+
+/**
+ * Admin user response.
+ */
+export interface AdminUserResponse {
+  readonly id: string;
+  readonly email: string;
+  readonly name: string;
+  readonly role: 'super-admin' | 'admin' | 'moderator';
+}
+
+/**
+ * JWT payload.
+ */
+export interface JwtPayload {
+  readonly sub: string;  // user ID
+  readonly email: string;
+  readonly role: string;
 }
 ```
 
-**Validation:**
-- `name`: Required, 2-100 characters
-- `email`: Required, valid email, unique
-- `password`: Required, min 12 characters, must include uppercase, lowercase, number, special char
-- `role`: Required, valid enum value
-- `isActive`: Optional, default true
+---
 
-**Success Response (201):**
-```json
-{
-  "id": "clx888hhh",
-  "name": "New Admin",
-  "email": "newadmin@example.com",
-  "role": "MANAGER",
-  "isActive": true,
-  "createdAt": "2025-12-25T15:00:00.000Z"
+### Task 3: Validation Rules (DTOs with class-validator) (1 day)
+
+Define DTOs with validation decorators:
+
+```typescript
+// src/domains/admin/auth/dto/login.dto.ts
+
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+
+/**
+ * Login request DTO with validation.
+ */
+export class LoginDto {
+  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
+
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @IsNotEmpty({ message: 'Password is required' })
+  password: string;
 }
 ```
 
 ---
 
-### PUT /admin/users/:id
+### Task 4: Human Approval (1 day)
 
-Update admin user (password optional).
+**Approval Checklist**:
 
----
+- [ ] All YAML contracts reviewed
+- [ ] All TypeScript interfaces reviewed
+- [ ] All validation rules reviewed
+- [ ] Canonical types identified
+- [ ] Security requirements reviewed
+- [ ] Human approval obtained
 
-### DELETE /admin/users/:id
-
-Delete admin user (SUPER_ADMIN only).
-
----
-
-## Error Codes
-
-| Code | Meaning |
-|------|---------|
-| 400 | Bad Request - Validation failed or invalid input |
-| 401 | Unauthorized - Missing or invalid authentication token |
-| 403 | Forbidden - Insufficient permissions |
-| 404 | Not Found - Resource not found |
-| 409 | Conflict - Resource already exists or constraint violation |
-| 422 | Unprocessable Entity - Semantic validation failed |
-| 429 | Too Many Requests - Rate limit exceeded |
-| 500 | Internal Server Error - Unexpected server error |
-| 502 | Bad Gateway - External service (Stripe) error |
+**STOP if**: Approval not obtained
 
 ---
 
-## Rate Limiting
+### Phase 0 Completion Criteria
 
-**Login Endpoint:**
-- 5 attempts per 15 minutes per IP
-- Returns 429 after limit exceeded
+Before proceeding to Phase 1 (TDD):
 
-**General API:**
-- 100 requests per 1 minute per user
-- Returns 429 after limit exceeded
+- [ ] All 31 endpoints documented as YAML contracts
+- [ ] All TypeScript interfaces defined
+- [ ] All validation rules defined (DTOs)
+- [ ] Canonical types identified
+- [ ] Security checklist complete
+- [ ] Human approval obtained
 
-**Headers:**
-```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1640432400
-```
+**Quality Gate: Phase 0 Complete**
 
----
+**STOP if**: Any deliverable incomplete or not approved.
 
-## Pagination
+**Next Step**: Proceed to Phase 1 (TDD Foundation)
 
-All list endpoints support pagination:
-
-**Request:**
-```
-GET /admin/service-requests?page=2&limit=50
-```
-
-**Response:**
-```json
-{
-  "data": [...],
-  "meta": {
-    "total": 500,
-    "page": 2,
-    "limit": 50,
-    "totalPages": 10,
-    "hasNextPage": true,
-    "hasPreviousPage": true
-  }
-}
-```
+**Estimated Total Time**: 1 week (5 business days)
 
 ---
 
-## Filtering & Sorting
+## Related Documents
 
-**Example:**
-```
-GET /admin/mechanics?isActive=true&minRating=4.5&sortBy=rating&order=desc&search=austin
-```
-
----
-
-## File Uploads
-
-**Supported Formats:**
-- Images: jpeg, jpg, png, webp
-- Max size: 5MB per file
-- Max files: 10 (reviews), 1 (mechanics)
-
-**Response includes file URLs:**
-```json
-{
-  "imageUrl": "/uploads/mechanics/mechanic-clx123abc-1640432400.jpg"
-}
-```
+- **CLAUDE.md** - Repository constitution
+- **docs/skills/interface-designer.md** - Interface design workflow (MANDATORY)
+- **docs/skills/canonical-type-reuse.md** - Canonical types
+- **docs/skills/admin-dashboard-implementation.md** - Orchestrating skill
+- **docs/standards/common/naming.md** - Naming conventions
+- **docs/standards/common/types.md** - Canonical type catalog
+- **docs/standards/common/security.md** - Security-by-default
+- **docs/admin/ADMIN_DASHBOARD_PLAN.md** - Implementation plan
+- **docs/admin/ADMIN_UI_SPECIFICATION.md** - UI/UX specifications
+- **docs/admin/ADMIN_QUICK_START.md** - Quick start guide
 
 ---
 
-## Webhooks (Future)
+## Constitutional Compliance Statement
 
-Admin actions can trigger webhooks:
+This specification is **CONSTITUTIONALLY COMPLIANT** with:
 
-**Events:**
-- `service_request.captured`
-- `service_request.finalized`
-- `mechanic.created`
-- `review.created`
+- ✅ Interface Designer Skill (docs/skills/interface-designer.md)
+- ✅ Fail-Closed Principle (CLAUDE.md, Lines 538-546)
+- ✅ Canonical Types (CLAUDE.md, Lines 268-280)
+- ✅ Security-by-Default (CLAUDE.md, Lines 183-215)
+- ✅ Quality Gates (CLAUDE.md, Lines 217-266)
+
+**This document is a Phase 0 deliverable** and will be completed by applying the Interface Designer skill during Phase 0.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** December 25, 2025
+**Document Version**: 2.0  
+**Last Updated**: December 25, 2025  
+**Status**: 🟡 **PHASE 0 DELIVERABLE** (To be completed)  
+**Authority**: CLAUDE.md, docs/skills/interface-designer.md  
+**Next Action**: Apply Interface Designer skill during Phase 0
 
+---
+
+## End of Admin API Specification (Requirements)

@@ -1,0 +1,1469 @@
+# Admin Dashboard API Interface Contracts
+# Phase 0 Task 1: Interface Designer Skill Applied
+# Date: 2025-12-26
+# Status: Draft - Awaiting Human Approval
+# Authority: docs/skills/interface-designer.md, CLAUDE.md, docs/standards/common/naming.md
+
+# This document defines TypeScript interface contracts for all admin API endpoints
+# Following constitutional requirements:
+# - Fail-fast validation
+# - Security-by-default
+# - Canonical type reuse
+# - Naming conventions (singular for objects, plural for arrays)
+
+---
+# ============================================================================
+# 1. ADMIN AUTHENTICATION (4 endpoints)
+# ============================================================================
+
+POST /admin/auth/login:
+  summary: Authenticate admin user with email and password
+  request:
+    body:
+      email:
+        type: string
+        required: true
+        validation: email format, max 255 chars
+        description: Admin user email address
+      password:
+        type: string
+        required: true
+        validation: min 8 chars
+        description: Admin user password (plaintext, will be hashed server-side)
+  
+  response:
+    success (200):
+      accessToken:
+        type: string
+        description: JWT access token (expires in 15 minutes)
+      refreshToken:
+        type: string
+        description: JWT refresh token (expires in 7 days)
+      user:
+        type: AdminUserResponse
+        description: Authenticated admin user profile
+    
+    error (400):
+      message: "Email and password are required" | "Invalid email format" | "Password must be at least 8 characters"
+    
+    error (401):
+      message: "Invalid credentials" | "Account is locked due to too many failed attempts" | "Account is inactive"
+    
+    error (429):
+      message: "Too many login attempts. Please try again later."
+  
+  security:
+    - Rate limiting: 5 attempts per 15 minutes per IP
+    - Account lockout after 5 failed attempts (15 min lockout)
+    - Password never logged or returned
+    - HTTPS enforced
+  
+  example_request: |
+    POST /admin/auth/login
+    Content-Type: application/json
+    
+    {
+      "email": "admin@example.com",
+      "password": "SecurePassword123!"
+    }
+  
+  example_response: |
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "user": {
+        "id": "cm123abc456",
+        "email": "admin@example.com",
+        "name": "Admin User",
+        "role": "admin"
+      }
+    }
+
+---
+
+POST /admin/auth/logout:
+  summary: Logout admin user and invalidate refresh token
+  request:
+    body:
+      refreshToken:
+        type: string
+        required: true
+        description: Refresh token to invalidate
+  
+  response:
+    success (200):
+      message: "Logged out successfully"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires valid access token in Authorization header
+    - Refresh token deleted from database
+  
+  example_request: |
+    POST /admin/auth/logout
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  
+  example_response: |
+    {
+      "message": "Logged out successfully"
+    }
+
+---
+
+POST /admin/auth/refresh:
+  summary: Refresh access token using refresh token
+  request:
+    body:
+      refreshToken:
+        type: string
+        required: true
+        description: Valid refresh token
+  
+  response:
+    success (200):
+      accessToken:
+        type: string
+        description: New JWT access token (expires in 15 minutes)
+    
+    error (400):
+      message: "Refresh token is required"
+    
+    error (401):
+      message: "Invalid refresh token" | "Invalid or expired refresh token" | "User not found or inactive"
+  
+  security:
+    - Refresh token validated against database
+    - User must still be active
+    - Old refresh token remains valid (not rotated)
+  
+  example_request: |
+    POST /admin/auth/refresh
+    Content-Type: application/json
+    
+    {
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  
+  example_response: |
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+
+---
+
+GET /admin/auth/profile:
+  summary: Get current authenticated admin user profile
+  request:
+    headers:
+      Authorization:
+        required: true
+        description: "Bearer {accessToken}"
+  
+  response:
+    success (200):
+      user:
+        type: AdminUserResponse
+        description: Current admin user profile
+    
+    error (401):
+      message: "Unauthorized" | "Token expired"
+  
+  security:
+    - Requires valid JWT access token
+    - User ID extracted from JWT payload
+  
+  example_request: |
+    GET /admin/auth/profile
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "role": "admin"
+    }
+
+---
+# ============================================================================
+# 2. SERVICE REQUEST MANAGEMENT (7 endpoints)
+# ============================================================================
+
+GET /admin/service-requests:
+  summary: List all service requests with optional filters
+  request:
+    query:
+      status:
+        type: ServiceRequestStatus | undefined
+        description: Filter by status (PENDING, AUTHORIZED, CAPTURED, CANCELLED, FAILED, FINALIZED)
+      page:
+        type: number
+        default: 1
+        validation: min 1
+        description: Page number for pagination
+      limit:
+        type: number
+        default: 20
+        validation: min 1, max 100
+        description: Number of results per page
+      sortBy:
+        type: string
+        default: "createdAt"
+        validation: "createdAt" | "updatedAt" | "amountCents"
+        description: Field to sort by
+      sortOrder:
+        type: string
+        default: "desc"
+        validation: "asc" | "desc"
+        description: Sort order
+  
+  response:
+    success (200):
+      data:
+        type: ServiceRequestResponse[]
+        description: Array of service requests
+      pagination:
+        type: PaginationResponse
+        description: Pagination metadata
+    
+    error (400):
+      message: "Invalid query parameters"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+  
+  example_request: |
+    GET /admin/service-requests?status=PENDING&page=1&limit=20&sortBy=createdAt&sortOrder=desc
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "data": [
+        {
+          "id": "cm123abc456",
+          "createdAt": "2025-12-26T10:00:00Z",
+          "updatedAt": "2025-12-26T10:00:00Z",
+          "firstName": "John",
+          "lastName": "Doe",
+          "email": "john@example.com",
+          "phone": "+15555551234",
+          "addressLine1": "123 Main St",
+          "addressLine2": null,
+          "city": "San Francisco",
+          "state": "CA",
+          "postalCode": "94102",
+          "country": "US",
+          "vehicleMake": "Toyota",
+          "vehicleModel": "Camry",
+          "vehicleYear": 2020,
+          "amountCents": 6000,
+          "finalAmountCents": null,
+          "stripePaymentIntentId": "pi_123abc",
+          "finalPaymentIntentId": null,
+          "stripeCustomerId": "cus_123abc",
+          "stripePaymentMethodId": "pm_123abc",
+          "status": "PENDING"
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 1,
+        "totalPages": 1
+      }
+    }
+
+---
+
+GET /admin/service-requests/:id:
+  summary: Get service request detail by ID
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID (CUID)
+  
+  response:
+    success (200):
+      type: ServiceRequestDetailResponse
+      description: Service request with work logs and reviews
+    
+    error (404):
+      message: "Service request not found"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+  
+  example_request: |
+    GET /admin/service-requests/cm123abc456
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "createdAt": "2025-12-26T10:00:00Z",
+      "updatedAt": "2025-12-26T10:00:00Z",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john@example.com",
+      "phone": "+15555551234",
+      "addressLine1": "123 Main St",
+      "addressLine2": null,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94102",
+      "country": "US",
+      "vehicleMake": "Toyota",
+      "vehicleModel": "Camry",
+      "vehicleYear": 2020,
+      "amountCents": 6000,
+      "finalAmountCents": null,
+      "stripePaymentIntentId": "pi_123abc",
+      "finalPaymentIntentId": null,
+      "stripeCustomerId": "cus_123abc",
+      "stripePaymentMethodId": "pm_123abc",
+      "status": "PENDING",
+      "workLogs": [],
+      "reviews": []
+    }
+
+---
+
+PUT /admin/service-requests/:id:
+  summary: Update service request (limited fields)
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID
+    body:
+      status:
+        type: ServiceRequestStatus
+        optional: true
+        description: Update status
+      notes:
+        type: string
+        optional: true
+        description: Admin notes (internal)
+  
+  response:
+    success (200):
+      type: ServiceRequestResponse
+      description: Updated service request
+    
+    error (400):
+      message: "Invalid update data"
+    
+    error (404):
+      message: "Service request not found"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+    - Cannot update payment fields directly (use capture/finalize endpoints)
+  
+  example_request: |
+    PUT /admin/service-requests/cm123abc456
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "status": "AUTHORIZED",
+      "notes": "Customer confirmed appointment"
+    }
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "status": "AUTHORIZED",
+      "updatedAt": "2025-12-26T10:05:00Z"
+    }
+
+---
+
+POST /admin/service-requests/:id/capture:
+  summary: Capture payment for authorized service request
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID
+  
+  response:
+    success (200):
+      type: ServiceRequestResponse
+      description: Service request with CAPTURED status
+    
+    error (400):
+      message: "Service request must be in AUTHORIZED status" | "Payment intent not found"
+    
+    error (404):
+      message: "Service request not found"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (500):
+      message: "Payment capture failed: {stripe_error}"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+    - Idempotent operation (can be called multiple times safely)
+  
+  example_request: |
+    POST /admin/service-requests/cm123abc456/capture
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "status": "CAPTURED",
+      "amountCents": 6000,
+      "stripePaymentIntentId": "pi_123abc",
+      "updatedAt": "2025-12-26T10:10:00Z"
+    }
+
+---
+
+POST /admin/service-requests/:id/cancel:
+  summary: Cancel service request and refund payment if captured
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID
+    body:
+      reason:
+        type: string
+        optional: true
+        description: Cancellation reason (for audit logging)
+  
+  response:
+    success (200):
+      type: ServiceRequestResponse
+      description: Service request with CANCELLED status
+    
+    error (400):
+      message: "Cannot cancel finalized service request"
+    
+    error (404):
+      message: "Service request not found"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (500):
+      message: "Cancellation failed: {stripe_error}"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+    - Audit logged with reason
+  
+  example_request: |
+    POST /admin/service-requests/cm123abc456/cancel
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "reason": "Customer requested cancellation"
+    }
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "status": "CANCELLED",
+      "updatedAt": "2025-12-26T10:15:00Z"
+    }
+
+---
+
+POST /admin/service-requests/:id/finalize:
+  summary: Finalize service request with final amount and capture payment
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID
+    body:
+      finalAmountCents:
+        type: number
+        required: true
+        validation: min 0, must be > 0
+        description: Final amount in cents (may differ from initial amount)
+  
+  response:
+    success (200):
+      type: ServiceRequestResponse
+      description: Service request with FINALIZED status
+    
+    error (400):
+      message: "Service request must be in CAPTURED status" | "Final amount is required" | "Final amount must be greater than 0"
+    
+    error (404):
+      message: "Service request not found"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (500):
+      message: "Finalization failed: {stripe_error}"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+    - Creates new payment intent if final amount differs from initial
+    - Audit logged
+  
+  example_request: |
+    POST /admin/service-requests/cm123abc456/finalize
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "finalAmountCents": 7500
+    }
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "status": "FINALIZED",
+      "finalAmountCents": 7500,
+      "finalPaymentIntentId": "pi_456def",
+      "updatedAt": "2025-12-26T10:20:00Z"
+    }
+
+---
+
+POST /admin/service-requests/:id/work-logs:
+  summary: Add work log entry to service request
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Service request ID
+    body:
+      mechanicId:
+        type: string
+        optional: true
+        description: Mechanic ID (CUID) - references Mechanic table
+      mechanicName:
+        type: string
+        required: true
+        description: Mechanic name (for backward compatibility)
+      hoursWorkedMinutes:
+        type: number
+        required: true
+        validation: min 0
+        description: Time worked in minutes
+      payoutPercentage:
+        type: number
+        required: true
+        validation: min 0, max 100
+        description: Payout percentage (0-100)
+      notes:
+        type: string
+        optional: true
+        description: Work log notes
+  
+  response:
+    success (201):
+      type: MechanicWorkLogResponse
+      description: Created work log entry
+    
+    error (400):
+      message: "Invalid work log data" | "Mechanic name is required" | "Hours worked must be >= 0" | "Payout percentage must be between 0 and 100"
+    
+    error (404):
+      message: "Service request not found" | "Mechanic not found"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+    - Mechanic ID validated if provided
+  
+  example_request: |
+    POST /admin/service-requests/cm123abc456/work-logs
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "mechanicId": "cm789xyz",
+      "mechanicName": "John Smith",
+      "hoursWorkedMinutes": 120,
+      "payoutPercentage": 70,
+      "notes": "Completed brake replacement"
+    }
+  
+  example_response: |
+    {
+      "id": "cm456def789",
+      "createdAt": "2025-12-26T10:25:00Z",
+      "serviceRequestId": "cm123abc456",
+      "mechanicId": "cm789xyz",
+      "mechanicName": "John Smith",
+      "hoursWorkedMinutes": 120,
+      "payoutPercentage": 70,
+      "notes": "Completed brake replacement"
+    }
+
+---
+# ============================================================================
+# 3. ADMIN USER MANAGEMENT (5 endpoints)
+# ============================================================================
+
+GET /admin/users:
+  summary: List all admin users
+  request:
+    query:
+      role:
+        type: AdminRole | undefined
+        description: Filter by role (super-admin, admin, moderator)
+      page:
+        type: number
+        default: 1
+        validation: min 1
+      limit:
+        type: number
+        default: 20
+        validation: min 1, max 100
+  
+  response:
+    success (200):
+      data:
+        type: AdminUserResponse[]
+        description: Array of admin users (password never included)
+      pagination:
+        type: PaginationResponse
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (403):
+      message: "Forbidden" (role: moderator cannot access)
+  
+  security:
+    - Requires admin authentication
+    - Role: super-admin, admin
+    - Password hash never returned
+  
+  example_request: |
+    GET /admin/users?role=admin&page=1&limit=20
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "data": [
+        {
+          "id": "cm123abc456",
+          "email": "admin@example.com",
+          "name": "Admin User",
+          "role": "admin",
+          "isActive": true,
+          "createdAt": "2025-01-01T00:00:00Z",
+          "updatedAt": "2025-12-26T10:00:00Z"
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 1,
+        "totalPages": 1
+      }
+    }
+
+---
+
+GET /admin/users/:id:
+  summary: Get admin user by ID
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Admin user ID
+  
+  response:
+    success (200):
+      type: AdminUserResponse
+      description: Admin user (password never included)
+    
+    error (404):
+      message: "Admin user not found"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (403):
+      message: "Forbidden"
+  
+  security:
+    - Requires admin authentication
+    - Role: super-admin, admin
+    - Password hash never returned
+  
+  example_request: |
+    GET /admin/users/cm123abc456
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "id": "cm123abc456",
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "updatedAt": "2025-12-26T10:00:00Z"
+    }
+
+---
+
+POST /admin/users:
+  summary: Create new admin user
+  request:
+    body:
+      email:
+        type: string
+        required: true
+        validation: email format, max 255 chars, unique
+        description: Admin email address
+      name:
+        type: string
+        required: true
+        validation: min 1 char, max 255 chars
+        description: Admin display name
+      password:
+        type: string
+        required: true
+        validation: min 8 chars
+        description: Initial password (will be hashed with bcrypt cost 12)
+      role:
+        type: AdminRole
+        required: true
+        validation: "super-admin" | "admin" | "moderator"
+        description: Admin role (determines permissions)
+  
+  response:
+    success (201):
+      type: AdminUserResponse
+      description: Created admin user (password never included)
+    
+    error (400):
+      message: "Email is required" | "Invalid email format" | "Email already exists" | "Name is required" | "Password must be at least 8 characters" | "Role is required" | "Invalid role"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (403):
+      message: "Forbidden" (only super-admin can create)
+  
+  security:
+    - Requires admin authentication
+    - Role: super-admin only
+    - Password hashed with bcrypt cost 12
+    - Email must be unique
+    - Audit logged
+  
+  example_request: |
+    POST /admin/users
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "email": "newadmin@example.com",
+      "name": "New Admin",
+      "password": "SecurePassword123!",
+      "role": "admin"
+    }
+  
+  example_response: |
+    {
+      "id": "cm456def789",
+      "email": "newadmin@example.com",
+      "name": "New Admin",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2025-12-26T10:30:00Z",
+      "updatedAt": "2025-12-26T10:30:00Z"
+    }
+
+---
+
+PUT /admin/users/:id:
+  summary: Update admin user (limited fields)
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Admin user ID
+    body:
+      name:
+        type: string
+        optional: true
+        validation: min 1 char, max 255 chars
+      role:
+        type: AdminRole
+        optional: true
+        validation: "super-admin" | "admin" | "moderator"
+      isActive:
+        type: boolean
+        optional: true
+      password:
+        type: string
+        optional: true
+        validation: min 8 chars
+        description: New password (will be hashed with bcrypt cost 12)
+  
+  response:
+    success (200):
+      type: AdminUserResponse
+      description: Updated admin user
+    
+    error (400):
+      message: "Invalid update data" | "Password must be at least 8 characters"
+    
+    error (404):
+      message: "Admin user not found"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (403):
+      message: "Forbidden" (only super-admin can update roles)
+  
+  security:
+    - Requires admin authentication
+    - Role: super-admin (can update all fields), admin (can update name/password only)
+    - Cannot update email (immutable)
+    - Password hashed with bcrypt cost 12 if provided
+    - Audit logged
+  
+  example_request: |
+    PUT /admin/users/cm456def789
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    {
+      "name": "Updated Admin Name",
+      "isActive": false
+    }
+  
+  example_response: |
+    {
+      "id": "cm456def789",
+      "email": "newadmin@example.com",
+      "name": "Updated Admin Name",
+      "role": "admin",
+      "isActive": false,
+      "createdAt": "2025-12-26T10:30:00Z",
+      "updatedAt": "2025-12-26T10:35:00Z"
+    }
+
+---
+
+DELETE /admin/users/:id:
+  summary: Delete admin user (soft delete - set isActive = false)
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Admin user ID
+  
+  response:
+    success (200):
+      message: "Admin user deleted successfully"
+    
+    error (404):
+      message: "Admin user not found"
+    
+    error (400):
+      message: "Cannot delete your own account"
+    
+    error (401):
+      message: "Unauthorized"
+    
+    error (403):
+      message: "Forbidden" (only super-admin can delete)
+  
+  security:
+    - Requires admin authentication
+    - Role: super-admin only
+    - Soft delete (set isActive = false, do not actually delete from database)
+    - Cannot delete own account
+    - Audit logged
+  
+  example_request: |
+    DELETE /admin/users/cm456def789
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "message": "Admin user deleted successfully"
+    }
+
+---
+# ============================================================================
+# 4. ANALYTICS / DASHBOARD (3 endpoints)
+# ============================================================================
+
+GET /admin/analytics/overview:
+  summary: Get dashboard overview statistics
+  request:
+    query:
+      startDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter start date (default: 30 days ago)
+      endDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter end date (default: now)
+  
+  response:
+    success (200):
+      totalServiceRequests:
+        type: number
+        description: Total service requests in date range
+      totalRevenueCents:
+        type: number
+        description: Total revenue in cents
+      averageJobValueCents:
+        type: number
+        description: Average job value in cents
+      pendingRequests:
+        type: number
+        description: Count of PENDING requests
+      authorizedRequests:
+        type: number
+        description: Count of AUTHORIZED requests
+      capturedRequests:
+        type: number
+        description: Count of CAPTURED requests
+      finalizedRequests:
+        type: number
+        description: Count of FINALIZED requests
+      cancelledRequests:
+        type: number
+        description: Count of CANCELLED requests
+      activeMechanics:
+        type: number
+        description: Count of active mechanics
+      totalReviews:
+        type: number
+        description: Total reviews in date range
+      averageRating:
+        type: number
+        description: Average rating across all reviews
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+  
+  example_request: |
+    GET /admin/analytics/overview?startDate=2025-11-26T00:00:00Z&endDate=2025-12-26T23:59:59Z
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "totalServiceRequests": 42,
+      "totalRevenueCents": 252000,
+      "averageJobValueCents": 6000,
+      "pendingRequests": 5,
+      "authorizedRequests": 3,
+      "capturedRequests": 2,
+      "finalizedRequests": 30,
+      "cancelledRequests": 2,
+      "activeMechanics": 8,
+      "totalReviews": 25,
+      "averageRating": 4.7
+    }
+
+---
+
+GET /admin/analytics/revenue:
+  summary: Get revenue metrics over time
+  request:
+    query:
+      startDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter start date (default: 30 days ago)
+      endDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter end date (default: now)
+      groupBy:
+        type: string
+        default: "day"
+        validation: "day" | "week" | "month"
+        description: Group results by time period
+  
+  response:
+    success (200):
+      data:
+        type: RevenueDataPoint[]
+        description: Array of revenue data points
+    
+    error (400):
+      message: "Invalid query parameters"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+  
+  example_request: |
+    GET /admin/analytics/revenue?startDate=2025-11-26T00:00:00Z&endDate=2025-12-26T23:59:59Z&groupBy=week
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "data": [
+        {
+          "date": "2025-11-26",
+          "revenueCents": 84000,
+          "jobCount": 14
+        },
+        {
+          "date": "2025-12-03",
+          "revenueCents": 90000,
+          "jobCount": 15
+        },
+        {
+          "date": "2025-12-10",
+          "revenueCents": 42000,
+          "jobCount": 7
+        },
+        {
+          "date": "2025-12-17",
+          "revenueCents": 36000,
+          "jobCount": 6
+        }
+      ]
+    }
+
+---
+
+GET /admin/analytics/mechanics:
+  summary: Get mechanic performance metrics
+  request:
+    query:
+      startDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter start date (default: 30 days ago)
+      endDate:
+        type: string (ISO 8601)
+        optional: true
+        description: Filter end date (default: now)
+      limit:
+        type: number
+        default: 10
+        validation: min 1, max 50
+        description: Number of top mechanics to return
+  
+  response:
+    success (200):
+      data:
+        type: MechanicPerformanceResponse[]
+        description: Array of mechanic performance metrics
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+  
+  example_request: |
+    GET /admin/analytics/mechanics?startDate=2025-11-26T00:00:00Z&endDate=2025-12-26T23:59:59Z&limit=10
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  
+  example_response: |
+    {
+      "data": [
+        {
+          "mechanicId": "cm789xyz",
+          "mechanicName": "John Smith",
+          "jobsCompleted": 12,
+          "totalMinutesWorked": 1440,
+          "averageRating": 4.8,
+          "reviewCount": 10,
+          "totalPayoutCents": 50400
+        },
+        {
+          "mechanicId": "cm456abc",
+          "mechanicName": "Jane Doe",
+          "jobsCompleted": 10,
+          "totalMinutesWorked": 1200,
+          "averageRating": 4.9,
+          "reviewCount": 9,
+          "totalPayoutCents": 42000
+        }
+      ]
+    }
+
+---
+# ============================================================================
+# 5. ENHANCED EXISTING ENDPOINTS (8 endpoints)
+# ============================================================================
+
+# These endpoints already exist but will be enhanced with authentication,
+# validation, and additional features
+
+GET /admin/mechanics:
+  summary: List all mechanics (enhanced with filters)
+  request:
+    query:
+      isActive:
+        type: boolean | undefined
+        description: Filter by active status
+      page:
+        type: number
+        default: 1
+        validation: min 1
+      limit:
+        type: number
+        default: 20
+        validation: min 1, max 100
+  
+  response:
+    success (200):
+      data:
+        type: MechanicResponse[]
+      pagination:
+        type: PaginationResponse
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+
+---
+
+GET /admin/mechanics/:id:
+  summary: Get mechanic by ID
+  request:
+    params:
+      id:
+        type: string
+        required: true
+        description: Mechanic ID
+  
+  response:
+    success (200):
+      type: MechanicDetailResponse
+    
+    error (404):
+      message: "Mechanic not found"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+
+---
+
+POST /admin/mechanics:
+  summary: Create new mechanic (enhanced with validation)
+  request:
+    body:
+      name:
+        type: string
+        required: true
+      bio:
+        type: string
+        optional: true
+      imageUrl:
+        type: string
+        optional: true
+      location:
+        type: string
+        required: true
+      yearsExperience:
+        type: number
+        required: true
+        validation: min 0
+      sinceYear:
+        type: number
+        required: true
+        validation: min 1900, max current year
+      certifications:
+        type: string[]
+        optional: true
+      badges:
+        type: string[]
+        optional: true
+  
+  response:
+    success (201):
+      type: MechanicResponse
+    
+    error (400):
+      message: "Invalid mechanic data"
+    
+    error (401):
+      message: "Unauthorized"
+  
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+PUT /admin/mechanics/:id:
+  summary: Update mechanic (enhanced with validation)
+  # Similar structure to POST
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+DELETE /admin/mechanics/:id:
+  summary: Delete mechanic (soft delete)
+  security:
+    - Requires admin authentication
+    - Role: super-admin only
+
+---
+
+GET /admin/reviews:
+  summary: List all reviews (NEW - currently not implemented)
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+
+---
+
+GET /admin/reviews/:id:
+  summary: Get review by ID (NEW)
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+
+---
+
+POST /admin/reviews:
+  summary: Create review (enhanced with validation)
+  # Existing endpoint
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+PUT /admin/reviews/:id:
+  summary: Update review (enhanced with validation)
+  # Existing endpoint
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+DELETE /admin/reviews/:id:
+  summary: Delete review (soft delete or hard delete)
+  # Existing endpoint
+  security:
+    - Requires admin authentication
+    - Role: super-admin only
+
+---
+
+GET /admin/skills:
+  summary: List all skills
+  # Existing endpoint - already implemented
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin, moderator
+
+---
+
+POST /admin/skills:
+  summary: Create new skill (NEW)
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+PUT /admin/skills/:id:
+  summary: Update skill (NEW)
+  security:
+    - Requires admin authentication
+    - Role: admin, super-admin
+
+---
+
+DELETE /admin/skills/:id:
+  summary: Delete skill (NEW)
+  security:
+    - Requires admin authentication
+    - Role: super-admin only
+
+---
+# ============================================================================
+# SHARED TYPE DEFINITIONS
+# ============================================================================
+
+# These types will be defined in TypeScript following canonical type reuse
+
+AdminUserResponse:
+  id: string
+  email: string
+  name: string
+  role: AdminRole ("super-admin" | "admin" | "moderator")
+  isActive: boolean
+  createdAt: string (ISO 8601)
+  updatedAt: string (ISO 8601)
+
+ServiceRequestResponse:
+  id: string
+  createdAt: string (ISO 8601)
+  updatedAt: string (ISO 8601)
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  addressLine1: string
+  addressLine2: string | null
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  vehicleMake: string
+  vehicleModel: string
+  vehicleYear: number
+  amountCents: number
+  finalAmountCents: number | null
+  stripePaymentIntentId: string | null
+  finalPaymentIntentId: string | null
+  stripeCustomerId: string | null
+  stripePaymentMethodId: string | null
+  status: ServiceRequestStatus
+
+ServiceRequestDetailResponse:
+  # Extends ServiceRequestResponse
+  workLogs: MechanicWorkLogResponse[]
+  reviews: ReviewResponse[]
+
+MechanicWorkLogResponse:
+  id: string
+  createdAt: string (ISO 8601)
+  serviceRequestId: string
+  mechanicId: string | null
+  mechanicName: string
+  hoursWorkedMinutes: number
+  payoutPercentage: number
+  notes: string | null
+
+PaginationResponse:
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+
+RevenueDataPoint:
+  date: string (ISO 8601)
+  revenueCents: number
+  jobCount: number
+
+MechanicPerformanceResponse:
+  mechanicId: string
+  mechanicName: string
+  jobsCompleted: number
+  totalMinutesWorked: number
+  averageRating: number
+  reviewCount: number
+  totalPayoutCents: number
+
+MechanicResponse:
+  id: string
+  createdAt: string (ISO 8601)
+  updatedAt: string (ISO 8601)
+  name: string
+  slug: string
+  bio: string | null
+  imageUrl: string | null
+  location: string
+  yearsExperience: number
+  rating: number
+  reviewCount: number
+  jobsCompleted: number
+  sinceYear: number
+  certifications: string[]
+  badges: string[]
+  isActive: boolean
+
+MechanicDetailResponse:
+  # Extends MechanicResponse
+  skills: SkillResponse[]
+  reviews: ReviewResponse[]
+  workLogs: MechanicWorkLogResponse[]
+
+SkillResponse:
+  id: string
+  name: string
+  category: string | null
+
+ReviewResponse:
+  id: string
+  createdAt: string (ISO 8601)
+  updatedAt: string (ISO 8601)
+  rating: number
+  reviewerName: string
+  reviewerLocation: string
+  reviewText: string
+  carModel: string
+  carYear: number
+  serviceDescription: string
+  mechanicId: string
+  serviceRequestId: string | null
+  photoUrls: string[]
+
+---
+# END OF YAML INTERFACE CONTRACTS
+# Total Endpoints: 31
+# Status: Draft - Awaiting Human Approval
+# Next Step: Task 2 (Apply Canonical Type Reuse skill)

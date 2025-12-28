@@ -9,7 +9,7 @@ Welcome to the Mechanic Dispatch Admin Dashboard documentation. This directory c
 ### Quick Start
 **Start here if you're new to the admin dashboard project**
 
-- 📋 **[ADMIN_SUMMARY.md](../ADMIN_SUMMARY.md)** - Executive summary and project overview
+- 📋 **[ADMIN_SUMMARY.md](./ADMIN_SUMMARY.md)** - Executive summary and project overview
   - What we're building
   - Key decisions
   - Timeline overview
@@ -17,28 +17,28 @@ Welcome to the Mechanic Dispatch Admin Dashboard documentation. This directory c
 
 ### Implementation Guides
 
-1. 🚀 **[ADMIN_QUICK_START.md](../ADMIN_QUICK_START.md)** - Get started immediately
+1. 🚀 **[ADMIN_QUICK_START.md](./ADMIN_QUICK_START.md)** - Get started immediately
    - Step-by-step setup
    - Database schema updates
    - Authentication implementation
    - Testing procedures
    - ~2-3 hours to complete Phase 1-3 setup
 
-2. 📖 **[ADMIN_DASHBOARD_PLAN.md](../ADMIN_DASHBOARD_PLAN.md)** - Complete implementation roadmap
+2. 📖 **[ADMIN_DASHBOARD_PLAN.md](./ADMIN_DASHBOARD_PLAN.md)** - Complete implementation roadmap
    - 11-phase implementation plan
    - Detailed requirements
    - Component architecture
    - File structure
    - ~100 pages, 2-3 hours to read
 
-3. 🔌 **[ADMIN_API_SPECIFICATION.md](../ADMIN_API_SPECIFICATION.md)** - Backend API reference
+3. 🔌 **[ADMIN_API_SPECIFICATION.md](./ADMIN_API_SPECIFICATION.md)** - Backend API reference
    - All 38 endpoint specifications
    - Request/response schemas
    - Validation rules
    - Error codes
    - Authentication flows
 
-4. 🎨 **[ADMIN_UI_SPECIFICATION.md](../ADMIN_UI_SPECIFICATION.md)** - Frontend design guide
+4. 🎨 **[ADMIN_UI_SPECIFICATION.md](./ADMIN_UI_SPECIFICATION.md)** - Frontend design guide
    - Layout structures
    - Page designs
    - Component library
@@ -46,7 +46,7 @@ Welcome to the Mechanic Dispatch Admin Dashboard documentation. This directory c
    - Responsive design rules
    - Accessibility guidelines
 
-5. ✅ **[ADMIN_DECISION_CHECKLIST.md](../ADMIN_DECISION_CHECKLIST.md)** - Pre-implementation decisions
+5. ✅ **[ADMIN_DECISION_CHECKLIST.md](./ADMIN_DECISION_CHECKLIST.md)** - Pre-implementation decisions
    - Template selection
    - Authentication strategy
    - Feature prioritization
@@ -402,4 +402,5 @@ The admin dashboard is complete when:
 **Last Updated:** December 25, 2025  
 **Status:** Ready for Implementation  
 **Version:** 1.0
+
 

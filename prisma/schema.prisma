@@ -119,3 +119,59 @@ model Review {
   @@index([createdAt])
 }
 
+// Admin Dashboard Models
+
+model AdminUser {
+  id                   String   @id @default(cuid())
+  email                String   @unique
+  name                 String
+  passwordHash         String   // bcrypt hash (cost factor 12)
+  role                 String   // "super-admin" | "admin" | "moderator"
+  isActive             Boolean  @default(true)
+  failedLoginAttempts  Int      @default(0)
+  lastFailedLoginAt    DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  refreshTokens        AdminRefreshToken[]
+  auditLogs            AuditLog[]
+
+  @@index([email])
+}
+
+model AdminRefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique  // Hashed refresh token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([token])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  timestamp    DateTime @default(now())
+  actorId      String
+  actorEmail   String
+  actorRole    String
+  action       String
+  resourceType String
+  resourceId   String
+  changes      Json?     // Before/after changes
+  ipAddress    String?
+  userAgent    String?
+  metadata     Json?
+  
+  actor        AdminUser @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  
+  @@index([actorId])
+  @@index([timestamp])
+  @@index([action])
+  @@index([resourceType])
+}
+
