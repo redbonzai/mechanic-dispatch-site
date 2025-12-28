@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.0.0...v1.1.0) (2025-12-28)
+
+
+### Features
+
+* **phase1:** completed phases 0 and 1 of development of the admin dashboard ([0c9183a](https://github.com/redbonzai/mechanic-dispatch/commit/0c9183a5e5f91844a3db02b41446ccdb6295675e))
+
 # 1.0.0 (2025-12-25)
 
 
