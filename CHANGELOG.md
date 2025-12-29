@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.4.0...v1.5.0) (2025-12-29)
+
+
+### Features
+
+* **admin:** add Angular analytics dashboard frontend ([#34](https://github.com/redbonzai/mechanic-dispatch/issues/34)) ([5fd6c35](https://github.com/redbonzai/mechanic-dispatch/commit/5fd6c352303f3d1e359e0672d1409e964a5f23c9))
+
 # [1.4.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.3.0...v1.4.0) (2025-12-29)
 
 
