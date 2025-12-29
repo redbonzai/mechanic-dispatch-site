@@ -16,6 +16,8 @@ import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AdminAnalyticsController } from './analytics/AdminAnalyticsController';
 import { AdminAnalyticsService } from './analytics/AdminAnalyticsService';
+import { AdminServiceRequestsController } from './service-requests/AdminServiceRequestsController';
+import { AdminServiceRequestsService } from './service-requests/AdminServiceRequestsService';
 
 @Module({
   imports: [
@@ -39,11 +41,13 @@ import { AdminAnalyticsService } from './analytics/AdminAnalyticsService';
     AdminSkillsController,
     AdminAuthController,
     AdminAnalyticsController,
+    AdminServiceRequestsController,
   ],
   providers: [
     AdminService,
     AdminAuthService,
     AdminAnalyticsService,
+    AdminServiceRequestsService,
     JwtStrategy,
     JwtAuthGuard,
   ],

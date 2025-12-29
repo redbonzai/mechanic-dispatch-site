@@ -59,6 +59,14 @@ jobs:
       - name: Install dependencies (API + Web)
         run: pnpm install --frozen-lockfile
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres && break
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
       - name: Verify conventional commits
         run: pnpm run commitlint:check
 

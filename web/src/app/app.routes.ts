@@ -35,6 +35,10 @@ export const routes: Routes = [
   { path: 'services/pre-purchase-inspection', component: PrePurchaseInspectionComponent },
   { path: 'services/check-engine-light', component: CheckEngineLightComponent },
   { path: 'services/towing-roadside', component: TowingRoadsideComponent },
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.routes').then(m => m.adminRoutes),
+  },
   { path: '**', redirectTo: '' },
 ];
 

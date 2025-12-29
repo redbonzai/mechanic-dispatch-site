@@ -248,32 +248,185 @@ Add a testing Postgres instance and Stripe test keys to re-enable end-to-end cov
 
 ## Admin Dashboard
 
-A comprehensive Angular-based admin dashboard is planned to manage:
-- ✅ Service requests (capture, cancel, finalize payments)
-- ✅ Mechanics (CRUD operations, skills, profiles)
-- ✅ Reviews (moderate, create, edit, delete)
-- ✅ Skills management
-- ✅ Analytics and metrics
-- ✅ Admin user management (role-based access)
+A comprehensive Angular-based admin dashboard for managing the mechanic dispatch system.
+
+### Current Implementation Status
+
+**✅ Completed (v1.5.0):**
+- ✅ JWT Authentication (login, refresh tokens, logout)
+- ✅ Analytics API (overview, revenue, mechanics performance)
+- ✅ Analytics Dashboard UI (6 stat cards, revenue metrics, mechanics table)
+- ✅ 89% test coverage (88/88 tests passing)
+- ✅ Production build successful
+
+**⏳ Next Phase:**
+- Service Request Management (GET endpoints + admin UI)
+- Admin User Management
+- Enhanced Mechanics/Reviews/Skills Management
+
+### Testing the Admin API
+
+#### Prerequisites
+
+1. **Start the backend:**
+```bash
+pnpm start:dev
+```
+
+2. **Create an admin user** (if not exists):
+```bash
+# Use Prisma Studio
+pnpm prisma:studio
+
+# Or run seed script (if configured)
+pnpm prisma:seed
+```
+
+Create an admin user with:
+- Email: `admin@example.com`
+- Password: (hashed with bcrypt, cost factor 12)
+- Role: `SUPER_ADMIN`
+
+#### Authentication Flow
+
+**1. Login:**
+```bash
+curl -X POST http://localhost:3000/api/admin/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "your-password"
+  }'
+```
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "eyJhbGc...",
+  "user": {
+    "id": "...",
+    "email": "admin@example.com",
+    "role": "SUPER_ADMIN"
+  }
+}
+```
+
+Save the `accessToken` for subsequent requests.
+
+**2. Refresh Token:**
+```bash
+curl -X POST http://localhost:3000/api/admin/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "your-refresh-token"
+  }'
+```
+
+**3. Logout:**
+```bash
+curl -X POST http://localhost:3000/api/admin/auth/logout \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+#### Analytics Endpoints
+
+All analytics endpoints require JWT authentication.
+
+**Get Overview Statistics:**
+```bash
+curl http://localhost:3000/api/admin/analytics/overview \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "totalRequests": 150,
+  "pendingRequests": 10,
+  "finalizedRequests": 120,
+  "totalRevenueCents": 1500000,
+  "activeMechanics": 12,
+  "totalMechanics": 15,
+  "averageRating": 4.6,
+  "totalReviews": 85,
+  "totalWorkLogs": 250
+}
+```
+
+**Get Revenue Metrics:**
+```bash
+curl "http://localhost:3000/api/admin/analytics/revenue?startDate=2025-01-01&endDate=2025-12-31&granularity=month" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Query Parameters:**
+- `startDate` (optional): ISO 8601 date (e.g., "2025-01-01")
+- `endDate` (optional): ISO 8601 date
+- `granularity` (optional): `day` | `week` | `month` (default: `day`)
+
+**Get Mechanics Performance:**
+```bash
+curl "http://localhost:3000/api/admin/analytics/mechanics?isActive=true&sortBy=jobs&sortOrder=desc" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Query Parameters:**
+- `isActive` (optional): Filter by active status (`true` | `false`)
+- `minJobs` (optional): Minimum completed jobs
+- `sortBy` (optional): `jobs` | `hours` | `earnings` | `rating` (default: `jobs`)
+- `sortOrder` (optional): `asc` | `desc` (default: `desc`)
+
+### Testing the Admin Frontend
+
+**⚠️ Note:** Admin routes are not yet configured in the Angular router. The components and services exist but need routing setup.
+
+**What's Implemented:**
+- ✅ `LoginComponent` - JWT authentication UI
+- ✅ `DashboardComponent` - Analytics dashboard with 6 stat cards, revenue section, mechanics table
+- ✅ `AnalyticsService` - HttpClient wrapper for API endpoints
+- ✅ `JwtInterceptor` - Automatic token injection
+- ✅ `AdminAuthGuard` - Route protection
+
+**To Test (After Routing Setup):**
+1. Start frontend: `cd web && ng serve`
+2. Navigate to: `http://localhost:4200/admin/login`
+3. Login with admin credentials
+4. Navigate to: `http://localhost:4200/admin/dashboard`
+
+**Running Tests:**
+```bash
+# Backend tests
+pnpm test
+
+# Backend test coverage
+pnpm test:cov
+
+# Frontend tests
+cd web && ng test
+
+# Frontend test coverage
+cd web && ng test --code-coverage
+```
 
 ### Admin Dashboard Documentation
 
 **Getting Started:**
-- 📋 [Admin Summary](./docs/ADMIN_SUMMARY.md) - Start here for overview and key decisions
-- 🚀 [Quick Start Guide](./docs/ADMIN_QUICK_START.md) - Step-by-step setup instructions
+- 📋 [Admin Summary](./docs/admin/ADMIN_SUMMARY.md) - Overview and key decisions
+- 🚀 [Quick Start Guide](./docs/admin/ADMIN_QUICK_START.md) - Setup instructions
 
 **Detailed Documentation:**
-- 📖 [Implementation Plan](./docs/ADMIN_DASHBOARD_PLAN.md) - Complete 10-week roadmap
-- 🔌 [API Specification](./docs/ADMIN_API_SPECIFICATION.md) - All endpoint details
-- 🎨 [UI/UX Specification](./docs/ADMIN_UI_SPECIFICATION.md) - Design guidelines
+- 📖 [Implementation Plan](./docs/admin/ADMIN_DASHBOARD_PLAN.md) - Phase-by-phase roadmap
+- 🔌 [API Specification](./docs/admin/ADMIN_API_SPECIFICATION.md) - Endpoint details
+- 🎨 [UI/UX Specification](./docs/admin/ADMIN_UI_SPECIFICATION.md) - Design guidelines
+- 🔐 [Security Requirements](./docs/admin/SECURITY_REQUIREMENTS.md) - Security implementation
 
 **Technology Stack:**
-- Frontend: Angular 19.2 (existing)
-- Backend: NestJS (existing)
-- Authentication: JWT with refresh tokens
-- Template: ngx-admin (recommended) or custom Angular Material
-
-**Timeline:** ~10 weeks for full implementation
+- Frontend: Angular 19.2 with standalone components
+- Backend: NestJS with Prisma ORM
+- Authentication: JWT with httpOnly cookies + refresh tokens
+- Testing: Jest (backend), Jasmine/Karma (frontend)
+- Security: bcrypt password hashing, rate limiting, CORS
 
 ## Next steps
 
