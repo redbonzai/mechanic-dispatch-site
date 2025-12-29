@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.2.0...v1.3.0) (2025-12-29)
+
+
+### Features
+
+* **admin:** add Angular analytics service and models ([#32](https://github.com/redbonzai/mechanic-dispatch/issues/32)) ([f68bfbf](https://github.com/redbonzai/mechanic-dispatch/commit/f68bfbf84a481771fe1c04972cc742c0808a508c))
+
 # [1.2.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.1.0...v1.2.0) (2025-12-29)
 
 
