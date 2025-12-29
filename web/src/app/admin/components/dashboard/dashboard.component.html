@@ -1,0 +1,153 @@
+<!-- Dashboard Container -->
+<div class="dashboard-container">
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p class="error-message">{{ error }}</p>
+    <button class="retry-button" (click)="loadDashboardData()">
+      Retry
+    </button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && !error" class="dashboard-content">
+    
+    <!-- Page Header -->
+    <header class="dashboard-header">
+      <h1>Analytics Dashboard</h1>
+      <p class="subtitle">Overview of service requests, revenue, and mechanics performance</p>
+    </header>
+
+    <!-- Overview Stats Grid -->
+    <section *ngIf="overviewStats" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Requests</div>
+        <div class="stat-value">{{ overviewStats.totalRequests }}</div>
+        <div class="stat-detail">
+          {{ overviewStats.pendingRequests }} pending
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">{{ formatCurrency(overviewStats.totalRevenueCents) }}</div>
+        <div class="stat-detail">
+          {{ overviewStats.finalizedRequests }} finalized
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Active Mechanics</div>
+        <div class="stat-value">
+          {{ overviewStats.activeMechanics }} / {{ overviewStats.totalMechanics }}
+        </div>
+        <div class="stat-detail">
+          {{ (overviewStats.activeMechanics / overviewStats.totalMechanics * 100 || 0).toFixed(0) }}% active
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Average Rating</div>
+        <div class="stat-value">
+          {{ overviewStats.averageRating | number:'1.1-1' }} ⭐
+        </div>
+        <div class="stat-detail">
+          {{ overviewStats.totalReviews }} reviews
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Captured</div>
+        <div class="stat-value">{{ overviewStats.capturedRequests }}</div>
+        <div class="stat-detail">Awaiting completion</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Authorized</div>
+        <div class="stat-value">{{ overviewStats.authorizedRequests }}</div>
+        <div class="stat-detail">Ready to capture</div>
+      </div>
+    </section>
+
+    <!-- Revenue Chart Section -->
+    <section *ngIf="revenueMetrics" class="chart-section">
+      <div class="section-header">
+        <h2>Revenue Trend</h2>
+        <p class="section-subtitle">
+          Total: {{ formatCurrency(revenueMetrics.summary.totalRevenueCents) }} 
+          | Peak: {{ formatCurrency(revenueMetrics.summary.peakRevenueCents) }}
+          on {{ revenueMetrics.summary.peakRevenueDate }}
+        </p>
+      </div>
+      
+      <div class="chart-placeholder">
+        <p>📊 Chart visualization</p>
+        <p class="chart-note">
+          Chart implementation with ng2-charts or ngx-charts can be added here.
+        </p>
+        <div class="data-preview">
+          <p><strong>Data Points:</strong> {{ revenueMetrics.dataPoints.length }}</p>
+          <p><strong>Avg per Request:</strong> {{ formatCurrency(revenueMetrics.summary.averageRevenueCents) }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mechanics Performance Table -->
+    <section *ngIf="mechanicsPerformance" class="table-section">
+      <div class="section-header">
+        <h2>Mechanics Performance</h2>
+        <p class="section-subtitle">
+          {{ mechanicsPerformance.summary.totalMechanics }} total mechanics
+          | {{ mechanicsPerformance.summary.totalCompletedJobs }} total jobs
+          | {{ mechanicsPerformance.summary.totalHoursWorked }} total hours
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table class="mechanics-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Completed Jobs</th>
+              <th>Hours Worked</th>
+              <th>Earnings</th>
+              <th>Avg Rating</th>
+              <th>Reviews</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mechanic of mechanicsPerformance.mechanics">
+              <td class="mechanic-name">{{ mechanic.name }}</td>
+              <td>
+                <span 
+                  class="status-badge" 
+                  [class.active]="mechanic.isActive"
+                  [class.inactive]="!mechanic.isActive">
+                  {{ mechanic.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="numeric">{{ mechanic.completedJobs }}</td>
+              <td class="numeric">{{ mechanic.totalHoursWorked }}</td>
+              <td class="numeric">{{ formatCurrency(mechanic.totalEarningsCents) }}</td>
+              <td class="numeric">{{ mechanic.averageRating | number:'1.1-1' }} ⭐</td>
+              <td class="numeric">{{ mechanic.reviewCount }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="mechanicsPerformance.mechanics.length === 0" class="empty-state">
+          <p>No mechanics data available.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
