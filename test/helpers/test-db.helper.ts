@@ -21,12 +21,26 @@ export class TestDbHelper {
    * Clean all tables (in correct order to respect foreign keys)
    */
   async cleanDatabase(): Promise<void> {
-    await this.prisma.mechanicWorkLog.deleteMany();
-    await this.prisma.review.deleteMany();
-    await this.prisma.serviceRequest.deleteMany();
-    await this.prisma.mechanicSkill.deleteMany();
-    await this.prisma.mechanic.deleteMany();
-    await this.prisma.skill.deleteMany();
+    try {
+      // Connect if not already connected
+      await this.prisma.$connect();
+
+      // Admin tables
+      await this.prisma.auditLog.deleteMany();
+      await this.prisma.adminRefreshToken.deleteMany();
+      await this.prisma.adminUser.deleteMany();
+
+      // Core tables
+      await this.prisma.mechanicWorkLog.deleteMany();
+      await this.prisma.review.deleteMany();
+      await this.prisma.serviceRequest.deleteMany();
+      await this.prisma.mechanicSkill.deleteMany();
+      await this.prisma.mechanic.deleteMany();
+      await this.prisma.skill.deleteMany();
+    } catch (error) {
+      console.error('Error cleaning database:', error);
+      throw error;
+    }
   }
 
   /**
