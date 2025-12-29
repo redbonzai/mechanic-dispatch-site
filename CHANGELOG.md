@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.1.0...v1.2.0) (2025-12-29)
+
+
+### Features
+
+* **admin:** phase 2 add analytics dashboard API endpoints and tests ([#31](https://github.com/redbonzai/mechanic-dispatch/issues/31)) ([0a3a9b2](https://github.com/redbonzai/mechanic-dispatch/commit/0a3a9b2a9dc0c2fe7d1d4417f7eb547819298004))
+
 # [1.1.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.0.0...v1.1.0) (2025-12-28)
 
 
