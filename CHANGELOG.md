@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.5.0...v1.6.0) (2025-12-29)
+
+
+### Features
+
+* **admin:** pass all Phase 3 quality gates ([d684be8](https://github.com/redbonzai/mechanic-dispatch/commit/d684be8113a1abdea36f85ef27e2fb7fad53f424))
+
 # [1.5.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.4.0...v1.5.0) (2025-12-29)
 
 
