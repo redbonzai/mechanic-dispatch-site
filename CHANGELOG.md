@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.6.0...v1.7.0) (2025-12-29)
+
+
+### Features
+
+* **admin:** wire admin dashboard routes and JWT interceptor ([#36](https://github.com/redbonzai/mechanic-dispatch/issues/36)) ([3d92911](https://github.com/redbonzai/mechanic-dispatch/commit/3d92911caf1583eaba87b6f18db5c1dc4d929a59))
+
 # [1.6.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.5.0...v1.6.0) (2025-12-29)
 
 
