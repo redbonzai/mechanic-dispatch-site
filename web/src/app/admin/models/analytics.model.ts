@@ -1,52 +1,49 @@
 /**
- * Analytics Models
- * 
- * TypeScript interfaces matching backend API types from Phase 2.
- * 
- * Backend API: src/domains/admin/analytics/types.ts
- * 
- * Constitutional Compliance:
- * - Singular for objects (OverviewStats, RevenueSummary)
- * - Plural for arrays (dataPoints, mechanics)
- * - Matches backend types exactly
- * 
+ * Admin Analytics Models
+ *
+ * TypeScript interfaces matching backend API types for analytics endpoints.
+ * These models ensure type safety between frontend and backend communication.
+ *
  * References:
- * - docs/standards/common/naming.md
- * - docs/standards/common/types.md
- * - CLAUDE.md: Module layout
+ * - Backend: src/domains/admin/analytics/types.ts
+ * - API Endpoints:
+ *   - GET /api/admin/analytics/overview → OverviewStats
+ *   - GET /api/admin/analytics/revenue → RevenueMetrics
+ *   - GET /api/admin/analytics/mechanics → MechanicsPerformance
  */
 
 /**
  * Overview statistics for admin dashboard.
- * 
+ * Provides high-level metrics across the entire system.
+ *
  * Endpoint: GET /api/admin/analytics/overview
  */
 export interface OverviewStats {
   /** Total number of service requests (all time) */
   totalRequests: number;
 
-  /** Number of pending service requests */
+  /** Number of pending service requests (status = PENDING) */
   pendingRequests: number;
 
-  /** Number of authorized service requests */
+  /** Number of authorized service requests (status = AUTHORIZED) */
   authorizedRequests: number;
 
-  /** Number of captured service requests */
+  /** Number of captured service requests (status = CAPTURED) */
   capturedRequests: number;
 
-  /** Number of finalized service requests */
+  /** Number of finalized service requests (status = FINALIZED) */
   finalizedRequests: number;
 
-  /** Number of cancelled service requests */
+  /** Number of cancelled service requests (status = CANCELLED) */
   cancelledRequests: number;
 
   /** Total revenue in cents (all finalized requests) */
   totalRevenueCents: number;
 
-  /** Number of active mechanics */
+  /** Number of active mechanics (isActive = true) */
   activeMechanics: number;
 
-  /** Total number of mechanics */
+  /** Total number of mechanics (all statuses) */
   totalMechanics: number;
 
   /** Total number of reviews */
@@ -57,6 +54,20 @@ export interface OverviewStats {
 
   /** Total number of work log entries */
   totalWorkLogs: number;
+}
+
+/**
+ * Revenue metrics by time period.
+ * Supports daily, weekly, and monthly breakdowns.
+ *
+ * Endpoint: GET /api/admin/analytics/revenue
+ */
+export interface RevenueMetrics {
+  /** Revenue data points by time period (plural = array) */
+  dataPoints: RevenueDataPoint[];
+
+  /** Summary statistics (singular = object) */
+  summary: RevenueSummary;
 }
 
 /**
@@ -97,16 +108,16 @@ export interface RevenueSummary {
 }
 
 /**
- * Revenue metrics by time period.
- * 
- * Endpoint: GET /api/admin/analytics/revenue
+ * Performance metrics for all mechanics.
+ *
+ * Endpoint: GET /api/admin/analytics/mechanics
  */
-export interface RevenueMetrics {
-  /** Revenue data points by time period (plural = array) */
-  dataPoints: RevenueDataPoint[];
+export interface MechanicsPerformance {
+  /** Performance data for each mechanic (plural = array) */
+  mechanics: MechanicPerformance[];
 
-  /** Summary statistics (singular = object) */
-  summary: RevenueSummary;
+  /** Summary statistics across all mechanics (singular = object) */
+  summary: MechanicsPerformanceSummary;
 }
 
 /**
@@ -156,19 +167,6 @@ export interface MechanicsPerformanceSummary {
 
   /** Average rating across all mechanics */
   averageRating: number;
-}
-
-/**
- * Performance metrics for all mechanics.
- * 
- * Endpoint: GET /api/admin/analytics/mechanics
- */
-export interface MechanicsPerformance {
-  /** Performance data for each mechanic (plural = array) */
-  mechanics: MechanicPerformance[];
-
-  /** Summary statistics across all mechanics (singular = object) */
-  summary: MechanicsPerformanceSummary;
 }
 
 /**

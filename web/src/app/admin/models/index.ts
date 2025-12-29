@@ -1,15 +1,8 @@
 /**
  * Admin Models Barrel Export
- * 
- * Following constitutional requirements for module layout.
- * 
- * References:
- * - CLAUDE.md: Module layout (barrel exports encouraged)
- * - docs/standards/common/modules.md
+ *
+ * Central export point for all admin models following module layout conventions.
  */
 
-// Admin user and authentication models
 export * from './admin-user.model';
-
-// Analytics models
 export * from './analytics.model';

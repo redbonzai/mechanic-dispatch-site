@@ -1,93 +1,104 @@
-/**
- * Dashboard Component
- * 
- * Admin analytics dashboard displaying overview stats, revenue metrics,
- * and mechanics performance.
- * 
- * Constitutional Compliance:
- * - Component ≤ 300 lines
- * - Functions ≤ 50 lines
- * - OnInit lifecycle hook
- * - Loading and error state handling
- * - No any types
- * 
- * References:
- * - docs/standards/common/typescript.md
- * - CLAUDE.md: SOLID principles
- */
-
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics.service';
 import {
   OverviewStats,
   RevenueMetrics,
-  MechanicsPerformance
+  MechanicsPerformance,
 } from '../../models/analytics.model';
 
+/**
+ * Dashboard Component
+ *
+ * Main admin dashboard displaying analytics and key metrics.
+ * Loads data from AnalyticsService on initialization.
+ */
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-  // Data properties
-  overviewStats: OverviewStats | null = null;
-  revenueMetrics: RevenueMetrics | null = null;
-  mechanicsPerformance: MechanicsPerformance | null = null;
+  overview: OverviewStats | null = null;
+  revenue: RevenueMetrics | null = null;
+  mechanics: MechanicsPerformance | null = null;
 
-  // UI state
-  loading = true;
+  isLoading = true;
   error: string | null = null;
-
-  // Table columns for mechanics performance
-  displayedColumns: string[] = ['name', 'completedJobs', 'totalHoursWorked', 'averageRating'];
 
   constructor(private analyticsService: AnalyticsService) {}
 
-  /**
-   * Initialize component and load dashboard data.
-   */
   ngOnInit(): void {
-    this.loadDashboardData();
+    this.loadData();
   }
 
   /**
-   * Load all dashboard data in parallel.
-   * 
-   * Sets loading state and handles errors gracefully.
+   * Load all analytics data in parallel.
+   * Sets loading and error states appropriately.
    */
-  loadDashboardData(): void {
-    this.loading = true;
+  async loadData(): Promise<void> {
+    this.isLoading = true;
     this.error = null;
 
-    // Load all analytics data in parallel using Promise.all
-    Promise.all([
-      this.analyticsService.getOverview().toPromise(),
-      this.analyticsService.getRevenue().toPromise(),
-      this.analyticsService.getMechanics().toPromise()
-    ])
-      .then(([overview, revenue, mechanics]) => {
-        // Success: Populate data
-        this.overviewStats = overview || null;
-        this.revenueMetrics = revenue || null;
-        this.mechanicsPerformance = mechanics || null;
-        this.loading = false;
-      })
-      .catch(err => {
-        // Error: Set error message and stop loading
-        this.error = 'Failed to load dashboard data. Please try again.';
-        this.loading = false;
-        console.error('Dashboard error:', err);
-      });
+    try {
+      const [overview, revenue, mechanics] = await Promise.all([
+        firstValueFrom(this.analyticsService.getOverview()),
+        firstValueFrom(this.analyticsService.getRevenue()),
+        firstValueFrom(this.analyticsService.getMechanics()),
+      ]);
+
+      this.overview = overview;
+      this.revenue = revenue;
+      this.mechanics = mechanics;
+    } catch (err) {
+      this.error = 'Failed to load analytics data. Please try again.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**
-   * Format cents to currency string.
-   * 
-   * @param cents - Amount in cents
-   * @returns Formatted currency string (e.g., "$123.45")
+   * Retry loading data after an error.
+   */
+  retryLoad(): void {
+    this.loadData();
+  }
+
+  /**
+   * Format cents as currency string (e.g., 1234 → "$12.34").
+   *
+   * @param cents Amount in cents
+   * @returns Formatted currency string
    */
   formatCurrency(cents: number): string {
-    return `$${(cents / 100).toFixed(2)}`;
+    const dollars = cents / 100;
+    const isNegative = dollars < 0;
+    const absoluteDollars = Math.abs(dollars);
+
+    const formatted = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(absoluteDollars);
+
+    return isNegative ? `-${formatted}` : formatted;
+  }
+
+  /**
+   * Calculate completion rate percentage.
+   *
+   * @returns Percentage of finalized requests (0-100)
+   */
+  get completionRate(): number {
+    if (!this.overview || this.overview.totalRequests === 0) {
+      return 0;
+    }
+    return Math.round(
+      (this.overview.finalizedRequests / this.overview.totalRequests) * 100
+    );
   }
 }
