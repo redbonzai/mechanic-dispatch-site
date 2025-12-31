@@ -1,0 +1,107 @@
+<div class="create-user-container">
+  <div class="create-user-card">
+    <div class="header">
+      <h1>Create Admin User</h1>
+      <p>Add a new administrator to the system</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="error()" class="alert alert-error">
+      {{ error() }}
+    </div>
+
+    <form [formGroup]="createForm" (ngSubmit)="onSubmit()" class="create-form">
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          class="form-control"
+          [class.error]="hasError('name')"
+          placeholder="Enter full name"
+        />
+        <span *ngIf="hasError('name')" class="error-message">
+          {{ getErrorMessage('name') }}
+        </span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-control"
+          [class.error]="hasError('email')"
+          placeholder="admin@example.com"
+        />
+        <span *ngIf="hasError('email')" class="error-message">
+          {{ getErrorMessage('email') }}
+        </span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password *</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-control"
+          [class.error]="hasError('password')"
+          placeholder="Minimum 8 characters"
+        />
+        <span *ngIf="hasError('password')" class="error-message">
+          {{ getErrorMessage('password') }}
+        </span>
+      </div>
+
+      <!-- Role Field -->
+      <div class="form-group">
+        <label for="role">Role *</label>
+        <select
+          id="role"
+          formControlName="role"
+          class="form-control"
+        >
+          <option *ngFor="let role of roleOptions" [value]="role">
+            {{ role }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Active Status Field -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="isActive"
+          />
+          Active (user can log in)
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="submitting() || createForm.invalid"
+        >
+          {{ submitting() ? 'Creating...' : 'Create User' }}
+        </button>
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting()"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

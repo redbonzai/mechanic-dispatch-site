@@ -1,0 +1,188 @@
+<div class="user-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <p>Loading user details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="alert alert-error">
+    {{ error() }}
+  </div>
+
+  <!-- User Detail Content -->
+  <div *ngIf="!loading() && user()" class="user-detail-card">
+    <!-- Header -->
+    <div class="detail-header">
+      <div>
+        <h1>User Details</h1>
+        <p>View and manage admin user information</p>
+      </div>
+      <button class="btn-back" (click)="onBack()">
+        ← Back to Users
+      </button>
+    </div>
+
+    <!-- View Mode -->
+    <div *ngIf="!editMode()" class="view-mode">
+      <div class="user-info">
+        <div class="info-row">
+          <label>Name</label>
+          <div>{{ user()!.name }}</div>
+        </div>
+
+        <div class="info-row">
+          <label>Email</label>
+          <div>{{ user()!.email }}</div>
+        </div>
+
+        <div class="info-row">
+          <label>Role</label>
+          <span class="badge" [ngClass]="getRoleBadgeClass(user()!.role)">
+            {{ user()!.role }}
+          </span>
+        </div>
+
+        <div class="info-row">
+          <label>Status</label>
+          <span class="badge" [ngClass]="getStatusBadgeClass(user()!.isActive)">
+            {{ getStatusText(user()!.isActive) }}
+          </span>
+        </div>
+
+        <div class="info-row">
+          <label>Created</label>
+          <div>{{ user()!.createdAt | date: 'medium' }}</div>
+        </div>
+
+        <div class="info-row">
+          <label>Last Updated</label>
+          <div>{{ user()!.updatedAt | date: 'medium' }}</div>
+        </div>
+
+        <div class="info-row">
+          <label>Last Login</label>
+          <div>{{ user()!.lastLoginAt ? (user()!.lastLoginAt | date: 'medium') : 'Never' }}</div>
+        </div>
+
+        <div class="info-row">
+          <label>Failed Login Attempts</label>
+          <div>{{ user()!.failedLoginAttempts }}</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn-primary" (click)="onEdit()">
+          Edit User
+        </button>
+        <button 
+          *ngIf="canDelete()" 
+          class="btn-danger" 
+          (click)="onDelete()"
+        >
+          Delete User
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Mode -->
+    <div *ngIf="editMode()" class="edit-mode">
+      <form class="edit-form">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            class="form-control"
+            [(ngModel)]="editForm().name"
+            [ngModelOptions]="{standalone: true}"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            [(ngModel)]="editForm().email"
+            [ngModelOptions]="{standalone: true}"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password (leave empty to keep current)</label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            [(ngModel)]="editForm().password"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Enter new password"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select
+            id="role"
+            class="form-control"
+            [(ngModel)]="editForm().role"
+            [ngModelOptions]="{standalone: true}"
+          >
+            <option *ngFor="let role of roleOptions" [value]="role">
+              {{ role }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="editForm().isActive"
+              [ngModelOptions]="{standalone: true}"
+            />
+            Active
+          </label>
+        </div>
+
+        <!-- Edit Action Buttons -->
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="onSave()"
+            [disabled]="saving() || !isFormValid()"
+          >
+            {{ saving() ? 'Saving...' : 'Save Changes' }}
+          </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="onCancelEdit()"
+            [disabled]="saving()"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteConfirm()" class="modal-overlay" (click)="onCancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirm Delete</h2>
+      <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-danger" (click)="onConfirmDelete()" [disabled]="saving()">
+          {{ saving() ? 'Deleting...' : 'Delete' }}
+        </button>
+        <button class="btn-secondary" (click)="onCancelDelete()" [disabled]="saving()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

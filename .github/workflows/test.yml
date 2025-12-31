@@ -30,6 +30,10 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
       STRIPE_SECRET_KEY: sk_test_mock
       STRIPE_WEBHOOK_SECRET: whsec_mock
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: 5432
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -89,6 +93,20 @@ jobs:
 
       - name: Build (NX all)
         run: pnpm exec nx run-many --target=build --all --parallel=3
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Set CHROME_BIN for Karma
+        run: |
+          CHROME_PATH="$(which chromium-browser || which chromium || which google-chrome || which google-chrome-stable || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo "No Chrome/Chromium found on runner"
+            exit 1
+          fi
+          echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
 
       - name: Run unit tests (NX all)
         run: pnpm exec nx run-many --target=test --all --parallel=3

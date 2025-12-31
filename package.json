@@ -6,8 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "postinstall": "prisma generate",
-    "prebuild": "prisma generate",
+    "postinstall": "if [ \"$CI\" != \"true\" ]; then prisma generate; fi",
+    "prebuild": "pnpm prisma:generate",
     "build": "nest build",
     "build:release": "nest build",
     "build:nx": "nx build",

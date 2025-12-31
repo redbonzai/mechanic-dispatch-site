@@ -18,6 +18,8 @@ import { AdminAnalyticsController } from './analytics/AdminAnalyticsController';
 import { AdminAnalyticsService } from './analytics/AdminAnalyticsService';
 import { AdminServiceRequestsController } from './service-requests/AdminServiceRequestsController';
 import { AdminServiceRequestsService } from './service-requests/AdminServiceRequestsService';
+import { AdminUsersController } from './users/AdminUsersController';
+import { AdminUsersService } from './users/AdminUsersService';
 
 @Module({
   imports: [
@@ -42,12 +44,14 @@ import { AdminServiceRequestsService } from './service-requests/AdminServiceRequ
     AdminAuthController,
     AdminAnalyticsController,
     AdminServiceRequestsController,
+    AdminUsersController,
   ],
   providers: [
     AdminService,
     AdminAuthService,
     AdminAnalyticsService,
     AdminServiceRequestsService,
+    AdminUsersService,
     JwtStrategy,
     JwtAuthGuard,
   ],

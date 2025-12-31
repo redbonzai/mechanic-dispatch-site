@@ -3,15 +3,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdminAnalyticsService } from './AdminAnalyticsService';
-import { PrismaService } from '../../database/prisma.service';
+import { AdminAnalyticsService } from '../../src/domains/admin/analytics';
+import { PrismaService } from '../../src/domains/database/prisma.service';
 import {
   OverviewStats,
   RevenueMetrics,
   MechanicsPerformance,
   RevenueMetricsQuery,
   MechanicsPerformanceQuery,
-} from './types';
+} from '../../src/domains/admin/analytics';
 
 /**
  * AdminAnalyticsService Unit Tests (80% of test pyramid)

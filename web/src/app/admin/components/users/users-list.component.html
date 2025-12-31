@@ -1,0 +1,126 @@
+<div class="users-list-container">
+  <div class="header">
+    <h1>Admin Users</h1>
+    <button class="btn-primary" (click)="onCreateUser()">
+      + Create User
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label for="role-filter">Role:</label>
+      <select
+        id="role-filter"
+        [value]="roleFilter()"
+        (change)="onRoleFilterChange($any($event.target).value)"
+      >
+        <option *ngFor="let option of roleOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="active-filter">Status:</label>
+      <select
+        id="active-filter"
+        [value]="activeFilter()"
+        (change)="onActiveFilterChange($any($event.target).value === 'true' ? true : $any($event.target).value === 'false' ? false : '')"
+      >
+        <option *ngFor="let option of activeOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group search-group">
+      <label for="search">Search:</label>
+      <input
+        id="search"
+        type="text"
+        placeholder="Search by name or email..."
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error()" class="error-message">
+    {{ error() }}
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading()" class="loading">Loading users...</div>
+
+  <!-- Users table -->
+  <div *ngIf="!loading() && !error()" class="table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th (click)="onSort('name')" class="sortable">
+            Name {{ getSortIcon('name') }}
+          </th>
+          <th (click)="onSort('email')" class="sortable">
+            Email {{ getSortIcon('email') }}
+          </th>
+          <th>Role</th>
+          <th>Status</th>
+          <th (click)="onSort('createdAt')" class="sortable">
+            Created {{ getSortIcon('createdAt') }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let user of users()"
+          (click)="onUserClick(user.id)"
+          class="user-row"
+        >
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadgeClass(user.isActive)">
+              {{ getStatusText(user.isActive) }}
+            </span>
+          </td>
+          <td>{{ user.createdAt | date: 'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty state -->
+    <div *ngIf="users().length === 0" class="empty-state">
+      No users found.
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading() && users().length > 0" class="pagination">
+    <button
+      class="btn-secondary"
+      [disabled]="!hasPrev()"
+      (click)="onPageChange(currentPage() - 1)"
+    >
+      Previous
+    </button>
+
+    <span class="pagination-info">
+      Page {{ currentPage() }} of {{ totalPages() }} ({{ totalItems() }} total)
+    </span>
+
+    <button
+      class="btn-secondary"
+      [disabled]="!hasNext()"
+      (click)="onPageChange(currentPage() + 1)"
+    >
+      Next
+    </button>
+  </div>
+</div>
