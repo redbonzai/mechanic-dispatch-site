@@ -289,7 +289,6 @@ describe('UsersListComponent', () => {
       );
 
       component.onPageChange(2);
-
       expect(component.currentPage()).toBe(2);
       expect(mockAdminUsersService.getUsers).toHaveBeenCalledWith(
         jasmine.objectContaining({ page: 2 })

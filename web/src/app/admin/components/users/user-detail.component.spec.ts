@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { UserDetailComponent } from './user-detail.component';
 import { AdminUsersService } from '../../services/admin-users.service';
 import { AdminAuthService } from '../../services/admin-auth.service';
-import { AdminUser } from '../../models/admin-user.model';
+import { AdminUser } from '../../models';
 
 describe('UserDetailComponent', () => {
   let component: UserDetailComponent;
@@ -20,10 +20,10 @@ describe('UserDetailComponent', () => {
     email: 'test@example.com',
     role: 'admin',
     isActive: true,
-    failedLoginAttempts: 0,
     lastFailedLoginAt: null,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+    failedLoginAttempts: 0,
+    createdAt: '',
+    updatedAt: '',
   };
 
   beforeEach(async () => {

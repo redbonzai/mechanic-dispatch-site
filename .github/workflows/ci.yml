@@ -109,6 +109,20 @@ jobs:
           fi
           echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
 
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Set CHROME_BIN for Karma
+        run: |
+          CHROME_PATH="$(which chromium-browser || which chromium || which google-chrome || which google-chrome-stable || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo "No Chrome/Chromium found on runner"
+            exit 1
+          fi
+          echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
+
       - name: Run unit tests (NX affected)
         run: pnpm exec nx affected --target=test --base=origin/main --head=HEAD --parallel=3
         env:
