@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/redbonzai/mechanic-dispatch/compare/v1.8.0...v1.8.1) (2025-12-31)
+
+
+### Bug Fixes
+
+* **docker:** Dockerfile was failing to build images in build phase ([#40](https://github.com/redbonzai/mechanic-dispatch/issues/40)) ([97b9c19](https://github.com/redbonzai/mechanic-dispatch/commit/97b9c1922e330309ca4233e0e9e013f6307eb103))
+
 # [1.8.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.7.0...v1.8.0) (2025-12-31)
 
 
