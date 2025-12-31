@@ -5,7 +5,7 @@ import { ServiceRequestStatus } from '../enums/service-request-status.enum';
 import {
   CreateServiceRequestData,
   ServiceRequestRepository,
-} from '../repositories/service-request.repository';
+} from './service-request.repository';
 import { ServiceRequest } from '../entities/service-request.entity';
 
 type ServiceRequestRecord =
