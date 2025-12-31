@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.7.0...v1.8.0) (2025-12-31)
+
+
+### Bug Fixes
+
+* **admin:** testing release workflow updates ([#39](https://github.com/redbonzai/mechanic-dispatch/issues/39)) ([f299696](https://github.com/redbonzai/mechanic-dispatch/commit/f299696dcf409fde2816a067a3220bccaabe2858))
+
+
+### Features
+
+* **admin:** user management backend and frontend has been completed with tests ([#37](https://github.com/redbonzai/mechanic-dispatch/issues/37)) ([c2b8aa7](https://github.com/redbonzai/mechanic-dispatch/commit/c2b8aa7397cc4c4e2df5dbc23e34fc078f30a065))
+
 # [1.7.0](https://github.com/redbonzai/mechanic-dispatch/compare/v1.6.0...v1.7.0) (2025-12-29)
 
 
