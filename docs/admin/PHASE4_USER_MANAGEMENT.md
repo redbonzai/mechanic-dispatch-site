@@ -96,7 +96,7 @@ async delete(id: string): Promise<void>
 
 **File**: `src/domains/admin/admin.module.ts`
 
-Add:
+Add:sf
 ```typescript
 import { AdminUsersService } from './users/AdminUsersService';
 import { AdminUsersController } from './users/AdminUsersController';

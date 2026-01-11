@@ -1,6 +1,6 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AdminAnalyticsService } from './AdminAnalyticsService';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import {
   OverviewStats,
   RevenueMetrics,

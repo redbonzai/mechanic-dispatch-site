@@ -36,6 +36,13 @@
   },
   "plugins": [
     {
+      "plugin": "@nx/angular/plugin",
+      "options": {
+        "targetName": "build",
+        "presetName": "angular"
+      }
+    },
+    {
       "plugin": "@nx/jest/plugin",
       "options": {
         "targetName": "test"
