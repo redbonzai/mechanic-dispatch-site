@@ -76,4 +76,5 @@ ENV APP_PORT=3000
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+# Use entrypoint script to run migrations and seeding before starting the app
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]

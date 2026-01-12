@@ -1,9 +1,71 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // Seed Admin Users FIRST (for authentication testing)
+  console.log('👤 Seeding Admin Users...');
+  const adminUsers = await Promise.all([
+    prisma.adminUser.upsert({
+      where: { email: 'admin@mechanic.com' },
+      update: {},
+      create: {
+        id: 'admin_1',
+        email: 'admin@mechanic.com',
+        name: 'Super Admin',
+        passwordHash: await bcrypt.hash('Admin123!', 12),
+        role: 'super-admin',
+        isActive: true,
+      },
+    }),
+    prisma.adminUser.upsert({
+      where: { email: 'moderator@mechanic.com' },
+      update: {},
+      create: {
+        id: 'admin_2',
+        email: 'moderator@mechanic.com',
+        name: 'Moderator User',
+        passwordHash: await bcrypt.hash('Moderator123!', 12),
+        role: 'moderator',
+        isActive: true,
+      },
+    }),
+    prisma.adminUser.upsert({
+      where: { email: 'staff@mechanic.com' },
+      update: {},
+      create: {
+        id: 'admin_3',
+        email: 'staff@mechanic.com',
+        name: 'Staff Admin',
+        passwordHash: await bcrypt.hash('Staff123!', 12),
+        role: 'admin',
+        isActive: true,
+      },
+    }),
+    prisma.adminUser.upsert({
+      where: { email: 'inactive@mechanic.com' },
+      update: {},
+      create: {
+        id: 'admin_4',
+        email: 'inactive@mechanic.com',
+        name: 'Inactive Admin',
+        passwordHash: await bcrypt.hash('Inactive123!', 12),
+        role: 'admin',
+        isActive: false,
+      },
+    }),
+  ]);
+  console.log(`✅ Seeded ${adminUsers.length} admin users`);
+  console.log('');
+  console.log('📝 Admin Login Credentials:');
+  console.log('   Super Admin:  admin@mechanic.com / Admin123!');
+  console.log('   Moderator:    moderator@mechanic.com / Moderator123!');
+  console.log('   Staff Admin:  staff@mechanic.com / Staff123!');
+  console.log('   (Inactive):   inactive@mechanic.com / Inactive123! (will fail login)');
+  console.log('');
 
   // Seed Skills
   console.log('📝 Seeding Skills...');
@@ -487,7 +549,233 @@ async function main() {
   }
   console.log('✅ Updated mechanic statistics');
 
+  // Seed Service Requests (for admin dashboard testing)
+  console.log('🔧 Seeding Service Requests...');
+  const serviceRequests = [
+    {
+      id: 'sr_1',
+      firstName: 'John',
+      lastName: 'Smith',
+      email: 'john.smith@example.com',
+      phone: '+1-555-0101',
+      addressLine1: '123 Main St',
+      addressLine2: 'Apt 4B',
+      city: 'Los Angeles',
+      state: 'CA',
+      postalCode: '90001',
+      country: 'US',
+      vehicleMake: 'Toyota',
+      vehicleModel: 'Camry',
+      vehicleYear: 2018,
+      amountCents: 15000,
+      status: 'PENDING',
+    },
+    {
+      id: 'sr_2',
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      email: 'sarah.j@example.com',
+      phone: '+1-555-0102',
+      addressLine1: '456 Oak Ave',
+      addressLine2: null,
+      city: 'San Francisco',
+      state: 'CA',
+      postalCode: '94102',
+      country: 'US',
+      vehicleMake: 'Honda',
+      vehicleModel: 'Accord',
+      vehicleYear: 2020,
+      amountCents: 12000,
+      finalAmountCents: 12000,
+      stripePaymentIntentId: 'pi_test_authorized_001',
+      status: 'AUTHORIZED',
+    },
+    {
+      id: 'sr_3',
+      firstName: 'Michael',
+      lastName: 'Brown',
+      email: 'mbrown@example.com',
+      phone: '+1-555-0103',
+      addressLine1: '789 Pine St',
+      addressLine2: null,
+      city: 'San Diego',
+      state: 'CA',
+      postalCode: '92101',
+      country: 'US',
+      vehicleMake: 'Ford',
+      vehicleModel: 'F-150',
+      vehicleYear: 2019,
+      amountCents: 25000,
+      finalAmountCents: 25000,
+      stripePaymentIntentId: 'pi_test_captured_001',
+      finalPaymentIntentId: 'pi_test_captured_001',
+      status: 'CAPTURED',
+    },
+    {
+      id: 'sr_4',
+      firstName: 'Emily',
+      lastName: 'Davis',
+      email: 'emily.davis@example.com',
+      phone: '+1-555-0104',
+      addressLine1: '321 Elm St',
+      addressLine2: 'Suite 100',
+      city: 'Austin',
+      state: 'TX',
+      postalCode: '73301',
+      country: 'US',
+      vehicleMake: 'Tesla',
+      vehicleModel: 'Model 3',
+      vehicleYear: 2021,
+      amountCents: 18000,
+      finalAmountCents: 22000,
+      stripePaymentIntentId: 'pi_test_finalized_001',
+      finalPaymentIntentId: 'pi_test_finalized_002',
+      status: 'FINALIZED',
+    },
+    {
+      id: 'sr_5',
+      firstName: 'Robert',
+      lastName: 'Wilson',
+      email: 'rwilson@example.com',
+      phone: '+1-555-0105',
+      addressLine1: '654 Maple Dr',
+      addressLine2: null,
+      city: 'Seattle',
+      state: 'WA',
+      postalCode: '98101',
+      country: 'US',
+      vehicleMake: 'Chevrolet',
+      vehicleModel: 'Silverado',
+      vehicleYear: 2017,
+      amountCents: 9000,
+      stripePaymentIntentId: 'pi_test_cancelled_001',
+      status: 'CANCELLED',
+    },
+    {
+      id: 'sr_6',
+      firstName: 'Jennifer',
+      lastName: 'Martinez',
+      email: 'jmartinez@example.com',
+      phone: '+1-555-0106',
+      addressLine1: '987 Cedar Ln',
+      addressLine2: null,
+      city: 'Phoenix',
+      state: 'AZ',
+      postalCode: '85001',
+      country: 'US',
+      vehicleMake: 'BMW',
+      vehicleModel: '3 Series',
+      vehicleYear: 2022,
+      amountCents: 20000,
+      stripePaymentIntentId: 'pi_test_failed_001',
+      status: 'FAILED',
+    },
+    {
+      id: 'sr_7',
+      firstName: 'David',
+      lastName: 'Anderson',
+      email: 'danderson@example.com',
+      phone: '+1-555-0107',
+      addressLine1: '147 Birch St',
+      addressLine2: null,
+      city: 'Denver',
+      state: 'CO',
+      postalCode: '80201',
+      country: 'US',
+      vehicleMake: 'Nissan',
+      vehicleModel: 'Altima',
+      vehicleYear: 2019,
+      amountCents: 14000,
+      status: 'PENDING',
+    },
+    {
+      id: 'sr_8',
+      firstName: 'Lisa',
+      lastName: 'Garcia',
+      email: 'lgarcia@example.com',
+      phone: '+1-555-0108',
+      addressLine1: '258 Spruce Ave',
+      addressLine2: 'Unit 12',
+      city: 'Miami',
+      state: 'FL',
+      postalCode: '33101',
+      country: 'US',
+      vehicleMake: 'Mercedes',
+      vehicleModel: 'C-Class',
+      vehicleYear: 2020,
+      amountCents: 30000,
+      finalAmountCents: 35000,
+      stripePaymentIntentId: 'pi_test_finalized_003',
+      finalPaymentIntentId: 'pi_test_finalized_004',
+      status: 'FINALIZED',
+    },
+  ];
+
+  // Delete existing service requests first to avoid conflicts
+  await prisma.serviceRequest.deleteMany({
+    where: {
+      id: { in: serviceRequests.map((sr) => sr.id) },
+    },
+  });
+
+  await Promise.all(
+    serviceRequests.map((sr) => prisma.serviceRequest.create({ data: sr })),
+  );
+  console.log(`✅ Seeded ${serviceRequests.length} service requests`);
+
+  // Seed Work Logs (for finalized service requests)
+  console.log('⏱️  Seeding Work Logs...');
+  const workLogs = [
+    {
+      id: 'wl_1',
+      serviceRequestId: 'sr_4',
+      mechanicId: 'mech_1',
+      mechanicName: 'Rocco',
+      hoursWorkedMinutes: 180, // 3 hours
+      payoutPercentage: 70,
+      notes: 'Replaced brake pads and rotors. Test drive completed successfully.',
+    },
+    {
+      id: 'wl_2',
+      serviceRequestId: 'sr_4',
+      mechanicId: 'mech_2',
+      mechanicName: 'Robert',
+      hoursWorkedMinutes: 60, // 1 hour
+      payoutPercentage: 30,
+      notes: 'Assisted with brake job - diagnostic and final inspection.',
+    },
+    {
+      id: 'wl_3',
+      serviceRequestId: 'sr_8',
+      mechanicId: 'mech_3',
+      mechanicName: 'Grzegorz',
+      hoursWorkedMinutes: 300, // 5 hours
+      payoutPercentage: 100,
+      notes: 'Complete transmission service. Replaced fluid and filter. Test drive successful.',
+    },
+  ];
+
+  await Promise.all(
+    workLogs.map((wl) => prisma.mechanicWorkLog.create({ data: wl })),
+  );
+  console.log(`✅ Seeded ${workLogs.length} work logs`);
+
+  console.log('');
   console.log('🎉 Seeding completed successfully!');
+  console.log('');
+  console.log('📊 Seed Summary:');
+  console.log(`   - ${adminUsers.length} admin users`);
+  console.log(`   - ${skills.length} skills`);
+  console.log(`   - ${mechanics.length} mechanics`);
+  console.log(`   - ${mechanicSkills.length} mechanic-skill links`);
+  console.log(`   - ${reviews.length} reviews`);
+  console.log(`   - ${serviceRequests.length} service requests`);
+  console.log(`   - ${workLogs.length} work logs`);
+  console.log('');
+  console.log('🔗 Quick Links:');
+  console.log('   Admin Dashboard: http://localhost:4200/admin/login');
+  console.log('   Customer Site:   http://localhost:4200');
+  console.log('');
 }
 
 main()
