@@ -1,184 +1,147 @@
 <div class="pricing-page">
-  <section class="hero-section">
+
+  <!-- Hero -->
+  <section class="pricing-hero">
     <div class="container">
-      <h1>Fair and transparent pricing</h1>
-      <p class="hero-subtitle">
-        Know the cost of your car repair — it's fast and free. Over 600,000 car repair estimates provided since 2012. Just fill out the form and get your estimate immediately.
-      </p>
-      <div class="hero-content">
-        <div class="hero-text">
-          <div class="question-section">
-            <h2>How do we provide our estimates?</h2>
-            <ol>
-              <li>
-                Mechanic Dispatch flat-rate pricing is based on the labor time and parts required to fix your car.
-              </li>
-              <li>
-                Our estimates show the full price breakdown, so there's never any mystery behind service prices.
-              </li>
-              <li>
-                Our mechanics are fully mobile, so there's no brick-and-mortar shop to maintain. That means very low overhead costs. We pass those savings on to you.
-              </li>
-            </ol>
-          </div>
-        </div>
-        <div class="hero-form">
-          <form [formGroup]="quoteForm" class="quote-card">
-            <div class="form-group">
-              <label>Enter Zipcode:</label>
-              <div class="input-with-button">
-                <input formControlName="zipcode" type="text" placeholder="76227" />
-                <button type="button" class="btn-secondary">Find my location</button>
+      <h1>Get discovered by drivers searching for your skills</h1>
+      <p>FixGuide shows your profile to drivers when they search for repairs that match your expertise. No cold calls. No ads. Just relevant leads.</p>
+      <div class="pricing-hero__trial">
+        ✓ 7-day free trial · ✓ Cancel anytime · ✓ No contracts
+      </div>
+    </div>
+  </section>
+
+  <!-- Plans -->
+  <section class="plans-section">
+    <div class="container">
+      <div class="plans-grid">
+        @for (plan of plans; track plan.tier) {
+          <div class="plan-card" [class.plan-card--highlighted]="plan.highlighted">
+            @if (plan.badge) {
+              <div class="plan-card__badge">{{ plan.badge }}</div>
+            }
+            <div class="plan-card__header">
+              <div class="plan-card__name">{{ plan.name }}</div>
+              <div class="plan-card__price">
+                <span class="price-amount">${{ plan.price }}</span>
+                <span class="price-period">/mo</span>
               </div>
+              <div class="plan-card__trial">7-day free trial included</div>
             </div>
-            <div class="form-group">
-              <label>Enter Car:</label>
-              <div class="car-inputs">
-                <select formControlName="make" (change)="onMakeChange()" [disabled]="!quoteForm.get('year')?.value || loadingMakes">
-                  <option value="">{{ loadingMakes ? 'Loading...' : 'Make' }}</option>
-                  <option *ngFor="let make of makes" [value]="make">{{ make }}</option>
-                </select>
-                <select formControlName="year" (change)="onYearChange()">
-                  <option value="">Year</option>
-                  <option *ngFor="let year of years" [value]="year">{{ year }}</option>
-                </select>
-                <select formControlName="model" (change)="onModelChange()" [disabled]="!quoteForm.get('make')?.value || loadingModels">
-                  <option value="">{{ loadingModels ? 'Loading...' : 'Model' }}</option>
-                  <option *ngFor="let model of models" [value]="model">{{ model }}</option>
-                </select>
-                <select formControlName="trim" [disabled]="!quoteForm.get('model')?.value || loadingTrims">
-                  <option value="">{{ loadingTrims ? 'Loading...' : 'Trim' }}</option>
-                  <option *ngFor="let trimOption of trims" [value]="trimOption.trim">{{ trimOption.trim }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Enter Services:</label>
-              <input formControlName="service" type="text" placeholder="e.g. Brake Pads Replacement" />
-            </div>
-            <button type="button" class="btn-primary" (click)="getEstimate()">Get Estimate</button>
-          </form>
+
+            <ul class="plan-card__features">
+              @for (feature of plan.features; track feature) {
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
+
+            <a routerLink="/mechanic-register" class="plan-card__cta" [class.plan-card__cta--primary]="plan.highlighted">
+              {{ plan.cta }}
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works for mechanics -->
+  <section class="mechanic-how">
+    <div class="container">
+      <h2 class="section-title">How mechanics get leads on FixGuide</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step__num">1</div>
+          <h3>Register & add your skills</h3>
+          <p>Tell us what you do — brake repair, engine diagnostics, AC service. We use this to match you with relevant searches.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">2</div>
+          <h3>Drivers search for fixes</h3>
+          <p>Thousands of drivers search FixGuide for car repair help. When their search matches your skills, your profile appears.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">3</div>
+          <h3>They find your profile</h3>
+          <p>Drivers see your skills, location, reviews, and contact info. Pro/Premium mechanics appear higher in results.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">4</div>
+          <h3>Track your performance</h3>
+          <p>See how many times you appeared in searches, how many people viewed your profile, and how many clicked your link.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="peace-of-mind">
-    <div class="container">
-      <div class="content-grid">
-        <div class="content-text">
-          <h2>Get peace of mind with our easy to understand, transparent quotes.</h2>
-          <p>
-            Getting a quote is simple. Just enter your zip code, select your car, and choose the service you need. Our system calculates the fair price based on labor time and parts required.
-          </p>
-          <p>
-            Every quote includes a detailed breakdown showing exactly what you're paying for—labor costs, parts costs, and any additional fees. No surprises, no hidden costs.
-          </p>
-          <p>
-            You're in control. Review the estimate, ask questions, and approve the work before any service begins. Our transparent pricing means you know exactly what you're paying for.
-          </p>
-        </div>
-        <div class="sample-calculation">
-          <div class="car-image">
-            <div class="car-placeholder">2006 Toyota Camry</div>
+  <!-- Analytics preview -->
+  <section class="analytics-section">
+    <div class="container analytics-inner">
+      <div class="analytics-text">
+        <div class="analytics-badge">Analytics built in</div>
+        <h2>Know exactly how many drivers are interested</h2>
+        <p>Your dashboard shows real data — search appearances, profile views, and link clicks — so you know your subscription is working.</p>
+        <ul class="analytics-list">
+          <li>📈 Search appearances this month</li>
+          <li>👁 Profile views over time</li>
+          <li>🔗 Clicks to your website/phone</li>
+          <li>⭐ Reviews and rating trends</li>
+        </ul>
+      </div>
+      <div class="analytics-mockup">
+        <div class="mockup-card">
+          <div class="mockup-row">
+            <span>Profile views</span>
+            <strong>342</strong>
           </div>
-          <div class="calculation-details">
-            <h3>Timing belt kit (belt, water pump, tensioner, pulleys)</h3>
-            <p class="car-name">2006 Toyota Camry</p>
-            <div class="breakdown">
-              <p>Time calculated by our system: <strong>3 hours</strong></p>
-              <p>Mechanic's hourly rate: <strong>$80</strong></p>
-              <p>Parts from wholesaler: <strong>$248.53</strong></p>
+          <div class="mockup-row">
+            <span>Search appearances</span>
+            <strong>1,840</strong>
+          </div>
+          <div class="mockup-row">
+            <span>Link clicks</span>
+            <strong>87</strong>
+          </div>
+          <div class="mockup-bar-wrap">
+            <div class="mockup-bar-label">This month vs last</div>
+            <div class="mockup-bars">
+              <div class="mockup-bar" style="height:48px; background:#bfdbfe"></div>
+              <div class="mockup-bar" style="height:72px; background:#2563eb"></div>
+              <div class="mockup-bar" style="height:56px; background:#bfdbfe"></div>
+              <div class="mockup-bar" style="height:92px; background:#2563eb"></div>
+              <div class="mockup-bar" style="height:64px; background:#bfdbfe"></div>
+              <div class="mockup-bar" style="height:110px; background:#2563eb"></div>
             </div>
-            <div class="total-price">
-              <p>Your fair price</p>
-              <p class="formula">$80 × 3 (labor fee) + $248.53 (parts) = <span class="price">$488.53</span></p>
-            </div>
-            <div class="sample-label">SAMPLE FAIR PRICE CALCULATION</div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="savings-section">
+  <!-- FAQ -->
+  <section class="faq-section">
     <div class="container">
-      <h2>Low overhead means savings for you.</h2>
-      <p>
-        Because our mechanics are mobile and we operate as a national brand, we have very low overhead costs compared to traditional brick-and-mortar shops. These savings are passed directly to you through our fair, transparent pricing.
-      </p>
-      <div class="comparison-table-wrapper">
-        <table class="comparison-table">
-          <thead>
-            <tr>
-              <th>Car</th>
-              <th>Service</th>
-              <th>Estimate</th>
-              <th>Savings</th>
-              <th>Average Dealer Price</th>
-              <th>Location</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let comparison of priceComparisons">
-              <td>{{ comparison.car }}</td>
-              <td>{{ comparison.service }}</td>
-              <td class="estimate">{{ comparison.estimate }}</td>
-              <td class="savings" [class.negative]="comparison.savings.startsWith('-')">{{ comparison.savings }}</td>
-              <td>{{ comparison.dealerPrice }}</td>
-              <td>{{ comparison.location }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <h2 class="section-title">Frequently asked questions</h2>
+      <div class="faqs">
+        @for (faq of faqs; track faq.q) {
+          <div class="faq-item">
+            <h3>{{ faq.q }}</h3>
+            <p>{{ faq.a }}</p>
+          </div>
+        }
       </div>
     </div>
   </section>
 
-  <section class="fair-price-section">
+  <!-- Final CTA -->
+  <section class="final-cta">
     <div class="container">
-      <div class="fair-price-grid">
-        <div class="profile-images">
-          <div class="profile-circle">
-            <div class="profile-placeholder">FAIR PRICE</div>
-          </div>
-          <div class="profile-circle">
-            <div class="profile-placeholder"></div>
-          </div>
-          <div class="profile-circle">
-            <div class="profile-placeholder"></div>
-          </div>
-        </div>
-        <div class="fair-price-text">
-          <h2>Everyone pays the same fair price.</h2>
-          <p>
-            Our pricing is consistent and fair for everyone. Whether you're a man or a woman, a first-time customer or a returning client, you'll receive the same transparent, fair price for the same service.
-          </p>
-          <p>
-            Our instant online price calculator uses the same flat-rate pricing system for everyone. No negotiations, no haggling, no surprises. Just fair, transparent pricing based on the work that needs to be done.
-          </p>
-          <p>
-            We believe in treating all customers equally. Our flat-rate pricing means you get the same fair price as everyone else for the same service on the same car. It's that simple.
-          </p>
-        </div>
-      </div>
+      <h2>Start your 7-day free trial</h2>
+      <p>No credit card required until after your trial. Cancel anytime.</p>
+      <a routerLink="/mechanic-register" class="cta-btn">Get started free →</a>
     </div>
   </section>
 
-  <section class="cta-section">
-    <div class="container">
-      <h2>How can we help?</h2>
-      <p>
-        Our service team is available 7 days a week, Monday - Friday from 6 AM to 5 PM PST, Saturday - Sunday 7 AM - 4 PM PST.
-      </p>
-      <div class="contact-info">
-        <a href="tel:18449973624">1 (844) 997-3624</a>
-        <a href="mailto:help&#64;mechanicdispatch.com">help&#64;mechanicdispatch.com</a>
-      </div>
-      <div class="cta-buttons">
-        <a routerLink="/services" class="btn-secondary">READ FAQ</a>
-        <a routerLink="/request" class="btn-primary">GET A QUOTE</a>
-      </div>
-    </div>
-  </section>
 </div>
-

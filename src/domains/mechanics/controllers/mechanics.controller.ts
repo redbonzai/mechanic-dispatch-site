@@ -24,7 +24,6 @@ export class MechanicsController {
       yearsExperience: mechanic.yearsExperience,
       rating: mechanic.rating,
       reviewCount: mechanic.reviewCount,
-      jobsCompleted: mechanic.jobsCompleted,
       sinceYear: mechanic.sinceYear,
       certifications: mechanic.certifications,
       badges: mechanic.badges,
@@ -36,7 +35,6 @@ export class MechanicsController {
   async findOne(@Param('id') id: string) {
     const mechanic = await this.mechanicsService.getMechanic(id);
     if (!mechanic) return null;
-    // Map entity instance to plain object for JSON serialization
     return {
       id: mechanic.id,
       createdAt: mechanic.createdAt,
@@ -49,7 +47,6 @@ export class MechanicsController {
       yearsExperience: mechanic.yearsExperience,
       rating: mechanic.rating,
       reviewCount: mechanic.reviewCount,
-      jobsCompleted: mechanic.jobsCompleted,
       sinceYear: mechanic.sinceYear,
       certifications: mechanic.certifications,
       badges: mechanic.badges,
@@ -61,7 +58,6 @@ export class MechanicsController {
   async findBySlug(@Param('slug') slug: string) {
     const mechanic = await this.mechanicsService.getMechanicBySlug(slug);
     if (!mechanic) return null;
-    // Map entity instance to plain object for JSON serialization
     return {
       id: mechanic.id,
       createdAt: mechanic.createdAt,
@@ -74,7 +70,6 @@ export class MechanicsController {
       yearsExperience: mechanic.yearsExperience,
       rating: mechanic.rating,
       reviewCount: mechanic.reviewCount,
-      jobsCompleted: mechanic.jobsCompleted,
       sinceYear: mechanic.sinceYear,
       certifications: mechanic.certifications,
       badges: mechanic.badges,
@@ -121,7 +116,6 @@ export class ReviewsController {
       carYear: review.carYear,
       serviceDescription: review.serviceDescription,
       mechanicId: review.mechanicId,
-      serviceRequestId: review.serviceRequestId,
       photoUrls: review.photoUrls,
     }));
   }

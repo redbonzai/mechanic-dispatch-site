@@ -120,7 +120,6 @@ export class PrismaMechanicRepository implements MechanicAbstract {
       yearsExperience: record.yearsExperience,
       rating: record.rating,
       reviewCount: record.reviewCount,
-      jobsCompleted: record.jobsCompleted,
       sinceYear: record.sinceYear,
       certifications: record.certifications,
       badges: record.badges,

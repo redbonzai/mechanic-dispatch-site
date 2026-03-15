@@ -1,132 +1,178 @@
-<div class="mechanic-profile-page" *ngIf="mechanic">
-  <section class="hero-section">
-    <div class="container">
-      <div class="profile-header">
-        <div class="profile-image-section">
-          <div class="profile-image">
-            <div class="profile-placeholder">{{ mechanic.name.charAt(0) }}</div>
-            <div class="badge-yellow" *ngIf="mechanic.badges.length > 0"></div>
+@if (loading()) {
+  <div class="profile-loading">
+    <div class="spinner"></div>
+    <p>Loading mechanic profile…</p>
+  </div>
+}
+
+@if (error()) {
+  <div class="profile-error">
+    <h2>Mechanic not found</h2>
+    <p>{{ error() }}</p>
+    <a routerLink="/mechanics" class="btn-back">Browse all mechanics</a>
+  </div>
+}
+
+@if (mechanic(); as m) {
+  <div class="mechanic-profile-page">
+
+    <!-- Header -->
+    <section class="profile-hero">
+      <div class="container">
+        <div class="profile-hero__inner">
+          <div class="profile-avatar">
+            @if (m.imageUrl) {
+              <img [src]="m.imageUrl" [alt]="m.name" class="avatar-img" />
+            } @else {
+              <div class="avatar-placeholder">{{ m.name.charAt(0) }}</div>
+            }
+            @if (m.subscriptionTier === 'PREMIUM') {
+              <div class="tier-badge tier-badge--featured">Featured</div>
+            } @else if (m.subscriptionTier === 'PRO') {
+              <div class="tier-badge tier-badge--pro">Pro</div>
+            }
+          </div>
+
+          <div class="profile-info">
+            <h1>{{ m.name }}</h1>
+            @if (m.shopName) {
+              <div class="profile-shop">{{ m.shopName }}</div>
+            }
+            <div class="profile-meta">
+              <span class="meta-item">📍 {{ m.location }}</span>
+              @if (m.yearsExperience) {
+                <span class="meta-item">🔧 {{ m.yearsExperience }}+ years experience</span>
+              }
+              @if (m.reviewCount > 0) {
+                <span class="meta-item">
+                  <span class="stars-small">{{ starString(m.rating) }}</span>
+                  {{ m.rating | number:'1.1-1' }} ({{ m.reviewCount }} reviews)
+                </span>
+              }
+            </div>
+
+            @if (m.bio) {
+              <p class="profile-bio">{{ m.bio }}</p>
+            }
+
+            <div class="profile-contact">
+              @if (m.phone) {
+                <a [href]="'tel:' + m.phone" class="contact-btn contact-btn--phone" (click)="trackLinkClick()">
+                  📞 {{ m.phone }}
+                </a>
+              }
+              @if (m.website) {
+                <a [href]="m.website" target="_blank" rel="noopener" class="contact-btn contact-btn--web" (click)="trackLinkClick()">
+                  🌐 Visit website →
+                </a>
+              }
+            </div>
           </div>
         </div>
-        <div class="profile-info">
-          <h1>{{ mechanic.name }}</h1>
-          <p class="profile-subtitle">
-            Mechanic Dispatch since {{ mechanic.sinceYear }}. {{ mechanic.rating }}-star rated mechanic with
-            {{ mechanic.jobsCompleted.toLocaleString() }}+ jobs completed.
-          </p>
-          <p class="profile-description">{{ mechanic.description }}</p>
-          <button type="button" class="btn-book" (click)="bookMechanic()">Book {{ mechanic.name }}</button>
-        </div>
-        <div class="quote-card">
-          <h3>Request a quote from {{ mechanic.name }}</h3>
-          <form [formGroup]="quoteForm" class="quote-form">
-            <div class="form-group">
-              <label>Service</label>
-              <select formControlName="service">
-                <option value="">Select Service</option>
-                <option *ngFor="let svc of services" [value]="svc">{{ svc }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Vehicle</label>
-              <input
-                formControlName="vehicle"
-                type="text"
-                placeholder="e.g. 2020 Honda Civic"
-                (input)="onYearChange()"
-              />
-            </div>
-            <div class="form-group">
-              <label>Zip Code</label>
-              <input formControlName="zipCode" type="text" placeholder="Enter zip code" />
-            </div>
-            <button type="button" class="btn-primary" (click)="getQuote()">Get a quote</button>
-          </form>
+      </div>
+    </section>
+
+    <!-- Register prompt -->
+    @if (showRegisterPrompt()) {
+      <div class="register-prompt">
+        <div class="register-prompt__inner">
+          <span>Create a free account to unlock contact info and save mechanics</span>
+          <a routerLink="/register" class="register-prompt__cta">Sign up free →</a>
+          <button type="button" class="register-prompt__dismiss" (click)="showRegisterPrompt.set(false)">✕</button>
         </div>
       </div>
-    </div>
-  </section>
+    }
 
-  <section class="related-mechanics-section">
-    <div class="container">
-      <h2>Meet some of our other highly rated mechanics in {{ mechanic.location }}</h2>
-      <div class="related-mechanics-grid">
-        <div *ngFor="let related of relatedMechanics" class="related-mechanic">
-          <div class="related-image">
-            <div class="profile-placeholder-small">{{ related.name.charAt(0) }}</div>
-          </div>
-          <div class="related-name">{{ related.name }}</div>
+    <!-- Skills & Certifications -->
+    <section class="profile-section">
+      <div class="container profile-section__grid">
+
+        <div class="skills-block">
+          @if (skillNames().length > 0) {
+            <h2>Skills & Services</h2>
+            <div class="skill-tags">
+              @for (skill of skillNames(); track skill) {
+                <span class="skill-tag">{{ skill }}</span>
+              }
+            </div>
+          }
+
+          @if (m.certifications && m.certifications.length > 0) {
+            <h2 style="margin-top:32px">Certifications</h2>
+            <div class="cert-list">
+              @for (cert of m.certifications; track cert) {
+                <div class="cert-item">✓ {{ cert }}</div>
+              }
+            </div>
+          }
         </div>
-      </div>
-    </div>
-  </section>
 
-  <section class="reviews-section">
-    <div class="container">
-      <h2>Customer Reviews</h2>
-      <div class="reviews-list">
-        <article *ngFor="let review of reviews" class="review-card">
-          <div class="review-main">
-            <div class="review-header">
-              <div class="reviewer-name">{{ review.reviewerName }}</div>
-              <div class="stars">
-                <span *ngFor="let star of getStars(review.rating); let i = index" 
-                      class="star" 
-                      [class.filled]="i < review.rating">★</span>
+        <div class="stats-block">
+          <h2>Activity</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card__value">{{ m.profileViews | number }}</div>
+              <div class="stat-card__label">Profile views</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value">{{ m.searchAppearances | number }}</div>
+              <div class="stat-card__label">Search appearances</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value">{{ m.reviewCount }}</div>
+              <div class="stat-card__label">Reviews</div>
+            </div>
+            @if (m.rating > 0) {
+              <div class="stat-card">
+                <div class="stat-card__value">{{ m.rating | number:'1.1-1' }}</div>
+                <div class="stat-card__label">Avg. rating</div>
               </div>
-              <div class="review-date">{{ review.date }}</div>
-            </div>
-            <div class="service-badge">{{ review.service }}</div>
-            <p class="review-text">{{ review.reviewText }}</p>
-            <div class="review-actions">
-              <button type="button" class="btn-helpful">Helpful ({{ review.helpfulCount }})</button>
-            </div>
-            <div *ngIf="review.mechanicResponse" class="mechanic-response">
-              <strong>{{ mechanic.name }}'s Response:</strong>
-              <p>{{ review.mechanicResponse }}</p>
-            </div>
+            }
           </div>
-          <div class="review-sidebar">
-            <div class="service-icon">🔧</div>
-            <div class="service-details">
-              <p><strong>Service Performed:</strong> {{ review.service }}</p>
-              <p><strong>Vehicle:</strong> {{ review.vehicle }}</p>
-              <p><strong>Date:</strong> {{ review.date }}</p>
-              <p><strong>Location:</strong> {{ review.location }}</p>
-            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews -->
+    @if (reviews().length > 0) {
+      <section class="reviews-section">
+        <div class="container">
+          <h2>Customer Reviews</h2>
+          <div class="reviews-list">
+            @for (review of reviews(); track review.id) {
+              <article class="review-card">
+                <div class="review-header">
+                  <div class="reviewer">
+                    <div class="reviewer-avatar">{{ review.reviewerName.charAt(0) }}</div>
+                    <div>
+                      <div class="reviewer-name">{{ review.reviewerName }}</div>
+                      <div class="review-date">{{ formatDate(review.createdAt) }}</div>
+                    </div>
+                  </div>
+                  <div class="review-stars">{{ starString(review.rating) }}</div>
+                </div>
+                <p class="review-text">{{ review.comment }}</p>
+                @if (review.response) {
+                  <div class="mechanic-response">
+                    <strong>{{ m.name }}'s response:</strong>
+                    <p>{{ review.response }}</p>
+                  </div>
+                }
+              </article>
+            }
           </div>
-        </article>
+        </div>
+      </section>
+    }
+
+    <!-- CTA strip -->
+    <section class="profile-cta">
+      <div class="container">
+        <p>Looking for help with a car repair?</p>
+        <a routerLink="/search" class="cta-btn">Search for fixes →</a>
+        <a routerLink="/mechanics" class="cta-btn cta-btn--outline">Browse all mechanics</a>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="cta-section">
-    <div class="container">
-      <h2>How can we help?</h2>
-      <p>We're here to help you with all your car repair needs. Contact us today!</p>
-      <div class="cta-buttons">
-        <a routerLink="/request" class="btn-secondary">Contact Us</a>
-        <button type="button" class="btn-primary" (click)="bookMechanic()">Book a Service</button>
-      </div>
-    </div>
-  </section>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  </div>
+}

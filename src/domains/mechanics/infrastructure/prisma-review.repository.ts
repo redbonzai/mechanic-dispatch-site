@@ -112,7 +112,6 @@ export class PrismaReviewRepository implements ReviewAbstract {
         carYear: data.carYear,
         serviceDescription: data.serviceDescription,
         mechanicId: data.mechanicId,
-        serviceRequestId: data.serviceRequestId ?? null,
         photoUrls: data.photoUrls ?? [],
       },
     });
@@ -186,7 +185,6 @@ export class PrismaReviewRepository implements ReviewAbstract {
       carYear: record.carYear,
       serviceDescription: record.serviceDescription,
       mechanicId: record.mechanicId,
-      serviceRequestId: record.serviceRequestId ?? null,
       photoUrls: record.photoUrls ?? [],
     });
   }

@@ -1,0 +1,340 @@
+.register-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 540px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 40px rgba(15, 23, 42, 0.1);
+}
+
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 32px;
+}
+
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &.active { background: #2563eb; color: #fff; }
+  &.done { background: #10b981; color: #fff; }
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  max-width: 60px;
+  transition: background 0.2s;
+
+  &.done { background: #10b981; }
+}
+
+.step-content {
+  h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 8px; }
+  p { color: #64748b; font-size: 14px; margin: 0 0 24px; line-height: 1.5; }
+}
+
+.field {
+  margin-bottom: 16px;
+
+  label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+
+    &:focus { border-color: #2563eb; }
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+}
+
+.step-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.next-btn, .submit-btn {
+  flex: 1;
+  padding: 12px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #3b82f6; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.back-btn {
+  padding: 12px 20px;
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #e2e8f0; }
+}
+
+.error-banner {
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.login-link {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  margin-top: 16px;
+
+  a { color: #2563eb; }
+}
+
+.trial-note {
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+.skills-section {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.skill-category {
+  margin-bottom: 20px;
+
+  &:last-child { margin-bottom: 0; }
+
+  h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin: 0 0 10px;
+  }
+}
+
+.skill-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-btn {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: #bfdbfe; color: #1d4ed8; }
+
+  &.selected {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+}
+
+.no-skills {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+// ── Step 4: Subscription ──────────────────────────────────────────────────
+
+.plan-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-option {
+  padding: 14px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+
+  &:hover { border-color: #93c5fd; }
+
+  &.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  &__name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  &__price {
+    font-size: 20px;
+    font-weight: 800;
+    color: #2563eb;
+    margin-bottom: 10px;
+  }
+
+  &__features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-size: 11px;
+      color: #64748b;
+      padding: 2px 0;
+
+      &::before { content: '✓  '; color: #10b981; font-weight: 700; }
+    }
+  }
+}
+
+.card-section {
+  margin-bottom: 20px;
+}
+
+.card-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.stripe-card-wrap {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  transition: border-color 0.15s;
+
+  &:focus-within { border-color: #2563eb; }
+}
+
+.stripe-card-element {
+  min-height: 20px;
+}
+
+.card-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.card-secure {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.skip-btn {
+  padding: 12px 20px;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { background: #f8fafc; }
+}
+
+// ── Success state ─────────────────────────────────────────────────────────
+
+.success-state {
+  text-align: center;
+  padding: 40px 0;
+
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    background: #10b981;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 28px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 10px;
+  }
+
+  p {
+    color: #64748b;
+    font-size: 14px;
+  }
+}

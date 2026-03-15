@@ -2,13 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Mechanic Dispatch</title>
+    <title>FixGuide — Find Car Fixes & Trusted Mechanics</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Research car fixes, DIY guides, and find trusted mechanics near you. Free for drivers." />
+
+    <!-- Google Analytics 4 — replace G-XXXXXXXXXX with your Measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLACEHOLDER"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // Measurement ID is loaded dynamically by the analytics service
+      // gtag('config', 'G-XXXXXXXXXX');  // uncomment once you have the ID
+    </script>
+
+    <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
     <app-root></app-root>
   </body>
 </html>
-

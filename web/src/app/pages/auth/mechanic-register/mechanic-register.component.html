@@ -1,0 +1,188 @@
+<div class="register-page">
+  <div class="register-card">
+
+    <!-- Step indicator -->
+    <div class="steps-indicator">
+      <div class="step-dot" [class.active]="step() >= 1" [class.done]="step() > 1">1</div>
+      <div class="step-line" [class.done]="step() > 1"></div>
+      <div class="step-dot" [class.active]="step() >= 2" [class.done]="step() > 2">2</div>
+      <div class="step-line" [class.done]="step() > 2"></div>
+      <div class="step-dot" [class.active]="step() >= 3" [class.done]="step() > 3">3</div>
+      <div class="step-line" [class.done]="step() > 3"></div>
+      <div class="step-dot" [class.active]="step() >= 4">4</div>
+    </div>
+
+    @if (error()) {
+      <div class="error-banner">{{ error() }}</div>
+    }
+
+    <!-- Step 1: Account -->
+    @if (step() === 1) {
+      <div class="step-content">
+        <h1>Create your mechanic account</h1>
+        <p>Join FixGuide and get discovered by drivers searching for your skills.</p>
+
+        <div class="field">
+          <label>Full name *</label>
+          <input type="text" [(ngModel)]="form.name" placeholder="John Smith" />
+        </div>
+        <div class="field">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="form.email" placeholder="john@example.com" />
+        </div>
+        <div class="field">
+          <label>Password *</label>
+          <input type="password" [(ngModel)]="form.password" placeholder="Minimum 8 characters" />
+        </div>
+
+        <button type="button" class="next-btn"
+          [disabled]="!form.name || !form.email || form.password.length < 8"
+          (click)="nextStep()">
+          Continue →
+        </button>
+        <p class="login-link">Already have an account? <a routerLink="/mechanic-login">Sign in</a></p>
+      </div>
+    }
+
+    <!-- Step 2: Profile -->
+    @if (step() === 2) {
+      <div class="step-content">
+        <h1>Your profile details</h1>
+        <p>Help drivers find you with the right information.</p>
+
+        <div class="field">
+          <label>Service area / City *</label>
+          <input type="text" [(ngModel)]="form.location" placeholder="Austin, TX" />
+        </div>
+        <div class="field">
+          <label>Shop name (optional)</label>
+          <input type="text" [(ngModel)]="form.shopName" placeholder="Smith Auto Repair" />
+        </div>
+        <div class="field">
+          <label>Phone (optional)</label>
+          <input type="tel" [(ngModel)]="form.phone" placeholder="(512) 555-0100" />
+        </div>
+        <div class="field">
+          <label>Website (optional)</label>
+          <input type="url" [(ngModel)]="form.website" placeholder="https://yoursite.com" />
+        </div>
+        <div class="field">
+          <label>Years of experience *</label>
+          <input type="number" [(ngModel)]="form.yearsExperience" min="0" max="60" />
+        </div>
+        <div class="field">
+          <label>Bio</label>
+          <textarea [(ngModel)]="form.bio" rows="3" placeholder="Briefly describe your expertise…"></textarea>
+        </div>
+        <div class="field">
+          <label>Certifications (comma-separated)</label>
+          <input type="text" [(ngModel)]="form.certifications" placeholder="ASE Certified, Hybrid Specialist" />
+        </div>
+
+        <div class="step-nav">
+          <button type="button" class="back-btn" (click)="prevStep()">← Back</button>
+          <button type="button" class="next-btn" [disabled]="!form.location" (click)="nextStep()">Continue →</button>
+        </div>
+      </div>
+    }
+
+    <!-- Step 3: Skills -->
+    @if (step() === 3) {
+      <div class="step-content">
+        <h1>Select your skills</h1>
+        <p>We match your skills to driver searches. Select everything you offer.</p>
+
+        <div class="skills-section">
+          @for (entry of categoryEntries(); track entry[0]) {
+            <div class="skill-category">
+              <h4>{{ entry[0] }}</h4>
+              <div class="skill-grid">
+                @for (skill of entry[1]; track skill.id) {
+                  <button type="button" class="skill-btn"
+                    [class.selected]="isSkillSelected(skill.id)"
+                    (click)="toggleSkill(skill.id)">
+                    {{ skill.name }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          @if (availableSkills().length === 0) {
+            <p class="no-skills">Loading skills…</p>
+          }
+        </div>
+
+        <div class="step-nav">
+          <button type="button" class="back-btn" (click)="prevStep()">← Back</button>
+          <button type="button" class="submit-btn"
+            [disabled]="loading() || form.selectedSkillIds.length === 0"
+            (click)="submitAccount()">
+            {{ loading() ? 'Creating account…' : 'Create account & choose plan →' }}
+          </button>
+        </div>
+        <p class="trial-note">7-day free trial · Cancel anytime · From $29/mo</p>
+      </div>
+    }
+
+    <!-- Step 4: Subscription -->
+    @if (step() === 4) {
+      <div class="step-content">
+
+        @if (subscriptionSuccess()) {
+          <div class="success-state">
+            <div class="success-icon">✓</div>
+            <h2>You're live on FixGuide!</h2>
+            <p>Your profile and subscription are active. Redirecting to your dashboard…</p>
+          </div>
+        } @else {
+          <h1>Choose your plan</h1>
+          <p>Start with a 7-day free trial. Cancel anytime.</p>
+
+          <!-- Plan selector -->
+          <div class="plan-picker">
+            @for (plan of plans(); track plan.tier) {
+              <button type="button" class="plan-option"
+                [class.selected]="selectedTier() === plan.tier"
+                (click)="selectedTier.set(plan.tier)">
+                <div class="plan-option__name">{{ plan.name }}</div>
+                <div class="plan-option__price">{{ formatPrice(plan.priceMonthly * 100) }}</div>
+                <ul class="plan-option__features">
+                  @for (f of plan.features.slice(0, 3); track f) {
+                    <li>{{ f }}</li>
+                  }
+                </ul>
+              </button>
+            }
+          </div>
+
+          <!-- Stripe card element -->
+          <div class="card-section">
+            <label class="card-label">Card details</label>
+            <div class="stripe-card-wrap">
+              <div #cardElement class="stripe-card-element"></div>
+            </div>
+            @if (cardError()) {
+              <div class="card-error">{{ cardError() }}</div>
+            }
+            <p class="card-secure">
+              🔒 Payments secured by Stripe. Your card is never stored on our servers.
+            </p>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="skip-btn" (click)="skipSubscription()">
+              Skip for now
+            </button>
+            <button type="button" class="submit-btn"
+              [disabled]="loading()"
+              (click)="submitSubscription()">
+              {{ loading() ? 'Processing…' : 'Start free trial →' }}
+            </button>
+          </div>
+          <p class="trial-note">You won\'t be charged until your 7-day trial ends.</p>
+        }
+      </div>
+    }
+
+  </div>
+</div>

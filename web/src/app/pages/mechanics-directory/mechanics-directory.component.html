@@ -1,0 +1,156 @@
+<div class="directory">
+  <div class="directory__header">
+    <div class="directory__header-inner">
+      <h1>Find a mechanic</h1>
+      <p>Browse verified mechanics available for hire. Click a profile to see their skills, certifications, and contact details.</p>
+
+      <div class="directory__filters">
+        <input
+          type="text"
+          placeholder="Filter by skill (e.g. Brakes)"
+          class="filter-input"
+          [ngModel]="filterSkill()"
+          (ngModelChange)="filterSkill.set($event)"
+          (keydown.enter)="applyFilters()"
+        />
+        <input
+          type="text"
+          placeholder="Filter by city or state"
+          class="filter-input"
+          [ngModel]="filterLocation()"
+          (ngModelChange)="filterLocation.set($event)"
+          (keydown.enter)="applyFilters()"
+        />
+        <button class="filter-btn" type="button" (click)="applyFilters()">Apply filters</button>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-grid">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="directory__content">
+      <div class="results-info">
+        <span>{{ total() }} mechanics found</span>
+        @if (total() > 0) {
+          <span>Page {{ page() }} of {{ totalPages }}</span>
+        }
+      </div>
+
+      @if (mechanics().length === 0) {
+        <div class="empty">
+          <p>No mechanics found. Try adjusting your filters.</p>
+        </div>
+      }
+
+      <div class="grid">
+        @for (mech of mechanics(); track mech.id) {
+          <div
+            class="mechanic-card"
+            [class.mechanic-card--hovered]="hoveredId() === mech.id"
+            (mouseenter)="setHovered(mech.id)"
+            (mouseleave)="setHovered(null)"
+          >
+            <!-- Default state -->
+            <div class="mechanic-card__front">
+              @if (mech.imageUrl) {
+                <img class="mechanic-card__photo" [src]="mech.imageUrl" [alt]="mech.name" />
+              } @else {
+                <div class="mechanic-card__avatar">{{ mech.name.charAt(0) }}</div>
+              }
+
+              <div class="mechanic-card__tier-wrap">
+                @if (tierLabel(mech.subscriptionTier)) {
+                  <span class="tier-badge" [class.tier-badge--featured]="mech.subscriptionTier === 'PREMIUM'" [class.tier-badge--pro]="mech.subscriptionTier === 'PRO'">
+                    {{ tierLabel(mech.subscriptionTier) }}
+                  </span>
+                }
+              </div>
+
+              <div class="mechanic-card__body">
+                <h3>{{ mech.name }}</h3>
+                <p class="mechanic-card__location">📍 {{ mech.location }}</p>
+
+                @if (mech.rating > 0) {
+                  <div class="mechanic-card__stars">
+                    ★ {{ mech.rating.toFixed(1) }}
+                    <span>({{ mech.reviewCount }})</span>
+                  </div>
+                }
+
+                <div class="mechanic-card__skills-preview">
+                  @for (skill of getSkillNames(mech).slice(0, 2); track skill) {
+                    <span class="skill-chip">{{ skill }}</span>
+                  }
+                  @if (getSkillNames(mech).length > 2) {
+                    <span class="skill-chip skill-chip--more">+{{ getSkillNames(mech).length - 2 }} more</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Hover overlay -->
+            <div class="mechanic-card__hover">
+              <div class="mechanic-card__hover-name">{{ mech.name }}</div>
+              <div class="mechanic-card__hover-location">{{ mech.location }}</div>
+
+              @if (mech.bio) {
+                <p class="mechanic-card__hover-bio">{{ mech.bio.slice(0, 140) }}{{ mech.bio.length > 140 ? '…' : '' }}</p>
+              }
+
+              <div class="mechanic-card__hover-skills">
+                <strong>Skills</strong>
+                <div class="skills-list">
+                  @for (skill of getSkillNames(mech); track skill) {
+                    <span class="skill-chip">{{ skill }}</span>
+                  }
+                </div>
+              </div>
+
+              @if (mech.certifications.length > 0) {
+                <div class="mechanic-card__hover-certs">
+                  <strong>Certifications</strong>
+                  <p>{{ mech.certifications.join(' · ') }}</p>
+                </div>
+              }
+
+              <div class="mechanic-card__hover-exp">
+                {{ mech.yearsExperience }} years experience
+              </div>
+
+              <a
+                [routerLink]="['/mechanic', mech.id, mech.slug]"
+                class="mechanic-card__cta"
+                (click)="trackView(mech)"
+              >
+                View full profile →
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button class="page-btn" [disabled]="page() === 1" (click)="prevPage()">← Previous</button>
+          <span class="page-info">{{ page() }} / {{ totalPages }}</span>
+          <button class="page-btn" [disabled]="page() === totalPages" (click)="nextPage()">Next →</button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- CTA for mechanics -->
+  <div class="join-cta">
+    <h2>Are you a mechanic?</h2>
+    <p>List your services on FixGuide and get discovered by drivers searching for your skills.</p>
+    <a routerLink="/mechanic-register" class="join-cta__btn">Start 7-day free trial</a>
+  </div>
+</div>

@@ -10,7 +10,12 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AdminAuthService } from '../../services/admin-auth.service';
 
@@ -31,7 +36,7 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AdminAuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],

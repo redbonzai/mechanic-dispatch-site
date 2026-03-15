@@ -1,0 +1,175 @@
+<div class="dashboard">
+
+  <div class="dashboard__sidebar">
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar">{{ mechanic?.name?.charAt(0) }}</div>
+      <div>
+        <strong>{{ mechanic?.name }}</strong>
+        <span>{{ mechanic?.email }}</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button type="button" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">
+        📊 Overview
+      </button>
+      <button type="button" [class.active]="activeTab() === 'subscription'" (click)="activeTab.set('subscription')">
+        💳 Subscription
+      </button>
+      <button type="button" [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
+        👤 Profile
+      </button>
+      <a [routerLink]="['/mechanic', mechanic?.id, mechanic?.slug]" class="sidebar-nav__link">
+        🔗 View public profile
+      </a>
+    </nav>
+  </div>
+
+  <div class="dashboard__main">
+
+    <!-- Overview Tab -->
+    @if (activeTab() === 'overview') {
+      <div class="tab-content">
+        <h2>Dashboard Overview</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__value">{{ mechanic?.profileViews ?? 0 }}</div>
+            <div class="stat-card__label">Profile views</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value">{{ mechanic?.searchAppearances ?? 0 }}</div>
+            <div class="stat-card__label">Search appearances</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value">{{ mechanic?.linkClicks ?? 0 }}</div>
+            <div class="stat-card__label">Link clicks</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value">{{ mechanic?.rating?.toFixed(1) ?? '0.0' }}</div>
+            <div class="stat-card__label">Avg. rating</div>
+          </div>
+        </div>
+
+        <div class="status-section">
+          <h3>Subscription Status</h3>
+          <div class="status-row">
+            <span class="badge" [ngClass]="getStatusBadgeClass(subscriptionStatus()?.status)">
+              {{ subscriptionStatus()?.status ?? 'INACTIVE' }}
+            </span>
+            @if (subscriptionStatus()?.tier) {
+              <span class="tier-label">{{ subscriptionStatus()!.tier }} plan</span>
+            }
+          </div>
+          @if (!subscriptionActive) {
+            <p class="status-cta">
+              Your profile is not visible to drivers. <button type="button" (click)="activeTab.set('subscription')">Set up a subscription →</button>
+            </p>
+          }
+          @if (subscriptionStatus()?.trialEnd) {
+            <p class="trial-info">
+              Trial ends {{ formatDate(subscriptionStatus()!.trialEnd) }}
+            </p>
+          }
+        </div>
+
+        @if (!subscriptionActive) {
+          <div class="upgrade-banner">
+            <strong>Activate your profile to start getting discovered</strong>
+            <p>When drivers search for car fixes, mechanics with matching skills appear in results. Start your 7-day free trial today.</p>
+            <button type="button" class="upgrade-btn" (click)="activeTab.set('subscription')">View plans →</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Subscription Tab -->
+    @if (activeTab() === 'subscription') {
+      <div class="tab-content">
+        <h2>Subscription</h2>
+
+        @if (subscriptionActive) {
+          <div class="current-sub">
+            <div class="current-sub__header">
+              <span class="badge badge--active">{{ subscriptionStatus()?.status }}</span>
+              <span class="tier-label">{{ subscriptionStatus()?.tier }} Plan</span>
+            </div>
+            <p>Current period ends: {{ formatDate(subscriptionStatus()?.currentPeriodEnd) }}</p>
+            @if (subscriptionStatus()?.cancelAtPeriodEnd) {
+              <div class="cancel-notice">Subscription will cancel at end of current period.</div>
+            }
+          </div>
+        }
+
+        <div class="plans-grid">
+          @for (plan of plans(); track plan.tier) {
+            <div class="plan-card" [class.plan-card--current]="subscriptionStatus()?.tier === plan.tier">
+              @if (plan.tier === 'PRO') {
+                <div class="plan-card__popular">Most popular</div>
+              }
+              <div class="plan-card__tier">{{ plan.name }}</div>
+              <div class="plan-card__price">{{ formatPrice(plan.priceMonthly) }}</div>
+              <div class="plan-card__trial">7-day free trial</div>
+              <ul class="plan-card__features">
+                @for (feature of plan.features; track feature) {
+                  <li>✓ {{ feature }}</li>
+                }
+              </ul>
+              @if (subscriptionStatus()?.tier !== plan.tier) {
+                <a routerLink="/pricing" class="plan-card__btn">
+                  {{ subscriptionActive ? 'Switch to ' + plan.name : 'Start free trial' }}
+                </a>
+              } @else {
+                <div class="plan-card__current-label">Your current plan</div>
+              }
+            </div>
+          }
+        </div>
+
+        <p class="sub-terms">Cancel anytime. No contracts. Billed monthly.</p>
+      </div>
+    }
+
+    <!-- Profile Tab -->
+    @if (activeTab() === 'profile') {
+      <div class="tab-content">
+        <h2>Your Profile</h2>
+        <p class="tab-sub">This information appears on your public profile page.</p>
+
+        <div class="profile-preview-wrap">
+          <div class="profile-info-row">
+            <span class="label">Name</span>
+            <span>{{ mechanic?.name }}</span>
+          </div>
+          <div class="profile-info-row">
+            <span class="label">Location</span>
+            <span>{{ mechanic?.location }}</span>
+          </div>
+          @if (mechanic?.shopName) {
+            <div class="profile-info-row">
+              <span class="label">Shop</span>
+              <span>{{ mechanic?.shopName }}</span>
+            </div>
+          }
+          @if (mechanic?.website) {
+            <div class="profile-info-row">
+              <span class="label">Website</span>
+              <a [href]="mechanic!.website" target="_blank" rel="noopener">{{ mechanic!.website }}</a>
+            </div>
+          }
+          <div class="profile-info-row">
+            <span class="label">Skills</span>
+            <div class="skills-wrap">
+              @for (ms of mechanic?.skills ?? []; track ms.skill.id) {
+                <span class="skill-tag">{{ ms.skill.name }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <p class="edit-note">To update your profile, contact support or use the API dashboard.</p>
+      </div>
+    }
+
+  </div>
+</div>

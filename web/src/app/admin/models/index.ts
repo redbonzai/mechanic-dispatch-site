@@ -6,4 +6,3 @@
 
 export * from './admin-user.model';
 export * from './analytics.model';
-export * from './service-request.model';

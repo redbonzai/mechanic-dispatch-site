@@ -3,90 +3,40 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   OverviewStats,
-  RevenueMetrics,
-  MechanicsPerformance,
-  RevenueMetricsQuery,
-  MechanicsPerformanceQuery,
+  SubscriptionMetrics,
+  TopQueriesResponse,
+  SearchVolumeResponse,
+  MechanicAnalyticsResponse,
 } from '../models/analytics.model';
 
-/**
- * Analytics Service
- *
- * Provides access to admin analytics API endpoints.
- * All endpoints require JWT authentication via interceptor.
- *
- * Endpoints:
- * - GET /api/admin/analytics/overview
- * - GET /api/admin/analytics/revenue
- * - GET /api/admin/analytics/mechanics
- */
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AnalyticsService {
   private readonly baseUrl = '/api/admin/analytics';
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
-  /**
-   * Fetch overview statistics for admin dashboard.
-   *
-   * @returns Observable of overview stats including totals for requests,
-   *          revenue, mechanics, reviews, and average ratings
-   */
   getOverview(): Observable<OverviewStats> {
     return this.http.get<OverviewStats>(`${this.baseUrl}/overview`);
   }
 
-  /**
-   * Fetch revenue metrics with optional filtering.
-   *
-   * @param query Optional query parameters for date range and granularity
-   * @returns Observable of revenue metrics with data points and summary
-   */
-  getRevenue(query?: RevenueMetricsQuery): Observable<RevenueMetrics> {
-    const params = this.buildHttpParams(query);
-    return this.http.get<RevenueMetrics>(`${this.baseUrl}/revenue`, {
-      params,
-    });
+  getSubscriptions(): Observable<SubscriptionMetrics> {
+    return this.http.get<SubscriptionMetrics>(`${this.baseUrl}/subscriptions`);
   }
 
-  /**
-   * Fetch mechanics performance metrics with optional filtering.
-   *
-   * @param query Optional query parameters for filtering and sorting
-   * @returns Observable of mechanics performance data with summary
-   */
-  getMechanics(
-    query?: MechanicsPerformanceQuery
-  ): Observable<MechanicsPerformance> {
-    const params = this.buildHttpParams(query);
-    return this.http.get<MechanicsPerformance>(`${this.baseUrl}/mechanics`, {
-      params,
-    });
+  getTopQueries(limit = 20): Observable<TopQueriesResponse> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<TopQueriesResponse>(`${this.baseUrl}/search/top-queries`, { params });
   }
 
-  /**
-   * Build HttpParams from query object, filtering undefined values.
-   *
-   * @param query Query object with optional parameters
-   * @returns HttpParams instance for HTTP request
-   */
-  private buildHttpParams(
-    query?: RevenueMetricsQuery | MechanicsPerformanceQuery
-  ): HttpParams {
-    let params = new HttpParams();
+  getSearchVolume(days = 30): Observable<SearchVolumeResponse> {
+    const params = new HttpParams().set('days', String(days));
+    return this.http.get<SearchVolumeResponse>(`${this.baseUrl}/search/volume`, { params });
+  }
 
-    if (!query) {
-      return params;
-    }
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined) {
-        params = params.set(key, String(value));
-      }
-    });
-
-    return params;
+  getMechanicAnalytics(page = 1, limit = 25): Observable<MechanicAnalyticsResponse> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('limit', String(limit));
+    return this.http.get<MechanicAnalyticsResponse>(`${this.baseUrl}/mechanics`, { params });
   }
 }

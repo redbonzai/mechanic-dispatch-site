@@ -1,0 +1,243 @@
+<div class="search-page">
+
+  <!-- Search bar -->
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <svg class="search-bar__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        class="search-bar__input"
+        type="text"
+        placeholder="Describe your car problem…"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        (keydown)="onKeyDown($event)"
+      />
+      <select class="search-bar__filter" [ngModel]="make()" (ngModelChange)="make.set($event)">
+        <option value="">Any make</option>
+        <option>Toyota</option><option>Honda</option><option>Ford</option>
+        <option>Chevrolet</option><option>Nissan</option><option>BMW</option>
+        <option>Mercedes-Benz</option><option>Jeep</option><option>Dodge</option>
+        <option>Hyundai</option><option>Kia</option><option>Subaru</option>
+      </select>
+      <select class="search-bar__filter" [ngModel]="year()" (ngModelChange)="year.set($event)">
+        <option value="">Any year</option>
+        @for (y of years; track y) {
+          <option [value]="y">{{ y }}</option>
+        }
+      </select>
+      <button type="button" class="search-bar__btn" (click)="search()">Search</button>
+    </div>
+  </div>
+
+  <!-- Register prompt banner -->
+  @if (showRegisterPrompt()) {
+    <div class="register-prompt">
+      <div class="register-prompt__inner">
+        <div class="register-prompt__text">
+          <strong>Save your searches and get personalized results</strong>
+          <span>Create a free account — takes 30 seconds.</span>
+        </div>
+        <div class="register-prompt__actions">
+          <a routerLink="/register" class="register-prompt__btn">Create free account</a>
+          <button type="button" class="register-prompt__dismiss" (click)="dismissPrompt()">Maybe later</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <span>Searching repair databases…</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error() && !loading()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- No results yet -->
+  @if (!query() && !loading()) {
+    <div class="empty-state">
+      <div class="empty-state__icon">🔍</div>
+      <h2>Search for a car problem</h2>
+      <p>Describe what's wrong — "brake noise", "check engine light P0420", or "car won't start in cold weather"</p>
+    </div>
+  }
+
+  <!-- Results -->
+  @if (results() && !loading()) {
+    <div class="results-layout">
+
+      <!-- Fix guides panel -->
+      <div class="guides-panel">
+        <div class="results-header">
+          <h2 class="results-header__title">
+            Fix guides for "{{ results()!.query }}"
+          </h2>
+          <span class="results-header__count">{{ results()!.guides.length }} results</span>
+        </div>
+
+        @if (results()!.guides.length === 0) {
+          <div class="no-guides">
+            <p>No specific guides found. Try a different search term or browse by <a routerLink="/services">service category</a>.</p>
+          </div>
+        }
+
+        @for (guide of results()!.guides; track guide.title) {
+          <div class="guide-card" [class.guide-card--expanded]="selectedGuide()?.title === guide.title">
+            <div class="guide-card__header" (click)="selectGuide(guide)">
+              <div class="guide-card__meta">
+                <span class="guide-card__category">{{ guide.systemCategory }}</span>
+                <span class="guide-card__source">{{ guide.source }}</span>
+                <span class="difficulty-badge" [style.color]="difficultyColor(guide.difficulty)">
+                  {{ difficultyLabel(guide.difficulty) }}
+                </span>
+              </div>
+              <h3 class="guide-card__title">{{ guide.title }}</h3>
+              <div class="guide-card__summary">
+                <div class="guide-card__stat">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                  {{ formatTime(guide.timeEstimateMinutes) || 'Time varies' }}
+                </div>
+                <div class="guide-card__stat">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  {{ formatCost(guide.estimatedCostMinCents, guide.estimatedCostMaxCents) }}
+                </div>
+                @if (guide.diyFriendly) {
+                  <span class="diy-badge">✓ DIY Friendly</span>
+                }
+              </div>
+              <div class="guide-card__toggle">
+                {{ selectedGuide()?.title === guide.title ? '▲ Collapse' : '▼ See full guide' }}
+              </div>
+            </div>
+
+            @if (selectedGuide()?.title === guide.title) {
+              <div class="guide-card__body">
+
+                @if (guide.warnings.length > 0) {
+                  <div class="guide-warning">
+                    <strong>⚠ Before you start</strong>
+                    @for (w of guide.warnings; track w) {
+                      <p>{{ w }}</p>
+                    }
+                  </div>
+                }
+
+                @if (guide.steps.length > 0) {
+                  <div class="guide-steps">
+                    <h4>Steps</h4>
+                    <ol>
+                      @for (step of guide.steps; track step.order) {
+                        <li>
+                          <span>{{ step.description }}</span>
+                          @if (step.tip) {
+                            <em class="step-tip">💡 {{ step.tip }}</em>
+                          }
+                        </li>
+                      }
+                    </ol>
+                  </div>
+                }
+
+                @if (guide.tools.length > 0) {
+                  <div class="guide-list">
+                    <h4>Tools needed</h4>
+                    <ul>
+                      @for (tool of guide.tools; track tool) {
+                        <li>{{ tool }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                @if (guide.parts.length > 0) {
+                  <div class="guide-list">
+                    <h4>Parts required</h4>
+                    <ul>
+                      @for (part of guide.parts; track part) {
+                        <li>{{ part }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                @if (guide.sourceUrl) {
+                  <a [href]="guide.sourceUrl" target="_blank" rel="noopener" class="guide-source-link">
+                    View original source →
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Mechanics panel -->
+      <div class="mechanics-panel">
+        <h3 class="mechanics-panel__title">
+          Mechanics who can help
+          <span>{{ results()!.mechanics.length }} found</span>
+        </h3>
+
+        @if (results()!.mechanics.length === 0) {
+          <p class="mechanics-panel__empty">
+            No mechanics found matching this search.
+            <a routerLink="/mechanics">Browse all mechanics →</a>
+          </p>
+        }
+
+        @for (mech of results()!.mechanics; track mech.id) {
+          <div class="mech-card">
+            <div class="mech-card__header">
+              <div class="mech-card__avatar">{{ mech.name.charAt(0) }}</div>
+              <div class="mech-card__info">
+                <strong>{{ mech.name }}</strong>
+                <span>{{ mech.location }}</span>
+              </div>
+              @if (mech.subscriptionTier === 'PREMIUM') {
+                <span class="tier-badge tier-badge--premium">Featured</span>
+              } @else if (mech.subscriptionTier === 'PRO') {
+                <span class="tier-badge tier-badge--pro">Pro</span>
+              }
+            </div>
+
+            @if (mech.rating > 0) {
+              <div class="mech-card__rating">
+                ★ {{ mech.rating.toFixed(1) }} <span>({{ mech.reviewCount }} reviews)</span>
+              </div>
+            }
+
+            <div class="mech-card__skills">
+              @for (skill of mech.skills.slice(0, 3); track skill) {
+                <span class="skill-pill">{{ skill }}</span>
+              }
+              @if (mech.skills.length > 3) {
+                <span class="skill-pill skill-pill--more">+{{ mech.skills.length - 3 }}</span>
+              }
+            </div>
+
+            <a
+              [routerLink]="['/mechanic', mech.id, mech.slug]"
+              class="mech-card__btn"
+              (click)="trackMechanicClick(mech)"
+            >
+              View profile →
+            </a>
+          </div>
+        }
+
+        <a routerLink="/mechanics" class="view-all-link">View all mechanics →</a>
+      </div>
+
+    </div>
+  }
+
+</div>

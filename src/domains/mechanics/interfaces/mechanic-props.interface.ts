@@ -10,7 +10,6 @@ export interface MechanicProps {
   yearsExperience: number;
   rating: number;
   reviewCount: number;
-  jobsCompleted: number;
   sinceYear: number;
   certifications: string[];
   badges: string[];

@@ -1,33 +1,28 @@
-#!/bin/bash
+#!/bin/sh
 # Docker Entrypoint Script
-# Runs migrations and seeding before starting the application
+# Applies database schema and seeds data before starting the application
 
 set -e
 
-echo "🚀 Starting Mechanic Dispatch API..."
-echo ""
+echo "Starting Mechanic Dispatch API..."
 
-# Wait for database to be ready
-echo "⏳ Waiting for database to be ready..."
+# Wait for the database TCP port to be reachable
+echo "Waiting for database to be ready..."
 until node -e "require('net').createConnection(5432, 'db').on('error', () => process.exit(1)).on('connect', () => process.exit(0))"; do
-  echo "   Database is unavailable - sleeping"
+  echo "  Database is unavailable - retrying in 2s"
   sleep 2
 done
-echo "✅ Database is ready!"
-echo ""
+echo "Database is ready!"
 
-# Run Prisma migrations
-echo "📋 Running Prisma migrations..."
+# Apply all pending Prisma migrations
+echo "Applying database migrations..."
 npx prisma migrate deploy
-echo "✅ Migrations complete!"
-echo ""
+echo "Migrations complete!"
 
-# Run Prisma seed
-echo "🌱 Seeding database..."
-npx prisma db seed || echo "⚠️  Seeding failed or already seeded (this is OK if database already has data)"
-echo ""
+# Run Prisma seed (failure is non-fatal — data may already exist)
+echo "Seeding database..."
+npx prisma db seed || echo "Seeding skipped or already seeded"
 
-# Start the application
-echo "🎯 Starting application..."
-echo ""
+# Hand off to the application
+echo "Starting application..."
 exec node dist/main.js

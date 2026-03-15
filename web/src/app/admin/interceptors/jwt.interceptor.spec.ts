@@ -1,224 +1,253 @@
 /**
- * JwtInterceptor Unit Tests
- * 
- * Pattern: AAA (Arrange-Act-Assert)
- * 
- * @authority docs/admin/TEST_STRATEGY.md
+ * Universal JWT Interceptor Tests
+ *
+ * Tests the functional jwtInterceptor that handles tokens for:
+ *  - Admin routes  → admin token, redirects to /admin/login on 401
+ *  - User routes   → user token, no redirect
+ *  - Mechanic routes → mechanic token, no redirect
+ *  - Public routes → no token added
  */
 
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpClient,
+  provideHttpClient,
+  withInterceptors,
+} from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { Router } from '@angular/router';
-import { JwtInterceptor } from './jwt.interceptor';
-import { AdminAuthService } from '../services/admin-auth.service';
 import { of, throwError } from 'rxjs';
+import { jwtInterceptor } from './jwt.interceptor.functional';
+import { AdminAuthService } from '../services/admin-auth.service';
+import { UserAuthService } from '../../services/user-auth.service';
+import { MechanicAuthService } from '../../services/mechanic-auth.service';
 
-describe('JwtInterceptor (Unit Tests - Frontend)', () => {
+describe('jwtInterceptor (Universal)', () => {
+  let http: HttpClient;
   let httpMock: HttpTestingController;
-  let httpClient: HttpClient;
-  let authService: jasmine.SpyObj<AdminAuthService>;
   let router: jasmine.SpyObj<Router>;
+  let adminAuth: jasmine.SpyObj<AdminAuthService>;
+  let userAuth: jasmine.SpyObj<UserAuthService>;
+  let mechAuth: jasmine.SpyObj<MechanicAuthService>;
 
   beforeEach(() => {
-    // Arrange: Create spies
-    const authServiceSpy = jasmine.createSpyObj('AdminAuthService', [
+    router = jasmine.createSpyObj('Router', ['navigate']);
+    adminAuth = jasmine.createSpyObj('AdminAuthService', [
       'getAccessToken',
+      'getRefreshToken',
       'refresh',
       'logout',
     ]);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    userAuth = jasmine.createSpyObj('UserAuthService', ['getAccessToken']);
+    mechAuth = jasmine.createSpyObj('MechanicAuthService', ['getAccessToken']);
+
+    // Default: no tokens
+    adminAuth.getAccessToken.and.returnValue(null);
+    userAuth.getAccessToken.and.returnValue(null);
+    mechAuth.getAccessToken.and.returnValue(null);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: JwtInterceptor,
-          multi: true,
-        },
-        { provide: AdminAuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy },
+        provideHttpClient(withInterceptors([jwtInterceptor])),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: router },
+        { provide: AdminAuthService, useValue: adminAuth },
+        { provide: UserAuthService, useValue: userAuth },
+        { provide: MechanicAuthService, useValue: mechAuth },
       ],
     });
 
+    http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    httpClient = TestBed.inject(HttpClient);
-    authService = TestBed.inject(AdminAuthService) as jasmine.SpyObj<AdminAuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   afterEach(() => {
     httpMock.verify();
   });
 
-  it('should add Authorization header if token exists', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('test-token');
+  // ── Admin routes ──────────────────────────────────────────────────────────
 
-    // Act
-    httpClient.get('/api/admin/users').subscribe();
+  describe('admin routes (/admin/...)', () => {
+    it('should attach admin Bearer token to admin requests', () => {
+      adminAuth.getAccessToken.and.returnValue('admin-jwt-token');
 
-    // Assert
-    const req = httpMock.expectOne('/api/admin/users');
-    expect(req.request.headers.has('Authorization')).toBe(true);
-    expect(req.request.headers.get('Authorization')).toBe('Bearer test-token');
-    req.flush({});
-  });
+      http.get('/admin/dashboard').subscribe();
 
-  it('should not add Authorization header if no token', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue(null);
-
-    // Act
-    httpClient.get('/api/admin/users').subscribe();
-
-    // Assert
-    const req = httpMock.expectOne('/api/admin/users');
-    expect(req.request.headers.has('Authorization')).toBe(false);
-    req.flush({});
-  });
-
-  it('should handle successful request with token', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('test-token');
-    const mockResponse = { data: 'test' };
-
-    // Act
-    httpClient.get('/api/admin/users').subscribe((response) => {
-      // Assert
-      expect(response).toEqual(mockResponse);
+      const req = httpMock.expectOne('/admin/dashboard');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer admin-jwt-token',
+      );
+      req.flush({});
     });
 
-    const req = httpMock.expectOne('/api/admin/users');
-    req.flush(mockResponse);
-  });
+    it('should not attach Authorization header when admin token is absent', () => {
+      adminAuth.getAccessToken.and.returnValue(null);
 
-  it('should attempt token refresh on 401 error', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('expired-token');
-    authService.refresh.and.returnValue(of({ accessToken: 'new-token' }));
+      http.get('/admin/dashboard').subscribe();
 
-    // Act
-    httpClient.get('/api/admin/users').subscribe();
-
-    // Assert - first request with expired token
-    const req1 = httpMock.expectOne('/api/admin/users');
-    req1.flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    // After refresh, retry the request
-    const req2 = httpMock.expectOne('/api/admin/users');
-    req2.flush({});
-
-    // Verify refresh was called
-    expect(authService.refresh).toHaveBeenCalled();
-  });
-
-  it('should retry request with new token after refresh', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('expired-token');
-    authService.refresh.and.returnValue(of({ accessToken: 'new-token' }));
-    const mockResponse = { data: 'success' };
-
-    // Act
-    httpClient.get('/api/admin/users').subscribe((response) => {
-      // Assert
-      expect(response).toEqual(mockResponse);
+      const req = httpMock.expectOne('/admin/dashboard');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush({});
     });
 
-    // First request fails with 401
-    const req1 = httpMock.expectOne('/api/admin/users');
-    req1.flush({}, { status: 401, statusText: 'Unauthorized' });
+    it('should not add token to /admin/auth/login', () => {
+      adminAuth.getAccessToken.and.returnValue('admin-jwt-token');
 
-    // Second request with new token succeeds
-    const req2 = httpMock.expectOne('/api/admin/users');
-    expect(req2.request.headers.get('Authorization')).toBe('Bearer new-token');
-    req2.flush(mockResponse);
-  });
+      http.post('/admin/auth/login', {}).subscribe();
 
-  it('should not attempt refresh on auth endpoints', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('token');
-
-    // Act
-    httpClient.post('/api/admin/auth/login', {}).subscribe(
-      () => {},
-      (error) => {
-        // Assert
-        expect(error.message).toBe('Authentication failed');
-      }
-    );
-
-    // Assert - first request fails
-    const req = httpMock.expectOne('/api/admin/auth/login');
-    req.flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    // Verify refresh was NOT called
-    expect(authService.refresh).not.toHaveBeenCalled();
-  });
-
-  it('should logout and redirect if refresh fails', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('expired-token');
-    authService.refresh.and.returnValue(
-      throwError(() => new HttpErrorResponse({ status: 401 }))
-    );
-    authService.logout.and.returnValue(of(void 0));
-
-    // Act
-    httpClient.get('/api/admin/users').subscribe(
-      () => {},
-      () => {}
-    );
-
-    // Assert - first request fails with 401
-    const req = httpMock.expectOne('/api/admin/users');
-    req.flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    // Verify logout and redirect
-    expect(authService.logout).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/login']);
-  });
-
-  it('should pass through non-401 errors', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('token');
-
-    // Act
-    httpClient.get('/api/admin/users').subscribe(
-      () => {},
-      (error) => {
-        // Assert
-        expect(error.status).toBe(500);
-      }
-    );
-
-    const req = httpMock.expectOne('/api/admin/users');
-    req.flush({}, { status: 500, statusText: 'Internal Server Error' });
-
-    // Verify refresh was NOT called
-    expect(authService.refresh).not.toHaveBeenCalled();
-  });
-
-  it('should handle multiple 401 errors', () => {
-    // Arrange
-    authService.getAccessToken.and.returnValue('expired-token');
-    authService.refresh.and.returnValue(of({ accessToken: 'new-token' }));
-
-    // Act - make first request
-    httpClient.get('/api/admin/users').subscribe({
-      error: () => {}
+      const req = httpMock.expectOne('/admin/auth/login');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush({});
     });
 
-    // Assert - first request fails with 401
-    const req1 = httpMock.expectOne('/api/admin/users');
-    req1.flush({}, { status: 401, statusText: 'Unauthorized' });
+    it('should try to refresh and redirect to /admin/login on 401', () => {
+      adminAuth.getAccessToken.and.returnValue('expired-token');
+      adminAuth.refresh.and.returnValue(
+        throwError(() => ({ status: 401 })),
+      );
+      adminAuth.logout.and.returnValue(of(undefined));
 
-    // Retry after refresh
-    const req1Retry = httpMock.expectOne('/api/admin/users');
-    req1Retry.flush({});
+      http.get('/admin/dashboard').subscribe({ error: () => null });
 
-    // Verify refresh was called
-    expect(authService.refresh).toHaveBeenCalled();
+      const req = httpMock.expectOne('/admin/dashboard');
+      req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+
+      expect(adminAuth.refresh).toHaveBeenCalled();
+      expect(router.navigate).toHaveBeenCalledWith(['/admin/login']);
+    });
+
+    it('should retry with new token after successful refresh', () => {
+      adminAuth.getAccessToken.and.returnValue('old-token');
+      adminAuth.refresh.and.returnValue(
+        of({ accessToken: 'new-token' }),
+      );
+
+      http.get('/admin/dashboard').subscribe();
+
+      const firstReq = httpMock.expectOne('/admin/dashboard');
+      firstReq.flush({}, { status: 401, statusText: 'Unauthorized' });
+
+      const retryReq = httpMock.expectOne('/admin/dashboard');
+      expect(retryReq.request.headers.get('Authorization')).toBe(
+        'Bearer new-token',
+      );
+      retryReq.flush({ data: 'ok' });
+    });
+  });
+
+  // ── User routes ───────────────────────────────────────────────────────────
+
+  describe('user protected routes', () => {
+    it('should attach user Bearer token to /users/me requests', () => {
+      userAuth.getAccessToken.and.returnValue('user-jwt-token');
+
+      http.get('/users/me').subscribe();
+
+      const req = httpMock.expectOne('/users/me');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer user-jwt-token',
+      );
+      req.flush({});
+    });
+
+    it('should attach user token to /users/me/vehicles', () => {
+      userAuth.getAccessToken.and.returnValue('user-jwt-token');
+
+      http.get('/users/me/vehicles').subscribe();
+
+      const req = httpMock.expectOne('/users/me/vehicles');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer user-jwt-token',
+      );
+      req.flush([]);
+    });
+
+    it('should attach user token to /auth/users/resend-verification', () => {
+      userAuth.getAccessToken.and.returnValue('user-jwt-token');
+
+      http.post('/auth/users/resend-verification', {}).subscribe();
+
+      const req = httpMock.expectOne('/auth/users/resend-verification');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer user-jwt-token',
+      );
+      req.flush({});
+    });
+
+    it('should NOT redirect to /admin/login on user 401', () => {
+      userAuth.getAccessToken.and.returnValue('user-token');
+
+      http.get('/users/me').subscribe({ error: () => null });
+
+      const req = httpMock.expectOne('/users/me');
+      req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Mechanic routes ───────────────────────────────────────────────────────
+
+  describe('mechanic protected routes', () => {
+    it('should attach mechanic token to /mechanic/me requests', () => {
+      mechAuth.getAccessToken.and.returnValue('mech-jwt-token');
+
+      http.get('/mechanic/me').subscribe();
+
+      const req = httpMock.expectOne('/mechanic/me');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer mech-jwt-token',
+      );
+      req.flush({});
+    });
+
+    it('should attach mechanic token to /mechanic/subscription', () => {
+      mechAuth.getAccessToken.and.returnValue('mech-jwt-token');
+
+      http.get('/mechanic/subscription').subscribe();
+
+      const req = httpMock.expectOne('/mechanic/subscription');
+      expect(req.request.headers.get('Authorization')).toBe(
+        'Bearer mech-jwt-token',
+      );
+      req.flush({});
+    });
+  });
+
+  // ── Public routes ─────────────────────────────────────────────────────────
+
+  describe('public routes (no token expected)', () => {
+    it('should NOT attach any token to /search/fixes', () => {
+      adminAuth.getAccessToken.and.returnValue('admin-token');
+      userAuth.getAccessToken.and.returnValue('user-token');
+      mechAuth.getAccessToken.and.returnValue('mech-token');
+
+      http.get('/search/fixes?q=brakes').subscribe();
+
+      const req = httpMock.expectOne('/search/fixes?q=brakes');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush({});
+    });
+
+    it('should NOT attach any token to /mechanics (public listing)', () => {
+      userAuth.getAccessToken.and.returnValue('user-token');
+
+      http.get('/mechanics').subscribe();
+
+      const req = httpMock.expectOne('/mechanics');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush([]);
+    });
+
+    it('should NOT attach any token to /auth/users/login', () => {
+      http.post('/auth/users/login', {}).subscribe();
+
+      const req = httpMock.expectOne('/auth/users/login');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush({});
+    });
   });
 });

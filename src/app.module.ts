@@ -2,18 +2,30 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './domains/database/database.module';
 import { MechanicsModule } from './domains/mechanics/mechanics.module';
-import { ServiceRequestsModule } from './domains/service-requests/service-requests.module';
+import { UsersModule } from './domains/users/users.module';
+import { MechanicAuthModule } from './domains/mechanic-auth/mechanic-auth.module';
+import { RepairGuidesModule } from './domains/repair-guides/repair-guides.module';
+import { SearchModule } from './domains/search/search.module';
+import { SubscriptionsModule } from './domains/subscriptions/subscriptions.module';
+import { CarDataModule } from './domains/car-data/car-data.module';
 import { AdminModule } from './domains/admin/admin.module';
+import { AnalyticsModule } from './domains/analytics/analytics.module';
+import { MailModule } from './domains/mail/mail.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     MechanicsModule,
-    ServiceRequestsModule,
+    UsersModule,
+    MechanicAuthModule,
+    RepairGuidesModule,
+    SearchModule,
+    SubscriptionsModule,
+    CarDataModule,
     AdminModule,
+    AnalyticsModule,
+    MailModule,
   ],
   controllers: [],
 })

@@ -1,9 +1,9 @@
 /**
  * AdminAuthService
- * 
+ *
  * Handles admin authentication, token management, and session state.
  * Implements JWT-based authentication with refresh token flow.
- * 
+ *
  * @authority docs/admin/SECURITY_REQUIREMENTS.md
  * @authority docs/admin/API_CONTRACTS.md
  */
@@ -12,13 +12,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { LoginResponse, RefreshResponse, AdminUser } from '../models/admin-user.model';
+import { LoginResponse, RefreshResponse, AdminUser } from '../models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminAuthService {
-  private readonly API_BASE = '/api/admin/auth';
+  private readonly API_BASE = 'http://localhost:3000/admin/auth';
   private readonly ACCESS_TOKEN_KEY = 'admin_access_token';
   private readonly REFRESH_TOKEN_KEY = 'admin_refresh_token';
   private readonly USER_KEY = 'admin_user';
@@ -27,13 +27,15 @@ export class AdminAuthService {
   public currentUser$: Observable<AdminUser | null>;
 
   constructor(private http: HttpClient) {
-    this.currentUserSubject = new BehaviorSubject<AdminUser | null>(this.loadUserFromStorage());
+    this.currentUserSubject = new BehaviorSubject<AdminUser | null>(
+      this.loadUserFromStorage(),
+    );
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
 
   /**
    * Authenticate admin user with email and password
-   * 
+   *
    * @param email - Admin user email
    * @param password - Admin user password
    * @returns Observable with tokens and user data
@@ -43,44 +45,47 @@ export class AdminAuthService {
       .post<LoginResponse>(`${this.API_BASE}/login`, { email, password })
       .pipe(
         tap((response) => {
-          this.storeTokens(response.tokens.accessToken, response.tokens.refreshToken);
+          this.storeTokens(
+            response.tokens.accessToken,
+            response.tokens.refreshToken,
+          );
           this.storeUser(response.user);
           this.currentUserSubject.next(response.user);
         }),
         catchError((error) => {
           return throwError(() => error);
-        })
+        }),
       );
   }
 
   /**
    * Logout current admin user
    * Clears tokens and user data from storage
-   * 
+   *
    * @returns Observable that completes on logout
    */
   logout(): Observable<void> {
     const refreshToken = this.getRefreshToken();
-    
+
     return this.http
       .post<void>(`${this.API_BASE}/logout`, { refreshToken })
       .pipe(
         tap(() => {
           this.clearStorage();
           this.currentUserSubject.next(null);
-        })
+        }),
       );
   }
 
   /**
    * Refresh access token using refresh token
-   * 
+   *
    * @returns Observable with new access token
    * @throws Error if no refresh token available
    */
   refresh(): Observable<RefreshResponse> {
     const refreshToken = this.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -93,13 +98,13 @@ export class AdminAuthService {
         }),
         catchError((error) => {
           return throwError(() => error);
-        })
+        }),
       );
   }
 
   /**
    * Get current access token
-   * 
+   *
    * @returns Access token or null if not found
    */
   getAccessToken(): string | null {
@@ -108,7 +113,7 @@ export class AdminAuthService {
 
   /**
    * Get current refresh token
-   * 
+   *
    * @returns Refresh token or null if not found
    */
   getRefreshToken(): string | null {
@@ -117,7 +122,7 @@ export class AdminAuthService {
 
   /**
    * Check if user is authenticated
-   * 
+   *
    * @returns True if access token exists
    */
   isAuthenticated(): boolean {
@@ -126,7 +131,7 @@ export class AdminAuthService {
 
   /**
    * Get current user
-   * 
+   *
    * @returns Current user or null if not authenticated
    */
   getCurrentUser(): AdminUser | null {
@@ -135,7 +140,7 @@ export class AdminAuthService {
 
   /**
    * Store tokens in localStorage
-   * 
+   *
    * @param accessToken - JWT access token
    * @param refreshToken - JWT refresh token
    */
@@ -146,7 +151,7 @@ export class AdminAuthService {
 
   /**
    * Store user data in localStorage
-   * 
+   *
    * @param user - Admin user data
    */
   private storeUser(user: AdminUser): void {
@@ -155,7 +160,7 @@ export class AdminAuthService {
 
   /**
    * Load user from localStorage
-   * 
+   *
    * @returns User data or null if not found
    */
   private loadUserFromStorage(): AdminUser | null {

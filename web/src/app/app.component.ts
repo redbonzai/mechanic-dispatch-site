@@ -1,156 +1,51 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { UserAuthService } from './services/user-auth.service';
+import { MechanicAuthService } from './services/mechanic-auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
-  template: `
-    <div class="layout">
-      <header class="top-nav">
-        <a routerLink="/" class="brand">
-          <span class="brand__accent">Mechanic</span>Dispatch
-        </a>
-        <nav>
-          <a routerLink="/request">Book now</a>
-          <div class="nav-dropdown" (click)="toggleHowItWorksDropdown($event)">
-            <a routerLink="/pricing" class="nav-dropdown__trigger">
-              How it works
-              <span class="nav-dropdown__caret" [class.active]="howItWorksDropdownOpen">^</span>
-            </a>
-            <div class="nav-dropdown__menu" [class.open]="howItWorksDropdownOpen">
-              <button class="nav-dropdown__button" type="button" (click)="$event.preventDefault(); closeHowItWorksDropdown()">How it works</button>
-              <div class="nav-dropdown__columns">
-                <div class="nav-dropdown__column">
-                  <a routerLink="/pricing" (click)="closeHowItWorksDropdown()">PRICING</a>
-                  <a routerLink="/reviews" (click)="closeHowItWorksDropdown()">REVIEWS</a>
-                </div>
-                <div class="nav-dropdown__column">
-                  <a routerLink="/request" (click)="closeHowItWorksDropdown()">BOOK A MECHANIC ONLINE</a>
-                  <a routerLink="/contact" (click)="closeHowItWorksDropdown()">CONTACT</a>
-                </div>
-                <div class="nav-dropdown__column">
-                  <a routerLink="/about-mechanics" (click)="closeHowItWorksDropdown()">ABOUT OUR MECHANICS</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="nav-dropdown" (click)="toggleServicesDropdown($event)">
-            <a routerLink="/services" class="nav-dropdown__trigger">
-              Services
-              <span class="nav-dropdown__caret" [class.active]="servicesDropdownOpen">^</span>
-            </a>
-            <div class="nav-dropdown__menu" [class.open]="servicesDropdownOpen">
-              <button class="nav-dropdown__button" type="button" (click)="$event.preventDefault(); closeServicesDropdown()">Services</button>
-              <div class="nav-dropdown__columns">
-                <div class="nav-dropdown__column">
-                  <a routerLink="/services/oil-change" (click)="closeServicesDropdown()">OIL CHANGE</a>
-                  <a routerLink="/services/pre-purchase-inspection" (click)="closeServicesDropdown()">PRE-PURCHASE CAR INSPECTION</a>
-                  <a routerLink="/services" (click)="closeServicesDropdown()">EXPLORE 500+ SERVICES</a>
-                </div>
-                <div class="nav-dropdown__column">
-                  <a routerLink="/services/car-not-starting" (click)="closeServicesDropdown()">CAR IS NOT STARTING DIAGNOSTIC</a>
-                  <a routerLink="/services/battery-replacement" (click)="closeServicesDropdown()">BATTERY REPLACEMENT</a>
-                  <a routerLink="/services/towing-roadside" (click)="closeServicesDropdown()">TOWING AND ROADSIDE</a>
-                </div>
-                <div class="nav-dropdown__column">
-                  <a routerLink="/services/check-engine-light" (click)="closeServicesDropdown()">CHECK ENGINE LIGHT IS ON DIAGNOSTIC</a>
-                  <a routerLink="/services/brake-pad-replacement" (click)="closeServicesDropdown()">BRAKE PAD REPLACEMENT</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <a routerLink="/request">Fleet</a>
-          <a routerLink="/careers">Become a Mechanic</a>
-          <a routerLink="/request">Support</a>
-        </nav>
-        <a routerLink="/request" class="top-nav__cta">Request service</a>
-      </header>
-
-      <main>
-        <router-outlet></router-outlet>
-      </main>
-
-      <footer class="footer">
-        <div class="footer__content">
-          <div>
-            <h3>Mechanic Dispatch</h3>
-            <p>
-              Mobile mechanics at your home or office—transparent pricing, trusted professionals,
-              satisfaction guaranteed.
-            </p>
-          </div>
-          <div>
-            <h4>Contact</h4>
-            <ul>
-              <li><a routerLink="/request">Schedule service</a></li>
-              <li><a routerLink="/request">hi&#64;mechanicdispatch.com</a></li>
-              <li><a routerLink="/request">(800) 555-0123</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Company</h4>
-            <ul>
-              <li><a routerLink="/request">About</a></li>
-              <li><a routerLink="/request">Careers</a></li>
-              <li><a routerLink="/request">Mechanic network</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Resources</h4>
-            <ul>
-              <li><a routerLink="/request">FAQ</a></li>
-              <li><a routerLink="/request">Cities we serve</a></li>
-              <li><a routerLink="/request">Terms & privacy</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="footer__bottom">
-          <span>© {{ currentYear }} Mechanic Dispatch. All rights reserved.</span>
-        </div>
-      </footer>
-    </div>
-  `,
+  imports: [RouterOutlet, RouterLink, CommonModule],
+  templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
   readonly currentYear = new Date().getFullYear();
-  servicesDropdownOpen = false;
-  howItWorksDropdownOpen = false;
+  menuOpen = signal(false);
+  userMenuOpen = signal(false);
+  mobileMenuOpen = signal(false);
 
-  toggleServicesDropdown(event: Event): void {
-    event.preventDefault();
+  constructor(
+    readonly userAuth: UserAuthService,
+    readonly mechAuth: MechanicAuthService,
+  ) {}
+
+  toggleUserMenu(event: Event) {
     event.stopPropagation();
-    this.servicesDropdownOpen = !this.servicesDropdownOpen;
-    if (this.servicesDropdownOpen) {
-      this.howItWorksDropdownOpen = false;
-    }
+    this.userMenuOpen.update((v) => !v);
   }
 
-  closeServicesDropdown(): void {
-    this.servicesDropdownOpen = false;
+  toggleMobileMenu() {
+    this.mobileMenuOpen.update((v) => !v);
   }
 
-  toggleHowItWorksDropdown(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.howItWorksDropdownOpen = !this.howItWorksDropdownOpen;
-    if (this.howItWorksDropdownOpen) {
-      this.servicesDropdownOpen = false;
-    }
+  logoutUser() {
+    this.userAuth.logout();
+    this.userMenuOpen.set(false);
   }
 
-  closeHowItWorksDropdown(): void {
-    this.howItWorksDropdownOpen = false;
+  logoutMechanic() {
+    this.mechAuth.logout();
+    this.userMenuOpen.set(false);
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.nav-dropdown')) {
-      this.servicesDropdownOpen = false;
-      this.howItWorksDropdownOpen = false;
+    if (!target.closest('.user-menu-wrap')) {
+      this.userMenuOpen.set(false);
     }
   }
 }
-

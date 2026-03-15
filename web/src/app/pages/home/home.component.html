@@ -1,0 +1,187 @@
+<div class="home">
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero__content">
+      <div class="hero__badge">100% Free for car owners</div>
+      <h1 class="hero__title">
+        What's wrong with<br/>your car?
+      </h1>
+      <p class="hero__subtitle">
+        Search thousands of verified repair guides. Get step-by-step fixes,
+        cost estimates, and connect with local mechanics — all in one place.
+      </p>
+
+      <!-- Search Bar -->
+      <div class="search-box">
+        <div class="search-box__input-row">
+          <div class="search-box__main">
+            <svg class="search-box__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              class="search-box__text"
+              placeholder='Try "brake squealing" or "check engine light"'
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+              (keydown)="onKeyDown($event)"
+            />
+          </div>
+          <div class="search-box__filters">
+            <select class="search-box__select" [ngModel]="selectedMake()" (ngModelChange)="selectedMake.set($event)">
+              <option value="">Any make</option>
+              <option>Toyota</option><option>Honda</option><option>Ford</option>
+              <option>Chevrolet</option><option>Nissan</option><option>BMW</option>
+              <option>Mercedes-Benz</option><option>Jeep</option><option>Ram</option>
+              <option>GMC</option><option>Dodge</option><option>Hyundai</option>
+              <option>Kia</option><option>Subaru</option><option>Volkswagen</option>
+            </select>
+            <select class="search-box__select" [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)">
+              <option value="">Any year</option>
+              @for (year of years; track year) {
+                <option [value]="year">{{ year }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <button class="search-box__btn" type="button" (click)="search()">
+          Search fixes
+        </button>
+      </div>
+
+      <div class="hero__hints">
+        <span>Popular:</span>
+        @for (cat of popularCategories.slice(0, 4); track cat.query) {
+          <button type="button" class="hint-tag" (click)="searchCategory(cat.query)">
+            {{ cat.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="hero__visual">
+      <div class="hero__stat-card hero__stat-card--1">
+        <div class="stat-value">50K+</div>
+        <div class="stat-label">Repair guides</div>
+      </div>
+      <div class="hero__stat-card hero__stat-card--2">
+        <div class="stat-value">2,400+</div>
+        <div class="stat-label">Verified mechanics</div>
+      </div>
+      <div class="hero__stat-card hero__stat-card--3">
+        <div class="stat-value">Free</div>
+        <div class="stat-label">Always free for drivers</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How FixGuide works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step__number">1</div>
+          <h3>Describe the problem</h3>
+          <p>Search using plain English — "my car makes a grinding noise when braking" or any symptom you're experiencing.</p>
+        </div>
+        <div class="step">
+          <div class="step__number">2</div>
+          <h3>Get verified fixes</h3>
+          <p>See step-by-step repair guides from RepairPal, ALLDATA, and CarMD — with cost estimates and difficulty ratings.</p>
+        </div>
+        <div class="step">
+          <div class="step__number">3</div>
+          <h3>DIY or hire help</h3>
+          <p>Attempt it yourself with our guide, or view matching mechanics in your area whose skills address your exact problem.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="container">
+      <h2 class="section-title">Browse by problem type</h2>
+      <div class="categories__grid">
+        @for (cat of popularCategories; track cat.query) {
+          <button type="button" class="cat-card" (click)="searchCategory(cat.query)">
+            <span class="cat-card__icon">{{ cat.icon }}</span>
+            <span class="cat-card__label">{{ cat.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- For Mechanics CTA -->
+  <section class="mechanic-cta">
+    <div class="container mechanic-cta__inner">
+      <div class="mechanic-cta__text">
+        <div class="mechanic-cta__badge">For mechanics & shops</div>
+        <h2>Get discovered by drivers searching for your skills</h2>
+        <p>
+          Thousands of car owners search FixGuide every day for solutions.
+          When a driver searches for a fix that matches your skills, your profile appears.
+          No ads. No bidding wars. Just qualified leads.
+        </p>
+        <div class="mechanic-cta__pricing">
+          <span class="price">From <strong>$29/mo</strong></span>
+          <span class="trial">7-day free trial · Cancel anytime</span>
+        </div>
+        <div class="mechanic-cta__actions">
+          <a routerLink="/mechanic-register" class="btn btn--primary">List my services</a>
+          <a routerLink="/pricing" class="btn btn--ghost">See all plans</a>
+        </div>
+      </div>
+      <div class="mechanic-cta__preview">
+        <div class="profile-preview">
+          <div class="profile-preview__header">
+            <div class="profile-preview__avatar">JD</div>
+            <div>
+              <strong>John D. — Mobile Mechanic</strong>
+              <div class="profile-preview__stars">★★★★★ <span>4.9 (87 reviews)</span></div>
+            </div>
+          </div>
+          <div class="profile-preview__skills">
+            <span class="skill-tag">Brake Repair</span>
+            <span class="skill-tag">Engine Diagnostics</span>
+            <span class="skill-tag">Oil Change</span>
+            <span class="skill-tag">Electrical</span>
+          </div>
+          <div class="profile-preview__stats">
+            <div><strong>340</strong><small>profile views</small></div>
+            <div><strong>128</strong><small>search appearances</small></div>
+            <div><strong>42</strong><small>link clicks</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social proof -->
+  <section class="social-proof">
+    <div class="container">
+      <h2 class="section-title">What drivers say</h2>
+      <div class="testimonials">
+        <div class="testimonial">
+          <div class="testimonial__stars">★★★★★</div>
+          <p>"Saved me $400 at the dealership. Found out my brake issue was a simple caliper adjustment — did it myself in 45 minutes."</p>
+          <cite>— Marcus T., 2019 Honda Civic</cite>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial__stars">★★★★★</div>
+          <p>"The mechanic I found through FixGuide was amazing. He came to my house and fixed my car in an hour. Highly recommend."</p>
+          <cite>— Sarah K., 2017 Toyota Camry</cite>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial__stars">★★★★★</div>
+          <p>"I had no idea what that check engine code meant. FixGuide explained it in plain English and showed me exactly what to do."</p>
+          <cite>— David R., 2021 Ford F-150</cite>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

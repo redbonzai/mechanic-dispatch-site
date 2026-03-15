@@ -10,7 +10,6 @@ export interface ReviewProps {
   carYear: number;
   serviceDescription: string;
   mechanicId: string;
-  serviceRequestId?: string | null;
   photoUrls?: string[];
 }
 
@@ -63,10 +62,6 @@ export class Review {
 
   get mechanicId(): string {
     return this.props.mechanicId;
-  }
-
-  get serviceRequestId(): string | null | undefined {
-    return this.props.serviceRequestId ?? null;
   }
 
   get photoUrls(): string[] {

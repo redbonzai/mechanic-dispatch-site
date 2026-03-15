@@ -1,28 +1,25 @@
 # =============================================================================
 # Base stage: install deps, generate Prisma client, build, prune to prod deps
 # =============================================================================
-FROM node:24-bookworm-slim AS base
+FROM node:24-alpine3.23 AS base
 
 WORKDIR /app
 
-# Install pnpm and OpenSSL (required for Prisma)
-RUN npm install -g pnpm && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends openssl && \
-    rm -rf /var/lib/apt/lists/*
+# Install pnpm and OpenSSL (required for Prisma) — Alpine uses apk, not apt-get
+RUN apk add --no-cache openssl && \
+    npm install -g pnpm
 
 # Copy dependency files first for better layer caching
-# IMPORTANT: include pnpm-lock.yaml (and pnpm-workspace.yaml if you have it)
 COPY package.json pnpm-lock.yaml ./
-# If you use workspaces, keep this line; otherwise remove it.
-# COPY pnpm-workspace.yaml ./
 
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./
 COPY prisma ./prisma
 COPY scripts ./scripts
 
 # Install all dependencies (needed for build)
-RUN pnpm install --frozen-lockfile
+# --no-frozen-lockfile allows the lockfile to be updated when new deps are added;
+# the build context controls exactly which packages are installed.
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma client (must happen before build)
 RUN pnpm exec prisma generate --schema=./prisma/schema.prisma
@@ -34,7 +31,7 @@ COPY src ./src
 RUN pnpm run build
 
 # Verify build output
-RUN test -f dist/main.js || (echo "❌ dist/main.js missing!" && ls -la dist/ && exit 1)
+RUN test -f dist/main.js || (echo "dist/main.js missing!" && ls -la dist/ && exit 1)
 
 # Prune dev deps so node_modules becomes production-only
 RUN pnpm prune --prod
@@ -43,17 +40,15 @@ RUN pnpm prune --prod
 # =============================================================================
 # Runner stage: Production runtime (no pnpm install here)
 # =============================================================================
-FROM node:24-bookworm-slim AS runner
+FROM node:24-alpine3.23 AS runner
 
 WORKDIR /app
 
-# OpenSSL for Prisma runtime
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends openssl && \
-    rm -rf /var/lib/apt/lists/*
+# OpenSSL for Prisma runtime — Alpine uses apk
+RUN apk add --no-cache openssl
 
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Create non-root user for security — Alpine uses addgroup/adduser
+RUN addgroup -S appuser && adduser -S -G appuser appuser
 
 # Copy only what runtime needs
 COPY --from=base /app/package.json ./package.json

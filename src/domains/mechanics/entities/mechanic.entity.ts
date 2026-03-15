@@ -51,10 +51,6 @@ export class Mechanic {
     return this.props.reviewCount;
   }
 
-  get jobsCompleted(): number {
-    return this.props.jobsCompleted;
-  }
-
   get sinceYear(): number {
     return this.props.sinceYear;
   }

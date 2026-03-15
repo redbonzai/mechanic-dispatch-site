@@ -7,6 +7,5 @@ export interface CreateMechanicReviewData {
   carYear: number;
   serviceDescription: string;
   mechanicId: string;
-  serviceRequestId?: string | null;
   photoUrls?: string[];
 }

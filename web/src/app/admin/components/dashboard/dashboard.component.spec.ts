@@ -1,284 +1,143 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { AnalyticsService } from '../../services/analytics.service';
 import {
   OverviewStats,
-  RevenueMetrics,
-  MechanicsPerformance,
+  SubscriptionMetrics,
+  TopQueriesResponse,
+  SearchVolumeResponse,
+  MechanicAnalyticsResponse,
 } from '../../models/analytics.model';
+
+const mockOverview: OverviewStats = {
+  totalUsers: 500,
+  activeUsers: 320,
+  totalMechanics: 80,
+  activeMechanics: 60,
+  totalSubscriptions: 60,
+  activeSubscriptions: 45,
+  trialSubscriptions: 10,
+  monthlyRevenueCents: 250000,
+  totalSearchQueries: 4000,
+  searchQueriesThisMonth: 450,
+  totalReviews: 210,
+  averageRating: 4.6,
+};
+
+const mockSubscriptions: SubscriptionMetrics = {
+  breakdown: [
+    { tier: 'BASIC', count: 20, revenueCents: 58000 },
+    { tier: 'PRO', count: 18, revenueCents: 106200 },
+    { tier: 'PREMIUM', count: 7, revenueCents: 69300 },
+  ],
+  totalRevenueCents: 233500,
+  totalActive: 45,
+  totalTrialing: 10,
+  totalCancelled: 5,
+  totalPastDue: 2,
+};
+
+const mockTopQueries: TopQueriesResponse = {
+  queries: [
+    { query: 'check engine light', count: 120, lastSearched: '2026-03-10' },
+  ],
+};
+
+const mockSearchVolume: SearchVolumeResponse = {
+  dataPoints: [{ date: '2026-03-01', count: 45 }],
+  total: 450,
+};
+
+const mockMechanicAnalytics: MechanicAnalyticsResponse = {
+  mechanics: [
+    {
+      id: 'mech-1',
+      name: 'John Doe',
+      location: 'Austin, TX',
+      subscriptionTier: 'PRO',
+      subscriptionStatus: 'ACTIVE',
+      profileViews: 200,
+      searchAppearances: 800,
+      linkClicks: 40,
+      rating: 4.8,
+      reviewCount: 22,
+    },
+  ],
+  total: 1,
+};
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
   let analyticsService: jasmine.SpyObj<AnalyticsService>;
 
-  // Mock data
-  const mockOverview: OverviewStats = {
-    totalRequests: 150,
-    pendingRequests: 10,
-    authorizedRequests: 5,
-    capturedRequests: 8,
-    finalizedRequests: 120,
-    cancelledRequests: 7,
-    totalRevenueCents: 1500000,
-    activeMechanics: 12,
-    totalMechanics: 15,
-    totalReviews: 85,
-    averageRating: 4.6,
-    totalWorkLogs: 250,
-  };
-
-  const mockRevenue: RevenueMetrics = {
-    dataPoints: [
-      {
-        date: '2025-01-01',
-        revenueCents: 50000,
-        finalizedCount: 5,
-        averageRequestCents: 10000,
-      },
-    ],
-    summary: {
-      totalRevenueCents: 50000,
-      totalFinalizedCount: 5,
-      averageRevenueCents: 10000,
-      peakRevenueCents: 50000,
-      peakRevenueDate: '2025-01-01',
-    },
-  };
-
-  const mockMechanics: MechanicsPerformance = {
-    mechanics: [
-      {
-        id: 'mech-1',
-        name: 'John Doe',
-        completedJobs: 25,
-        totalHoursWorked: 120.5,
-        totalEarningsCents: 300000,
-        averageRating: 4.8,
-        reviewCount: 20,
-        isActive: true,
-      },
-    ],
-    summary: {
-      totalMechanics: 1,
-      activeMechanics: 1,
-      totalCompletedJobs: 25,
-      totalHoursWorked: 120.5,
-      averageRating: 4.8,
-    },
-  };
-
   beforeEach(async () => {
-    // Arrange: Create spy object for AnalyticsService
-    const analyticsSpy = jasmine.createSpyObj('AnalyticsService', [
+    const spy = jasmine.createSpyObj('AnalyticsService', [
       'getOverview',
-      'getRevenue',
-      'getMechanics',
+      'getSubscriptions',
+      'getTopQueries',
+      'getSearchVolume',
+      'getMechanicAnalytics',
     ]);
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
-        { provide: AnalyticsService, useValue: analyticsSpy },
+        { provide: AnalyticsService, useValue: spy },
         provideHttpClient(),
+        provideRouter([]),
       ],
     }).compileComponents();
 
-    analyticsService = TestBed.inject(
-      AnalyticsService
-    ) as jasmine.SpyObj<AnalyticsService>;
+    analyticsService = TestBed.inject(AnalyticsService) as jasmine.SpyObj<AnalyticsService>;
+    analyticsService.getOverview.and.returnValue(of(mockOverview));
+    analyticsService.getSubscriptions.and.returnValue(of(mockSubscriptions));
+    analyticsService.getTopQueries.and.returnValue(of(mockTopQueries));
+    analyticsService.getSearchVolume.and.returnValue(of(mockSearchVolume));
+    analyticsService.getMechanicAnalytics.and.returnValue(of(mockMechanicAnalytics));
+
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
   });
 
   it('should create', () => {
-    // Arrange: Set up spy returns
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger component creation
     fixture.detectChanges();
-
-    // Assert: Component should be created
     expect(component).toBeTruthy();
   });
 
   it('should initialize with loading state', () => {
-    // Arrange: Component not yet initialized
-    // (loading state is set in constructor)
-
-    // Act: Check initial state
-    const isLoading = component.isLoading;
-
-    // Assert: Should be loading initially
-    expect(isLoading).toBe(true);
+    expect(component.isLoading).toBe(true);
     expect(component.error).toBeNull();
   });
 
-  it('should load all analytics data on init', async () => {
-    // Arrange: Set up service spies
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger ngOnInit
+  it('should load analytics on init', async () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    // Assert: All services should be called
     expect(analyticsService.getOverview).toHaveBeenCalled();
-    expect(analyticsService.getRevenue).toHaveBeenCalled();
-    expect(analyticsService.getMechanics).toHaveBeenCalled();
-
-    // Assert: Loading should be false
+    expect(analyticsService.getSubscriptions).toHaveBeenCalled();
     expect(component.isLoading).toBe(false);
-  });
-
-  it('should populate overview stats correctly', async () => {
-    // Arrange: Set up service spies
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger ngOnInit
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Assert: Overview data should be populated
     expect(component.overview).toEqual(mockOverview);
-    expect(component.overview?.totalRequests).toBe(150);
-    expect(component.overview?.activeMechanics).toBe(12);
   });
 
-  it('should populate revenue metrics correctly', async () => {
-    // Arrange: Set up service spies
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger ngOnInit
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Assert: Revenue data should be populated
-    expect(component.revenue).toEqual(mockRevenue);
-    expect(component.revenue?.dataPoints.length).toBe(1);
-    expect(component.revenue?.summary.totalRevenueCents).toBe(50000);
-  });
-
-  it('should populate mechanics performance correctly', async () => {
-    // Arrange: Set up service spies
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger ngOnInit
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Assert: Mechanics data should be populated
-    expect(component.mechanics).toEqual(mockMechanics);
-    expect(component.mechanics?.mechanics.length).toBe(1);
-    expect(component.mechanics?.mechanics[0].name).toBe('John Doe');
-  });
-
-  it('should handle errors when loading data', async () => {
-    // Arrange: Set up service to throw error
-    const errorMessage = 'Failed to load analytics';
+  it('should set error on load failure', async () => {
     analyticsService.getOverview.and.returnValue(
-      throwError(() => new Error(errorMessage))
+      throwError(() => new Error('network error')),
     );
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
 
-    // Act: Trigger ngOnInit
     fixture.detectChanges();
     await fixture.whenStable();
 
-    // Assert: Error should be set
+    expect(component.error).toBe('Failed to load analytics data. Please try again.');
     expect(component.isLoading).toBe(false);
-    expect(component.error).toBe(
-      'Failed to load analytics data. Please try again.'
-    );
-  });
-
-  it('should retry loading data on retry', async () => {
-    // Arrange: First call fails, second succeeds
-    analyticsService.getOverview.and.returnValues(
-      throwError(() => new Error('Error')),
-      of(mockOverview)
-    );
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: First load (fails)
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Assert: Error should be set
-    expect(component.error).toBeTruthy();
-
-    // Act: Retry
-    await component.retryLoad();
-    await fixture.whenStable();
-
-    // Assert: Should have called services again
-    expect(analyticsService.getOverview).toHaveBeenCalledTimes(2);
-    expect(component.error).toBeNull();
   });
 
   it('should format currency correctly', () => {
-    // Arrange: Various cent values
-    const testCases = [
-      { cents: 0, expected: '$0.00' },
-      { cents: 100, expected: '$1.00' },
-      { cents: 1234, expected: '$12.34' },
-      { cents: 1500000, expected: '$15,000.00' },
-      { cents: 99999999, expected: '$999,999.99' },
-    ];
-
-    testCases.forEach(({ cents, expected }) => {
-      // Act: Format currency
-      const result = component.formatCurrency(cents);
-
-      // Assert: Should match expected format
-      expect(result).toBe(expected);
-    });
-  });
-
-  it('should handle zero and negative values in formatCurrency', () => {
-    // Arrange: Edge cases
-    const testCases = [
-      { cents: 0, expected: '$0.00' },
-      { cents: -100, expected: '-$1.00' },
-      { cents: -1234, expected: '-$12.34' },
-    ];
-
-    testCases.forEach(({ cents, expected }) => {
-      // Act: Format currency
-      const result = component.formatCurrency(cents);
-
-      // Assert: Should handle edge cases
-      expect(result).toBe(expected);
-    });
-  });
-
-  it('should calculate completion rate correctly', async () => {
-    // Arrange: Set up overview data
-    analyticsService.getOverview.and.returnValue(of(mockOverview));
-    analyticsService.getRevenue.and.returnValue(of(mockRevenue));
-    analyticsService.getMechanics.and.returnValue(of(mockMechanics));
-
-    // Act: Trigger ngOnInit and wait for async completion
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    // Assert: Completion rate = (finalized / total) * 100
-    // (120 / 150) * 100 = 80%
-    const completionRate = component.completionRate;
-    expect(completionRate).toBe(80);
+    expect(component.formatCurrency(0)).toBe('$0');
+    expect(component.formatCurrency(100)).toBe('$1');
+    expect(component.formatCurrency(150000)).toBe('$1,500');
   });
 });

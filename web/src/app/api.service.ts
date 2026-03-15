@@ -9,25 +9,6 @@ export class ApiService {
   private readonly config = inject<AppConfig>(APP_CONFIG);
   readonly baseUrl = this.config.apiBase ?? 'http://localhost:3000';
 
-  createRequest(payload: Record<string, unknown>): Observable<{
-    requestId: string;
-    clientSecret: string | null;
-    customerId: string | null;
-  }> {
-    return this.http.post<{ requestId: string; clientSecret: string | null; customerId: string | null }>(
-      `${this.baseUrl}/requests`,
-      payload,
-    );
-  }
-
-  capture(id: string): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/requests/${id}/capture`, {});
-  }
-
-  cancel(id: string): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/requests/${id}/cancel`, {});
-  }
-
   getReviews(params?: {
     mechanicId?: string;
     rating?: number;
@@ -75,7 +56,6 @@ export interface Review {
   carYear: number;
   serviceDescription: string;
   mechanicId: string;
-  serviceRequestId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,12 +70,11 @@ export interface Mechanic {
   yearsExperience: number;
   rating: number;
   reviewCount: number;
-  jobsCompleted: number;
   sinceYear: number;
   certifications: string[];
   badges: string[];
   isActive: boolean;
+  subscriptionTier?: string | null;
   createdAt: string;
   updatedAt: string;
 }
-

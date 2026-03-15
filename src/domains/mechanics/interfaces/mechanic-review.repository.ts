@@ -52,10 +52,6 @@ export class MechanicReview {
     return this.props.mechanicId;
   }
 
-  get serviceRequestId(): string | null | undefined {
-    return this.props.serviceRequestId ?? null;
-  }
-
   get photoUrls(): string[] {
     return this.props.photoUrls ?? [];
   }

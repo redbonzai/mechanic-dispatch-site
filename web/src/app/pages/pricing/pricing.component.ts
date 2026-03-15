@@ -1,166 +1,97 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { CarDatabaseService } from '../../car-database.service';
 
-interface PriceComparison {
-  car: string;
-  service: string;
-  estimate: string;
-  savings: string;
-  dealerPrice: string;
-  location: string;
+interface Plan {
+  tier: string;
+  name: string;
+  price: number;
+  badge?: string;
+  features: string[];
+  cta: string;
+  highlighted: boolean;
 }
 
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, CommonModule],
   templateUrl: './pricing.component.html',
-  styleUrl: './pricing.component.scss',
+  styleUrls: ['./pricing.component.scss'],
 })
-export class PricingComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
-  private readonly carDb = inject(CarDatabaseService);
-
-  quoteForm = this.fb.group({
-    zipcode: ['76227'],
-    year: [''],
-    make: [''],
-    model: [''],
-    trim: [''],
-    service: [''],
-  });
-
-  years: number[] = [];
-  makes: string[] = [];
-  models: string[] = [];
-  trims: Array<{ trim: string; engineType: string }> = [];
-  loadingMakes = false;
-  loadingModels = false;
-  loadingTrims = false;
-
-  readonly priceComparisons: PriceComparison[] = [
+export class PricingComponent {
+  readonly plans: Plan[] = [
     {
-      car: '2001 Toyota Prius',
-      service: 'Pre purchase car inspection',
-      estimate: '$175',
-      savings: '-35%',
-      dealerPrice: '$108.00 - $150.00',
-      location: 'Los Angeles, CA',
+      tier: 'BASIC',
+      name: 'Basic',
+      price: 29,
+      features: [
+        'Profile listing in mechanic directory',
+        'Appear in fix search results',
+        'Basic analytics dashboard',
+        'Customer contact via your profile',
+        '7-day free trial',
+      ],
+      cta: 'Start free trial',
+      highlighted: false,
     },
     {
-      car: '1996 GMC Yukon',
-      service: 'Brake pads replacement',
-      estimate: '$245',
-      savings: '-15%',
-      dealerPrice: '$188.73 - $234.23',
-      location: 'San Francisco, CA',
+      tier: 'PRO',
+      name: 'Pro',
+      price: 59,
+      badge: 'Most popular',
+      features: [
+        'Everything in Basic',
+        'Priority placement in search results',
+        'Advanced analytics (views, clicks, appearances)',
+        'Pro badge on your profile',
+        'Search keyword performance insights',
+        '7-day free trial',
+      ],
+      cta: 'Start free trial',
+      highlighted: true,
     },
     {
-      car: '2000 Chrysler Cirrus',
-      service: 'Battery replacement',
-      estimate: '$246',
-      savings: '-3%',
-      dealerPrice: '$220.00 - $255.00',
-      location: 'San Diego, CA',
-    },
-    {
-      car: '1996 Mitsubishi Montero',
-      service: 'Timing belt replacement',
-      estimate: '$1302',
-      savings: '2%',
-      dealerPrice: '$1266.39 - $1409.89',
-      location: 'San Diego, CA',
+      tier: 'PREMIUM',
+      name: 'Premium',
+      price: 99,
+      features: [
+        'Everything in Pro',
+        'Featured badge — top search placement',
+        'Multi-mechanic shop management',
+        'White-label profile options',
+        'Dedicated account support',
+        '7-day free trial',
+      ],
+      cta: 'Start free trial',
+      highlighted: false,
     },
   ];
 
-  ngOnInit(): void {
-    this.loadYears();
-  }
-
-  async loadYears(): Promise<void> {
-    const currentYear = new Date().getFullYear();
-    this.years = Array.from({ length: currentYear - 1990 + 1 }, (_, i) => currentYear - i);
-  }
-
-  async onYearChange(): Promise<void> {
-    const year = this.quoteForm.get('year')?.value;
-    if (year) {
-      this.loadingMakes = true;
-      this.makes = [];
-      this.models = [];
-      this.trims = [];
-      this.quoteForm.patchValue({ make: '', model: '', trim: '' });
-      try {
-        this.makes = await this.carDb.getMakes(parseInt(year));
-      } catch (error) {
-        console.error('Error loading makes:', error);
-      } finally {
-        this.loadingMakes = false;
-      }
-    }
-  }
-
-  async onMakeChange(): Promise<void> {
-    const year = this.quoteForm.get('year')?.value;
-    const make = this.quoteForm.get('make')?.value;
-    if (year && make) {
-      this.loadingModels = true;
-      this.models = [];
-      this.trims = [];
-      this.quoteForm.patchValue({ model: '', trim: '' });
-      try {
-        this.models = await this.carDb.getModels(parseInt(year), make);
-      } catch (error) {
-        console.error('Error loading models:', error);
-      } finally {
-        this.loadingModels = false;
-      }
-    }
-  }
-
-  async onModelChange(): Promise<void> {
-    const year = this.quoteForm.get('year')?.value;
-    const make = this.quoteForm.get('make')?.value;
-    const model = this.quoteForm.get('model')?.value;
-    if (year && make && model) {
-      this.loadingTrims = true;
-      this.trims = [];
-      this.quoteForm.patchValue({ trim: '' });
-      try {
-        this.trims = await this.carDb.getTrims(parseInt(year), make, model);
-      } catch (error) {
-        console.error('Error loading trims:', error);
-      } finally {
-        this.loadingTrims = false;
-      }
-    }
-  }
-
-  getEstimate(): void {
-    // Navigate to services page or show estimate
-    this.router.navigate(['/services']);
-  }
+  readonly faqs = [
+    {
+      q: 'Is there a free trial?',
+      a: 'Yes — every plan includes a 7-day free trial. Your card is charged after the trial ends. Cancel anytime.',
+    },
+    {
+      q: 'How does the search matching work?',
+      a: 'When a driver searches for a repair (e.g. "brake grinding"), we match their search to mechanics whose listed skills include brake repair. You appear automatically.',
+    },
+    {
+      q: 'What does "priority placement" mean?',
+      a: 'Pro and Premium mechanics appear higher in search results than Basic tier mechanics, and are more likely to be shown when a relevant search is performed.',
+    },
+    {
+      q: 'Can I cancel anytime?',
+      a: 'Yes. Cancel with one click from your dashboard. You\'ll remain active until the end of your billing period.',
+    },
+    {
+      q: 'Is there a contract or commitment?',
+      a: 'No contracts. All plans are billed month-to-month. Upgrade, downgrade, or cancel at any time.',
+    },
+    {
+      q: 'How do drivers contact me?',
+      a: 'Drivers can view your profile, which shows your phone number, website, and location. We track profile views and link clicks so you can see your interest metrics.',
+    },
+  ];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

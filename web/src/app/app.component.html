@@ -1,63 +1,91 @@
 <div class="layout">
   <header class="top-nav">
     <a routerLink="/" class="brand">
-      <span class="brand__accent">Mechanic</span>Dispatch
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="#2563eb"/>
+        <path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><span class="brand__accent">Fix</span>Guide</span>
     </a>
-    <nav>
-      <a routerLink="/request">Book now</a>
-      <div class="nav-dropdown" (click)="toggleHowItWorksDropdown($event)">
-        <a routerLink="/pricing" class="nav-dropdown__trigger">
-          How it works
-          <span class="nav-dropdown__caret" [class.active]="howItWorksDropdownOpen">^</span>
-        </a>
-        <div class="nav-dropdown__menu" [class.open]="howItWorksDropdownOpen">
-          <button class="nav-dropdown__button" type="button" (click)="$event.preventDefault(); closeHowItWorksDropdown()">How it works</button>
-          <div class="nav-dropdown__columns">
-            <div class="nav-dropdown__column">
-              <a routerLink="/pricing" (click)="closeHowItWorksDropdown()">PRICING</a>
-              <a routerLink="/reviews" (click)="closeHowItWorksDropdown()">REVIEWS</a>
-            </div>
-            <div class="nav-dropdown__column">
-              <a routerLink="/request" (click)="closeHowItWorksDropdown()">BOOK A MECHANIC ONLINE</a>
-              <a routerLink="/contact" (click)="closeHowItWorksDropdown()">CONTACT</a>
-            </div>
-            <div class="nav-dropdown__column">
-              <a routerLink="/about-mechanics" (click)="closeHowItWorksDropdown()">ABOUT OUR MECHANICS</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="nav-dropdown" (click)="toggleServicesDropdown($event)">
-        <a routerLink="/services" class="nav-dropdown__trigger">
-          Services
-          <span class="nav-dropdown__caret" [class.active]="servicesDropdownOpen">^</span>
-        </a>
-        <div class="nav-dropdown__menu" [class.open]="servicesDropdownOpen">
-          <button class="nav-dropdown__button" type="button" (click)="$event.preventDefault(); closeServicesDropdown()">Services</button>
-          <div class="nav-dropdown__columns">
-            <div class="nav-dropdown__column">
-              <a routerLink="/services/oil-change" (click)="closeServicesDropdown()">OIL CHANGE</a>
-              <a routerLink="/services/pre-purchase-inspection" (click)="closeServicesDropdown()">PRE-PURCHASE CAR INSPECTION</a>
-              <a routerLink="/services" (click)="closeServicesDropdown()">EXPLORE 500+ SERVICES</a>
-            </div>
-            <div class="nav-dropdown__column">
-              <a routerLink="/services/car-not-starting" (click)="closeServicesDropdown()">CAR IS NOT STARTING DIAGNOSTIC</a>
-              <a routerLink="/services/battery-replacement" (click)="closeServicesDropdown()">BATTERY REPLACEMENT</a>
-              <a routerLink="/services/towing-roadside" (click)="closeServicesDropdown()">TOWING AND ROADSIDE</a>
-            </div>
-            <div class="nav-dropdown__column">
-              <a routerLink="/services/check-engine-light" (click)="closeServicesDropdown()">CHECK ENGINE LIGHT IS ON DIAGNOSTIC</a>
-              <a routerLink="/services/brake-pad-replacement" (click)="closeServicesDropdown()">BRAKE PAD REPLACEMENT</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <a routerLink="/request">Fleet</a>
-      <a routerLink="/careers">Become a Mechanic</a>
-      <a routerLink="/request">Support</a>
+
+    <nav class="top-nav__links">
+      <a routerLink="/search" class="nav-link">Fix Search</a>
+      <a routerLink="/mechanics" class="nav-link">Find Mechanics</a>
+      <a routerLink="/pricing" class="nav-link">For Mechanics</a>
+      <a routerLink="/reviews" class="nav-link">Reviews</a>
     </nav>
-    <a routerLink="/request" class="top-nav__cta">Request service</a>
+
+    <div class="top-nav__actions">
+      @if (!userAuth.isLoggedIn() && !mechAuth.isLoggedIn()) {
+        <a routerLink="/login" class="nav-link nav-link--ghost">Sign in</a>
+        <a routerLink="/register" class="nav-btn">Get started free</a>
+      }
+
+      @if (userAuth.isLoggedIn()) {
+        <div class="user-menu-wrap" (click)="toggleUserMenu($event)">
+          <button class="user-avatar" type="button">
+            <span>{{ userAuth.currentUser()?.name?.charAt(0)?.toUpperCase() }}</span>
+          </button>
+          @if (userMenuOpen()) {
+            <div class="user-menu">
+              <div class="user-menu__header">
+                <strong>{{ userAuth.currentUser()?.name }}</strong>
+                <span>{{ userAuth.currentUser()?.email }}</span>
+              </div>
+              <a routerLink="/profile" class="user-menu__item" (click)="userMenuOpen.set(false)">My Profile & Cars</a>
+              <a routerLink="/search" class="user-menu__item" (click)="userMenuOpen.set(false)">Search Fixes</a>
+              <button class="user-menu__item user-menu__item--danger" type="button" (click)="logoutUser()">Sign out</button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (mechAuth.isLoggedIn()) {
+        <div class="user-menu-wrap" (click)="toggleUserMenu($event)">
+          <button class="user-avatar user-avatar--mechanic" type="button">
+            <span>{{ mechAuth.currentMechanic()?.name?.charAt(0)?.toUpperCase() }}</span>
+          </button>
+          @if (userMenuOpen()) {
+            <div class="user-menu">
+              <div class="user-menu__header">
+                <strong>{{ mechAuth.currentMechanic()?.name }}</strong>
+                <span class="badge">{{ mechAuth.currentMechanic()?.subscriptionTier ?? 'No subscription' }}</span>
+              </div>
+              <a routerLink="/mechanic-dashboard" class="user-menu__item" (click)="userMenuOpen.set(false)">Dashboard</a>
+              <button class="user-menu__item user-menu__item--danger" type="button" (click)="logoutMechanic()">Sign out</button>
+            </div>
+          }
+        </div>
+      }
+
+      <button class="mobile-menu-btn" type="button" (click)="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
+
+  @if (mobileMenuOpen()) {
+    <div class="mobile-nav">
+      <a routerLink="/search" (click)="mobileMenuOpen.set(false)">Fix Search</a>
+      <a routerLink="/mechanics" (click)="mobileMenuOpen.set(false)">Find Mechanics</a>
+      <a routerLink="/pricing" (click)="mobileMenuOpen.set(false)">For Mechanics</a>
+      <a routerLink="/reviews" (click)="mobileMenuOpen.set(false)">Reviews</a>
+      <hr/>
+      @if (!userAuth.isLoggedIn() && !mechAuth.isLoggedIn()) {
+        <a routerLink="/login" (click)="mobileMenuOpen.set(false)">Sign in</a>
+        <a routerLink="/register" (click)="mobileMenuOpen.set(false)">Get started free</a>
+        <a routerLink="/mechanic-register" (click)="mobileMenuOpen.set(false)">List as Mechanic</a>
+      }
+      @if (userAuth.isLoggedIn()) {
+        <a routerLink="/profile" (click)="mobileMenuOpen.set(false)">My Profile</a>
+        <button type="button" (click)="logoutUser()">Sign out</button>
+      }
+      @if (mechAuth.isLoggedIn()) {
+        <a routerLink="/mechanic-dashboard" (click)="mobileMenuOpen.set(false)">Dashboard</a>
+        <button type="button" (click)="logoutMechanic()">Sign out</button>
+      }
+    </div>
+  }
 
   <main>
     <router-outlet></router-outlet>
@@ -65,40 +93,45 @@
 
   <footer class="footer">
     <div class="footer__content">
-      <div>
-        <h3>Mechanic Dispatch</h3>
-        <p>
-          Mobile mechanics at your home or office—transparent pricing, trusted professionals,
-          satisfaction guaranteed.
-        </p>
+      <div class="footer__brand">
+        <div class="brand">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="#2563eb"/>
+            <path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span><span class="brand__accent">Fix</span>Guide</span>
+        </div>
+        <p>Free car repair research. Find solutions to fix your car, powered by real mechanic expertise.</p>
       </div>
       <div>
-        <h4>Contact</h4>
+        <h4>For Car Owners</h4>
         <ul>
-          <li><a routerLink="/request">Schedule service</a></li>
-          <li><a routerLink="/request">hi&#64;mechanicdispatch.com</a></li>
-          <li><a routerLink="/request">(800) 555-0123</a></li>
+          <li><a routerLink="/search">Search fixes</a></li>
+          <li><a routerLink="/mechanics">Find a mechanic</a></li>
+          <li><a routerLink="/register">Create free account</a></li>
+          <li><a routerLink="/reviews">Mechanic reviews</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>For Mechanics</h4>
+        <ul>
+          <li><a routerLink="/pricing">View plans</a></li>
+          <li><a routerLink="/mechanic-register">List your services</a></li>
+          <li><a routerLink="/mechanic-login">Mechanic sign in</a></li>
+          <li><a routerLink="/mechanic-dashboard">Dashboard</a></li>
         </ul>
       </div>
       <div>
         <h4>Company</h4>
         <ul>
-          <li><a routerLink="/request">About</a></li>
-          <li><a routerLink="/request">Careers</a></li>
-          <li><a routerLink="/request">Mechanic network</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Resources</h4>
-        <ul>
-          <li><a routerLink="/request">FAQ</a></li>
-          <li><a routerLink="/request">Cities we serve</a></li>
-          <li><a routerLink="/request">Terms & privacy</a></li>
+          <li><a routerLink="/careers">Careers</a></li>
+          <li><a routerLink="/contact">Contact</a></li>
+          <li><a href="#">Terms & Privacy</a></li>
         </ul>
       </div>
     </div>
     <div class="footer__bottom">
-      <span>© {{ currentYear }} Mechanic Dispatch. All rights reserved.</span>
+      <span>© {{ currentYear }} FixGuide. All rights reserved.</span>
     </div>
   </footer>
 </div>

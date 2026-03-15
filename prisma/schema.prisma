@@ -8,82 +8,195 @@ generator client {
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
-model ServiceRequest {
-  id                    String              @id @default(cuid())
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  firstName             String
-  lastName              String
-  email                 String
-  phone                 String
-  addressLine1          String
-  addressLine2          String?
-  city                  String
-  state                 String
-  postalCode            String
-  country               String              @default("US")
-  vehicleMake           String
-  vehicleModel          String
-  vehicleYear           Int
-  amountCents           Int                 @default(6000)
-  finalAmountCents      Int?
-  stripePaymentIntentId String?
-  finalPaymentIntentId  String?
-  stripeCustomerId      String?
-  stripePaymentMethodId String?
-  status                ServiceRequestStatus @default(PENDING)
-  workLogs              MechanicWorkLog[]
-  reviews               Review[]
+// ============================================================
+// USER DOMAIN
+// ============================================================
+
+model User {
+  id              String             @id @default(cuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  email           String             @unique
+  name            String
+  passwordHash    String
+  isActive        Boolean            @default(true)
+  isEmailVerified Boolean            @default(false)
+  avatarUrl       String?
+  searchCount     Int                @default(0)
+
+  vehicles        Vehicle[]
+  savedFixes      SavedFix[]
+  refreshTokens   UserRefreshToken[]
+  searchHistory   SearchQuery[]
+  profileViews    MechanicProfileView[]
+
+  @@index([email])
 }
 
-enum ServiceRequestStatus {
-  PENDING
-  AUTHORIZED
-  CAPTURED
-  CANCELLED
-  FAILED
-  FINALIZED
+model Vehicle {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  make         String
+  model        String
+  year         Int
+  trim         String?
+  vin          String?
+  licensePlate String?
+  plateState   String?
+  notes        String?
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedFixes   SavedFix[]
+
+  @@index([userId])
+  @@index([vin])
 }
 
-model MechanicWorkLog {
-  id                   String   @id @default(cuid())
-  createdAt            DateTime @default(now())
-  serviceRequestId     String
-  mechanicId           String?
-  mechanicName         String   // Keep for backward compatibility
-  hoursWorkedMinutes   Int
-  payoutPercentage     Int
-  notes                String?
-  serviceRequest       ServiceRequest @relation(fields: [serviceRequestId], references: [id])
-  mechanic             Mechanic? @relation(fields: [mechanicId], references: [id], onDelete: SetNull)
+model UserRefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
 }
+
+model SavedFix {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  vehicleId String?
+  query     String
+  fixData   Json
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+// ============================================================
+// MECHANIC DOMAIN
+// ============================================================
 
 model Mechanic {
-  id                String        @id @default(cuid())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  name              String
-  slug              String        @unique
-  bio               String?       @db.Text
-  imageUrl          String?
-  location          String
-  yearsExperience   Int
-  rating            Float         @default(0)
-  reviewCount       Int           @default(0)
-  jobsCompleted     Int           @default(0)
-  sinceYear         Int
-  certifications    String[]
-  badges            String[]
-  isActive          Boolean       @default(true)
-  skills            MechanicSkill[]
-  reviews           Review[]
-  workLogs          MechanicWorkLog[]
+  id                   String               @id @default(cuid())
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  // Auth
+  email                String?              @unique
+  passwordHash         String?
+  isEmailVerified      Boolean              @default(false)
+
+  // Profile
+  name                 String
+  slug                 String               @unique
+  bio                  String?              @db.Text
+  imageUrl             String?
+  shopName             String?
+  phone                String?
+  website              String?
+
+  // Location
+  location             String
+  latitude             Float?
+  longitude            Float?
+  serviceRadius        Int?
+
+  // Experience
+  yearsExperience      Int
+  sinceYear            Int
+  certifications       String[]
+  badges               String[]
+
+  // Stats (cached/computed)
+  rating               Float                @default(0)
+  reviewCount          Int                  @default(0)
+  profileViews         Int                  @default(0)
+  searchAppearances    Int                  @default(0)
+  linkClicks           Int                  @default(0)
+
+  // Status
+  isActive             Boolean              @default(false)
+
+  // Subscription
+  subscriptionStatus   SubscriptionStatus   @default(INACTIVE)
+  subscriptionTier     SubscriptionTier?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStartAt  DateTime?
+  subscriptionEndAt    DateTime?
+  trialEndsAt          DateTime?
+
+  skills               MechanicSkill[]
+  reviews              Review[]
+  refreshTokens        MechanicRefreshToken[]
+  subscription         MechanicSubscription?
+  profileViewLogs      MechanicProfileView[]
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum SubscriptionTier {
+  BASIC
+  PRO
+  PREMIUM
+}
+
+model MechanicRefreshToken {
+  id         String   @id @default(cuid())
+  mechanicId String
+  token      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  mechanic   Mechanic @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
+
+  @@index([mechanicId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model MechanicSubscription {
+  id                   String           @id @default(cuid())
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  mechanicId           String           @unique
+  stripeSubscriptionId String           @unique
+  stripeCustomerId     String
+  tier                 SubscriptionTier
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean          @default(false)
+  trialStart           DateTime?
+  trialEnd             DateTime?
+
+  mechanic             Mechanic         @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
+
+  @@index([mechanicId])
+  @@index([stripeSubscriptionId])
 }
 
 model Skill {
   id        String          @id @default(cuid())
   name      String          @unique
   category  String?
+
   mechanics MechanicSkill[]
 }
 
@@ -91,6 +204,7 @@ model MechanicSkill {
   id         String   @id @default(cuid())
   mechanicId String
   skillId    String
+
   mechanic   Mechanic @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
   skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
@@ -98,80 +212,161 @@ model MechanicSkill {
 }
 
 model Review {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  rating            Int
-  reviewerName      String
-  reviewerLocation  String
-  reviewText        String   @db.Text
-  carModel          String
-  carYear           Int
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  rating             Int
+  reviewerName       String
+  reviewerLocation   String
+  reviewText         String   @db.Text
+  carModel           String
+  carYear            Int
   serviceDescription String
-  mechanicId        String
-  serviceRequestId  String?
-  photoUrls         String[] @default([])
-  mechanic          Mechanic @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
-  serviceRequest    ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+  mechanicId         String
+  photoUrls          String[] @default([])
+
+  mechanic           Mechanic @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
 
   @@index([mechanicId])
   @@index([rating])
   @@index([createdAt])
 }
 
-// Admin Dashboard Models
+// ============================================================
+// REPAIR KNOWLEDGE BASE
+// ============================================================
+
+model RepairGuide {
+  id                  String           @id @default(cuid())
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  title               String
+  slug                String           @unique
+  symptom             String
+  systemCategory      String
+  vehicleMakes        String[]
+  vehicleModels       String[]
+  yearFrom            Int?
+  yearTo              Int?
+  difficulty          RepairDifficulty
+  estimatedCostMinCents Int?
+  estimatedCostMaxCents Int?
+  timeEstimateMinutes Int?
+  diyFriendly         Boolean          @default(true)
+  steps               Json
+  tools               String[]
+  parts               String[]
+  warnings            String[]
+  relatedSkills       String[]
+  sources             Json?
+  isPublished         Boolean          @default(true)
+
+  @@index([systemCategory])
+  @@index([symptom])
+  @@index([isPublished])
+}
+
+enum RepairDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  PROFESSIONAL
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model SearchQuery {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  query        String
+  make         String?
+  model        String?
+  year         Int?
+  userId       String?
+  sessionId    String?
+  resultsCount Int      @default(0)
+
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([query])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model MechanicProfileView {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  mechanicId  String
+  userId      String?
+  sessionId   String?
+  source      String?
+  clickedLink Boolean  @default(false)
+
+  mechanic    Mechanic @relation(fields: [mechanicId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([mechanicId])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+// ============================================================
+// ADMIN DOMAIN
+// ============================================================
 
 model AdminUser {
-  id                   String   @id @default(cuid())
-  email                String   @unique
-  name                 String
-  passwordHash         String   // bcrypt hash (cost factor 12)
-  role                 String   // "super-admin" | "admin" | "moderator"
-  isActive             Boolean  @default(true)
-  failedLoginAttempts  Int      @default(0)
-  lastFailedLoginAt    DateTime?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  refreshTokens        AdminRefreshToken[]
-  auditLogs            AuditLog[]
+  id                  String              @id @default(cuid())
+  email               String              @unique
+  name                String
+  passwordHash        String
+  role                String
+  isActive            Boolean             @default(true)
+  failedLoginAttempts Int                 @default(0)
+  lastFailedLoginAt   DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  refreshTokens       AdminRefreshToken[]
+  auditLogs           AuditLog[]
 
   @@index([email])
 }
 
 model AdminRefreshToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique  // Hashed refresh token
+  token     String    @unique
   expiresAt DateTime
-  createdAt DateTime @default(now())
-  
+  createdAt DateTime  @default(now())
+
   user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([expiresAt])
   @@index([token])
 }
 
 model AuditLog {
-  id           String   @id @default(cuid())
-  timestamp    DateTime @default(now())
+  id           String    @id @default(cuid())
+  timestamp    DateTime  @default(now())
   actorId      String
   actorEmail   String
   actorRole    String
   action       String
   resourceType String
   resourceId   String
-  changes      Json?     // Before/after changes
+  changes      Json?
   ipAddress    String?
   userAgent    String?
   metadata     Json?
-  
+
   actor        AdminUser @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  
+
   @@index([actorId])
   @@index([timestamp])
   @@index([action])
   @@index([resourceType])
 }
-

@@ -44,6 +44,8 @@
     "release:dry-run": "semantic-release --dry-run"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
+    "axios": "^1.7.9",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
@@ -60,6 +62,7 @@
     "passport-jwt": "^4.0.1",
     "prisma": "6.18.0",
     "reflect-metadata": "^0.2.2",
+    "nodemailer": "^6.9.16",
     "rxjs": "^7.8.1",
     "stripe": "^16.9.0",
     "tsx": "^4.19.2"
@@ -84,6 +87,7 @@
     "@swc/core": "^1.10.7",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
+    "@types/nodemailer": "^6.4.17",
     "@types/jest": "^29.5.12",
     "@types/multer": "^1.4.11",
     "@types/node": "^22.10.7",
@@ -109,6 +113,6 @@
     "typescript-eslint": "^8.20.0"
   },
   "prisma": {
-    "seed": "pnpm exec tsx prisma/seed.ts"
+    "seed": "./node_modules/.bin/tsx prisma/seed.ts"
   }
 }

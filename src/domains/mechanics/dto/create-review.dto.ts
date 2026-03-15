@@ -38,10 +38,6 @@ export class CreateReviewDto {
   @IsNotEmpty()
   mechanicId!: string;
 
-  @IsString()
-  @IsOptional()
-  serviceRequestId?: string;
-
   @IsArray()
   @IsString({ each: true })
   @IsOptional()

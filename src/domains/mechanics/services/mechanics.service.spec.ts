@@ -31,7 +31,6 @@ describe('MechanicsService', () => {
     yearsExperience: 5,
     rating: 4.5,
     reviewCount: 10,
-    jobsCompleted: 100,
     sinceYear: 2020,
     certifications: [],
     badges: [],

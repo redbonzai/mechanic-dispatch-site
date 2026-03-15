@@ -16,10 +16,12 @@ import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AdminAnalyticsController } from './analytics/AdminAnalyticsController';
 import { AdminAnalyticsService } from './analytics/AdminAnalyticsService';
-import { AdminServiceRequestsController } from './service-requests/AdminServiceRequestsController';
-import { AdminServiceRequestsService } from './service-requests/AdminServiceRequestsService';
 import { AdminUsersController } from './users/AdminUsersController';
 import { AdminUsersService } from './users/AdminUsersService';
+import { AdminPlatformUsersController } from './platform-users/AdminPlatformUsersController';
+import { AdminPlatformUsersService } from './platform-users/AdminPlatformUsersService';
+import { AdminSubscriptionsController } from './subscriptions/AdminSubscriptionsController';
+import { AdminSubscriptionsService } from './subscriptions/AdminSubscriptionsService';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { AdminUsersService } from './users/AdminUsersService';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret:
-          config.get<string>('JWT_SECRET') ||
+          config.get<string>('JWT_SECRET') ??
           'default-secret-key-change-in-production',
         signOptions: { expiresIn: '15m' },
       }),
@@ -43,15 +45,17 @@ import { AdminUsersService } from './users/AdminUsersService';
     AdminSkillsController,
     AdminAuthController,
     AdminAnalyticsController,
-    AdminServiceRequestsController,
     AdminUsersController,
+    AdminPlatformUsersController,
+    AdminSubscriptionsController,
   ],
   providers: [
     AdminService,
     AdminAuthService,
     AdminAnalyticsService,
-    AdminServiceRequestsService,
     AdminUsersService,
+    AdminPlatformUsersService,
+    AdminSubscriptionsService,
     JwtStrategy,
     JwtAuthGuard,
   ],

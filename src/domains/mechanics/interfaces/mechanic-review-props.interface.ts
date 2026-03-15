@@ -10,6 +10,5 @@ export interface MechanicReviewProps {
   carYear: number;
   serviceDescription: string;
   mechanicId: string;
-  serviceRequestId?: string | null;
   photoUrls?: string[];
 }
