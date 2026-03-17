@@ -23,7 +23,7 @@ fi
 
 echo ""
 echo "3. Inspecting built image..."
-docker run --rm --entrypoint sh mechanic-dispatch-api -c "
+docker run --rm --entrypoint sh mechanic-dispatch-site-api -c "
     echo 'Checking /app structure:'
     ls -la /app/ | head -10
     echo ''

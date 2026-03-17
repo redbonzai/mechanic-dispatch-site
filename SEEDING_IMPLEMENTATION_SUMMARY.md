@@ -329,7 +329,7 @@ docker-compose logs api | grep "Seeding"
 
 **If seeding failed, re-run manually**:
 ```bash
-docker exec -it mechanic-dispatch-api npx prisma db seed
+docker exec -itmechanic-dispatch-site-api npx prisma db seed
 ```
 
 ### Issue: Service requests not visible
@@ -344,7 +344,7 @@ docker exec -it mechanic-dispatch-db psql -U postgres -d mechanic \
 
 **If 0 rows, re-seed**:
 ```bash
-docker exec -it mechanic-dispatch-api npx prisma db seed
+docker exec -itmechanic-dispatch-site-api npx prisma db seed
 ```
 
 ### Issue: Entrypoint script permission denied

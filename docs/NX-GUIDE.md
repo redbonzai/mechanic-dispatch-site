@@ -57,16 +57,16 @@ pnpm exec nx graph --affected --base=main
 
 ```bash
 # Build API
-pnpm exec nx build mechanic-dispatch-api
+pnpm exec nx build mechanic-dispatch-site-api
 
 # Test API
-pnpm exec nx test mechanic-dispatch-api
+pnpm exec nx test mechanic-dispatch-site-api
 
 # Lint API
-pnpm exec nx lint mechanic-dispatch-api
+pnpm exec nx lint mechanic-dispatch-site-api
 
 # Build Web
-pnpm exec nx build mechanic-dispatch-web
+pnpm exec nx build mechanic-dispatch-site-web
 ```
 
 ### Run All Projects
@@ -169,7 +169,7 @@ mechanic-dispatch/
 pnpm exec nx show projects
 
 # Show project details
-pnpm exec nx show project mechanic-dispatch-api --json
+pnpm exec nx show projectmechanic-dispatch-site-api --json
 ```
 
 ### Clear Cache

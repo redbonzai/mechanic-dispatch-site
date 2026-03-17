@@ -53,7 +53,7 @@
 **1. Test Project Detection:**
 ```bash
 pnpm exec nx show projects
-# Expected: mechanic-dispatch-web, mechanic-dispatch-api
+# Expected: mechanic-dispatch-web,mechanic-dispatch-site-api
 ```
 
 **2. Test Caching:**
@@ -152,7 +152,7 @@ All tests passing ✅:
 pnpm exec nx run-many --target=build --all
 
 # Build one project
-pnpm exec nx build mechanic-dispatch-api
+pnpm exec nx buildmechanic-dispatch-site-api
 
 # Build affected
 pnpm exec nx affected --target=build --base=main

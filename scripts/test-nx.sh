@@ -56,7 +56,7 @@ echo -e "${GREEN}✅ Lint passed${NC}"
 echo ""
 
 echo -e "${BLUE}7. Testing individual project builds...${NC}"
-pnpm exec nx build mechanic-dispatch-api >/dev/null 2>&1
+pnpm exec nx build mechanic-dispatch-site-api >/dev/null 2>&1
 echo -e "${GREEN}✅ API build passed${NC}"
 pnpm exec nx build mechanic-dispatch-web >/dev/null 2>&1
 echo -e "${GREEN}✅ Web build passed${NC}"

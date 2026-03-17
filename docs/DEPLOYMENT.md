@@ -80,7 +80,7 @@ CLIENT_ORIGIN=https://your-frontend.com
 ### Build Image
 
 ```bash
-docker build -t mechanic-dispatch-api .
+docker build -tmechanic-dispatch-site-api .
 ```
 
 ### Run Container
@@ -91,7 +91,7 @@ docker run -d \
   -e DATABASE_URL=... \
   -e STRIPE_SECRET_KEY=... \
   -e STRIPE_WEBHOOK_SECRET=... \
-  mechanic-dispatch-api
+ mechanic-dispatch-site-api
 ```
 
 ### Using Docker Compose
