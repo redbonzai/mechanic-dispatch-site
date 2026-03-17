@@ -16,7 +16,11 @@ import { JwtUserStrategy } from './strategies/jwt-user.strategy';
       signOptions: { expiresIn: '15m' },
     }),
   ],
-  controllers: [UsersAuthController, UsersProfileController, VehiclesController],
+  controllers: [
+    UsersAuthController,
+    UsersProfileController,
+    VehiclesController,
+  ],
   providers: [UsersAuthService, VehiclesService, JwtUserStrategy],
   exports: [UsersAuthService, JwtModule],
 })

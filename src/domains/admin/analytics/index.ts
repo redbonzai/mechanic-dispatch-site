@@ -11,6 +11,6 @@
 // Export all types
 export * from './types';
 
-// Export service and controller
-export { AdminAnalyticsService } from './AdminAnalyticsService';
+// Export service (and all exported interfaces) and controller
+export * from './AdminAnalyticsService';
 export { AdminAnalyticsController } from './AdminAnalyticsController';

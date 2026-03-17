@@ -69,7 +69,9 @@ export class SearchService {
     };
   }
 
-  private async findMatchingMechanics(query: string): Promise<MechanicSummary[]> {
+  private async findMatchingMechanics(
+    query: string,
+  ): Promise<MechanicSummary[]> {
     const keyword = query.toLowerCase();
 
     // Find skills whose name matches the query

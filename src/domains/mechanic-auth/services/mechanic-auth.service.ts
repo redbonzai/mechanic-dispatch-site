@@ -49,7 +49,9 @@ export class MechanicAuthService {
       where: { email: dto.email.toLowerCase() },
     });
     if (existing) {
-      throw new BadRequestException('An account with this email already exists');
+      throw new BadRequestException(
+        'An account with this email already exists',
+      );
     }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
@@ -89,7 +91,11 @@ export class MechanicAuthService {
     });
 
     // Send verification email (non-blocking)
-    void this.sendVerificationEmail(mechanic.id, mechanic.email!, mechanic.name);
+    void this.sendVerificationEmail(
+      mechanic.id,
+      mechanic.email!,
+      mechanic.name,
+    );
 
     const tokens = await this.issueTokens(mechanic.id, mechanic.email!);
     return { mechanic, ...tokens };
@@ -111,7 +117,7 @@ export class MechanicAuthService {
   async verifyEmail(token: string): Promise<{ message: string }> {
     let payload: { sub: string; purpose: string; type: string };
     try {
-      payload = this.jwtService.verify(token) as typeof payload;
+      payload = this.jwtService.verify(token);
     } catch {
       throw new BadRequestException('Invalid or expired verification link');
     }

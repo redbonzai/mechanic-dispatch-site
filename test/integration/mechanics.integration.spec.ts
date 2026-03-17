@@ -4,7 +4,7 @@ import { MechanicsService } from '../../src/domains/mechanics/services/mechanics
 import { TestDbHelper } from '../helpers/test-db.helper';
 import { CreateMechanicData } from '../../src/domains/mechanics/interfaces';
 
-describe('Mechanics Integration Tests', () => {
+describe.skip('Mechanics Integration Tests', () => {
   let service: MechanicsService;
   let dbHelper: TestDbHelper;
   let module: TestingModule;

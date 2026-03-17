@@ -13,12 +13,13 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LoginResponse, RefreshResponse, AdminUser } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminAuthService {
-  private readonly API_BASE = 'http://localhost:3000/admin/auth';
+  private readonly API_BASE = `${environment.apiUrl}/admin/auth`;
   private readonly ACCESS_TOKEN_KEY = 'admin_access_token';
   private readonly REFRESH_TOKEN_KEY = 'admin_refresh_token';
   private readonly USER_KEY = 'admin_user';

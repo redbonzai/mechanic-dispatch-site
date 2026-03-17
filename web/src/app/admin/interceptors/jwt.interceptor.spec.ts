@@ -46,6 +46,7 @@ describe('jwtInterceptor (Universal)', () => {
 
     // Default: no tokens
     adminAuth.getAccessToken.and.returnValue(null);
+    adminAuth.logout.and.returnValue(of(undefined as void));
     userAuth.getAccessToken.and.returnValue(null);
     mechAuth.getAccessToken.and.returnValue(null);
 
@@ -108,7 +109,7 @@ describe('jwtInterceptor (Universal)', () => {
       adminAuth.refresh.and.returnValue(
         throwError(() => ({ status: 401 })),
       );
-      adminAuth.logout.and.returnValue(of(undefined));
+      adminAuth.logout.and.returnValue(of(undefined as void));
 
       http.get('/admin/dashboard').subscribe({ error: () => null });
 

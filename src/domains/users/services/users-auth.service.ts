@@ -29,7 +29,9 @@ export class UsersAuthService {
       where: { email: dto.email.toLowerCase() },
     });
     if (existing) {
-      throw new BadRequestException('An account with this email already exists');
+      throw new BadRequestException(
+        'An account with this email already exists',
+      );
     }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
@@ -49,7 +51,11 @@ export class UsersAuthService {
     return { user, ...tokens };
   }
 
-  async sendVerificationEmail(userId: string, email: string, name: string): Promise<void> {
+  async sendVerificationEmail(
+    userId: string,
+    email: string,
+    name: string,
+  ): Promise<void> {
     const token = this.jwtService.sign(
       { sub: userId, purpose: 'verify-email', type: 'user' },
       { expiresIn: '24h' },
@@ -61,7 +67,7 @@ export class UsersAuthService {
   async verifyEmail(token: string): Promise<{ message: string }> {
     let payload: { sub: string; purpose: string; type: string };
     try {
-      payload = this.jwtService.verify(token) as typeof payload;
+      payload = this.jwtService.verify(token);
     } catch {
       throw new BadRequestException('Invalid or expired verification link');
     }
@@ -85,7 +91,8 @@ export class UsersAuthService {
     });
 
     if (!user) throw new BadRequestException('User not found');
-    if (user.isEmailVerified) throw new BadRequestException('Email already verified');
+    if (user.isEmailVerified)
+      throw new BadRequestException('Email already verified');
 
     void this.sendVerificationEmail(userId, user.email, user.name);
   }
@@ -112,7 +119,6 @@ export class UsersAuthService {
   }
 
   async refresh(rawRefreshToken: string) {
-    const hashed = await bcrypt.hash(rawRefreshToken, 1);
     // Find by brute-force comparison since we can't reverse hash
     const records = await this.prisma.userRefreshToken.findMany({
       where: {

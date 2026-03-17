@@ -2,7 +2,8 @@ import { Mechanic, PrismaClient, Skill } from '@prisma/client';
 
 /**
  * Helper for database testing
- * Provides utilities for setting up and tearing down test database
+ * Provides utilities for setting up and tearing down test database.
+ * Only works when a real DATABASE_URL is configured in the environment.
  */
 export class TestDbHelper {
   private prisma: PrismaClient;
@@ -22,21 +23,27 @@ export class TestDbHelper {
    */
   async cleanDatabase(): Promise<void> {
     try {
-      // Connect if not already connected
       await this.prisma.$connect();
+
+      // New platform tables (in FK-safe order)
+      await this.prisma.mechanicProfileView.deleteMany();
+      await this.prisma.savedFix.deleteMany();
+      await this.prisma.searchQuery.deleteMany();
+      await this.prisma.mechanicSubscription.deleteMany();
+      await this.prisma.mechanicRefreshToken.deleteMany();
+      await this.prisma.userRefreshToken.deleteMany();
+      await this.prisma.review.deleteMany();
+      await this.prisma.mechanicSkill.deleteMany();
+      await this.prisma.mechanic.deleteMany();
+      await this.prisma.skill.deleteMany();
+      await this.prisma.vehicle.deleteMany();
+      await this.prisma.user.deleteMany();
+      await this.prisma.repairGuide.deleteMany();
 
       // Admin tables
       await this.prisma.auditLog.deleteMany();
       await this.prisma.adminRefreshToken.deleteMany();
       await this.prisma.adminUser.deleteMany();
-
-      // Core tables
-      await this.prisma.mechanicWorkLog.deleteMany();
-      await this.prisma.review.deleteMany();
-      await this.prisma.serviceRequest.deleteMany();
-      await this.prisma.mechanicSkill.deleteMany();
-      await this.prisma.mechanic.deleteMany();
-      await this.prisma.skill.deleteMany();
     } catch (error) {
       console.error('Error cleaning database:', error);
       throw error;
@@ -44,14 +51,13 @@ export class TestDbHelper {
   }
 
   /**
-   * Seed test data
+   * Seed minimal test data for mechanics integration tests
    */
   async seedTestData(): Promise<{
     skill1: Skill;
     skill2: Skill;
     mechanic: Mechanic;
   }> {
-    // Create test skills
     const skill1 = await this.prisma.skill.create({
       data: { name: 'Engine Repair', category: 'Engine' },
     });
@@ -59,7 +65,6 @@ export class TestDbHelper {
       data: { name: 'Brake Service', category: 'Brakes' },
     });
 
-    // Create test mechanic
     const mechanic = await this.prisma.mechanic.create({
       data: {
         name: 'Test Mechanic',

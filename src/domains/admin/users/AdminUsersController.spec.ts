@@ -68,7 +68,7 @@ describe('AdminUsersController', () => {
       const result = await controller.list({ page: 1, limit: 20 });
 
       expect(result).toEqual(mockResponse);
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
+
       expect(service.list).toHaveBeenCalledWith({ page: 1, limit: 20 });
     });
 
@@ -92,7 +92,6 @@ describe('AdminUsersController', () => {
 
       await controller.list(query);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
       expect(service.list).toHaveBeenCalledWith(query);
     });
   });
@@ -104,7 +103,7 @@ describe('AdminUsersController', () => {
       const result = await controller.getById('user123');
 
       expect(result).toEqual(mockAdminUser);
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
+
       expect(service.getById).toHaveBeenCalledWith('user123');
     });
 
@@ -130,7 +129,7 @@ describe('AdminUsersController', () => {
       const result = await controller.create(createDto);
 
       expect(result).toEqual(mockAdminUser);
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
+
       expect(service.create).toHaveBeenCalledWith(createDto);
     });
 
@@ -161,7 +160,7 @@ describe('AdminUsersController', () => {
       const result = await controller.update('user123', updateDto);
 
       expect(result).toEqual(updatedUser);
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
+
       expect(service.update).toHaveBeenCalledWith('user123', updateDto);
     });
 
@@ -182,7 +181,6 @@ describe('AdminUsersController', () => {
 
       await controller.delete('user123');
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method -- Jest mock
       expect(service.delete).toHaveBeenCalledWith('user123');
     });
 
@@ -199,10 +197,9 @@ describe('AdminUsersController', () => {
 
   describe('Guards', () => {
     it('should be protected by JwtAuthGuard', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Reflect metadata returns any
       const guards = Reflect.getMetadata('__guards__', AdminUsersController);
       expect(guards).toBeDefined();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- guards is any type
+
       expect(guards[0]).toBe(JwtAuthGuard);
     });
   });

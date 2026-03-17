@@ -205,11 +205,7 @@ export class AdminAnalyticsService {
           where: {
             subscriptionStatus: 'CANCELLED',
             updatedAt: {
-              gte: new Date(
-                new Date().getFullYear(),
-                new Date().getMonth(),
-                1,
-              ),
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             },
           },
         }),
@@ -231,7 +227,8 @@ export class AdminAnalyticsService {
     };
   }
 
-  private calcMonthlyRevenue(active: number, trialing: number): number {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- trialing reserved for future revenue calc
+  private calcMonthlyRevenue(active: number, _trialing: number): number {
     // Conservative estimate: assume 50% Basic, 35% Pro, 15% Premium for active
     const estimated =
       Math.round(active * 0.5) * 2900 +

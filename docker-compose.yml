@@ -3,7 +3,7 @@ services:
     build:
       context: ./docker/postgres
       dockerfile: Dockerfile
-    container_name: mechanic-dispatch-db
+    container_name: mechanic-dispatch-site-db
     ports:
       - '15432:5432'
     environment:
@@ -26,7 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mechanic-dispatch-api
+    container_name: mechanic-dispatch-site-api
     depends_on:
       db:
         condition: service_healthy

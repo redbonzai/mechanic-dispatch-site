@@ -27,10 +27,7 @@ export class VehiclesController {
   }
 
   @Post()
-  create(
-    @Req() req: { user: { id: string } },
-    @Body() dto: CreateVehicleDto,
-  ) {
+  create(@Req() req: { user: { id: string } }, @Body() dto: CreateVehicleDto) {
     return this.vehiclesService.create(req.user.id, dto);
   }
 

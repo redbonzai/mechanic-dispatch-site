@@ -25,8 +25,7 @@ export class AllDataAdapter implements IRepairDataAdapter {
   private readonly subscriberId: string | undefined;
 
   constructor() {
-    this.baseUrl =
-      process.env.ALLDATA_BASE_URL ?? 'https://api.alldata.com/v1';
+    this.baseUrl = process.env.ALLDATA_BASE_URL ?? 'https://api.alldata.com/v1';
     this.apiKey = process.env.ALLDATA_API_KEY;
     this.subscriberId = process.env.ALLDATA_SUBSCRIBER_ID;
   }

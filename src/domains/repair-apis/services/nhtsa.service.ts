@@ -8,10 +8,10 @@ const NHTSA_BASE = 'https://vpic.nhtsa.dot.gov/api';
 const NHTSA_RECALLS_BASE = 'https://api.nhtsa.gov/recalls';
 
 /** TTL constants in milliseconds */
-const TTL_MAKES = 24 * 60 * 60 * 1000;      // 24 h — makes list rarely changes
-const TTL_MODELS = 24 * 60 * 60 * 1000;     // 24 h — models for make/year
-const TTL_VIN = 60 * 60 * 1000;             // 1 h  — VIN decode
-const TTL_RECALLS = 4 * 60 * 60 * 1000;     // 4 h  — recall data
+const TTL_MAKES = 24 * 60 * 60 * 1000; // 24 h — makes list rarely changes
+const TTL_MODELS = 24 * 60 * 60 * 1000; // 24 h — models for make/year
+const TTL_VIN = 60 * 60 * 1000; // 1 h  — VIN decode
+const TTL_RECALLS = 4 * 60 * 60 * 1000; // 4 h  — recall data
 
 interface CacheEntry<T> {
   value: T;
@@ -41,8 +41,12 @@ export class NhtsaService {
   private readonly logger = new Logger(NhtsaService.name);
 
   // Separate caches per resource type so TTLs can differ
-  private readonly makesCache = new TtlCache<Array<{ makeId: number; makeName: string }>>();
-  private readonly modelsCache = new TtlCache<Array<{ modelId: number; modelName: string }>>();
+  private readonly makesCache = new TtlCache<
+    Array<{ makeId: number; makeName: string }>
+  >();
+  private readonly modelsCache = new TtlCache<
+    Array<{ modelId: number; modelName: string }>
+  >();
   private readonly vinCache = new TtlCache<VehicleDecodeResult | null>();
   private readonly recallsCache = new TtlCache<NhtsaRecall[]>();
 
@@ -169,9 +173,7 @@ export class NhtsaService {
     }
   }
 
-  private mapRecalls(
-    raw: NhtsaRecallsResponse['results'],
-  ): NhtsaRecall[] {
+  private mapRecalls(raw: NhtsaRecallsResponse['results']): NhtsaRecall[] {
     return raw.map((r) => ({
       recallId: r.NHTSACampaignNumber,
       campaignNumber: r.NHTSACampaignNumber,

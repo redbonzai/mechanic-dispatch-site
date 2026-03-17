@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { PrismaService } from '../../database/prisma.service';
 import { SUBSCRIPTION_PLANS } from '../constants/subscription-plans';
+import { SubscriptionTierInput } from '../dto/create-subscription.dto';
 import Stripe from 'stripe';
 
 // Mock the Stripe SDK
@@ -11,7 +12,6 @@ const MockedStripe = Stripe as jest.MockedClass<typeof Stripe>;
 
 describe('SubscriptionsService', () => {
   let service: SubscriptionsService;
-  let prisma: jest.Mocked<PrismaService>;
   let stripeInstance: jest.Mocked<Stripe>;
 
   const mockMechanic = {
@@ -46,8 +46,11 @@ describe('SubscriptionsService', () => {
   };
 
   beforeEach(async () => {
-    // Set up Stripe mock before the module is compiled so it's available in the constructor
+    // Set up Stripe mock and price IDs before the module is compiled
     process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.STRIPE_PRICE_BASIC = 'price_test_basic';
+    process.env.STRIPE_PRICE_PRO = 'price_test_pro';
+    process.env.STRIPE_PRICE_PREMIUM = 'price_test_premium';
 
     stripeInstance = {
       customers: {
@@ -73,21 +76,19 @@ describe('SubscriptionsService', () => {
     }).compile();
 
     service = module.get<SubscriptionsService>(SubscriptionsService);
-    prisma = module.get(PrismaService);
+    void module.get(PrismaService);
 
     // Swap the internal stripe instance with our mock
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (service as any).stripe = stripeInstance;
 
     // Default $transaction executes callback immediately
-    mockPrisma.$transaction.mockImplementation(
-      async (arg: unknown) => {
-        if (typeof arg === 'function') {
-          return (arg as (tx: unknown) => Promise<unknown>)(mockPrisma);
-        }
-        return Promise.all(arg as Promise<unknown>[]);
-      },
-    );
+    mockPrisma.$transaction.mockImplementation(async (arg: unknown) => {
+      if (typeof arg === 'function') {
+        return (arg as (tx: unknown) => Promise<unknown>)(mockPrisma);
+      }
+      return Promise.all(arg as Promise<unknown>[]);
+    });
   });
 
   afterEach(() => {
@@ -97,15 +98,15 @@ describe('SubscriptionsService', () => {
   // ── getPlans ───────────────────────────────────────────────────────────────
 
   describe('getPlans', () => {
-    it('should return all subscription plans', async () => {
-      const plans = await service.getPlans();
+    it('should return all subscription plans', () => {
+      const plans = service.getPlans();
 
       expect(plans).toHaveLength(Object.keys(SUBSCRIPTION_PLANS).length);
       expect(plans.every((p) => p.tier && p.name && p.priceMonthly)).toBe(true);
     });
 
-    it('should include trial days in plan data', async () => {
-      const plans = await service.getPlans();
+    it('should include trial days in plan data', () => {
+      const plans = service.getPlans();
       plans.forEach((plan) => {
         expect(plan.trialDays).toBeGreaterThan(0);
       });
@@ -121,7 +122,7 @@ describe('SubscriptionsService', () => {
 
     it('should create a Stripe subscription and persist it', async () => {
       const result = await service.createSubscription('mech_1', {
-        tier: 'PRO',
+        tier: SubscriptionTierInput.PRO,
         paymentMethodId: 'pm_test123',
       });
 
@@ -132,7 +133,7 @@ describe('SubscriptionsService', () => {
 
     it('should create a new Stripe customer when none exists', async () => {
       await service.createSubscription('mech_1', {
-        tier: 'PRO',
+        tier: SubscriptionTierInput.PRO,
         paymentMethodId: 'pm_test123',
       });
 
@@ -148,7 +149,7 @@ describe('SubscriptionsService', () => {
       });
 
       await service.createSubscription('mech_1', {
-        tier: 'PRO',
+        tier: SubscriptionTierInput.PRO,
         paymentMethodId: 'pm_test123',
       });
 
@@ -160,7 +161,7 @@ describe('SubscriptionsService', () => {
 
       await expect(
         service.createSubscription('non-existent', {
-          tier: 'PRO',
+          tier: SubscriptionTierInput.PRO,
           paymentMethodId: 'pm_test',
         }),
       ).rejects.toThrow(NotFoundException);
@@ -174,7 +175,7 @@ describe('SubscriptionsService', () => {
 
       await expect(
         service.createSubscription('mech_1', {
-          tier: 'PRO',
+          tier: SubscriptionTierInput.PRO,
           paymentMethodId: 'pm_test',
         }),
       ).rejects.toThrow(BadRequestException);
@@ -183,7 +184,7 @@ describe('SubscriptionsService', () => {
     it('should throw BadRequestException for invalid tier', async () => {
       await expect(
         service.createSubscription('mech_1', {
-          tier: 'INVALID' as 'PRO',
+          tier: 'INVALID' as SubscriptionTierInput,
           paymentMethodId: 'pm_test',
         }),
       ).rejects.toThrow(BadRequestException);
@@ -232,7 +233,7 @@ describe('SubscriptionsService', () => {
       const mockSub = {
         mechanicId: 'mech_1',
         status: 'ACTIVE',
-        tier: 'PRO',
+        tier: SubscriptionTierInput.PRO,
         currentPeriodEnd: new Date(),
       };
       mockPrisma.mechanicSubscription.findUnique.mockResolvedValue(mockSub);
@@ -246,11 +247,7 @@ describe('SubscriptionsService', () => {
   // ── handleSubscriptionUpdated ─────────────────────────────────────────────
 
   describe('handleSubscriptionUpdated', () => {
-    const buildEvent = (
-      status: string,
-      mechanicId = 'mech_1',
-      tier = 'PRO',
-    ) =>
+    const buildEvent = (status: string, mechanicId = 'mech_1', tier = 'PRO') =>
       ({
         id: 'sub_webhook',
         status,

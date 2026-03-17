@@ -5,8 +5,6 @@ import { RepairAggregatorService } from '../../repair-apis/services/repair-aggre
 
 describe('SearchService', () => {
   let service: SearchService;
-  let prisma: jest.Mocked<PrismaService>;
-  let aggregator: jest.Mocked<RepairAggregatorService>;
 
   const mockGuide = {
     externalId: 'guide_1',
@@ -75,8 +73,8 @@ describe('SearchService', () => {
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    prisma = module.get(PrismaService);
-    aggregator = module.get(RepairAggregatorService);
+    void module.get(PrismaService);
+    void module.get(RepairAggregatorService);
   });
 
   afterEach(() => {

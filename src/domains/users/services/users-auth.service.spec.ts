@@ -11,9 +11,7 @@ const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('UsersAuthService', () => {
   let service: UsersAuthService;
-  let prisma: jest.Mocked<PrismaService>;
   let jwtService: jest.Mocked<JwtService>;
-  let mailService: jest.Mocked<MailService>;
 
   const mockUser = {
     id: 'user_1',
@@ -61,9 +59,9 @@ describe('UsersAuthService', () => {
     }).compile();
 
     service = module.get<UsersAuthService>(UsersAuthService);
-    prisma = module.get(PrismaService);
+    void module.get(PrismaService);
     jwtService = module.get(JwtService);
-    mailService = module.get(MailService);
+    void module.get(MailService);
   });
 
   afterEach(() => {
@@ -215,7 +213,10 @@ describe('UsersAuthService', () => {
         purpose: 'verify-email',
         type: 'user',
       });
-      mockPrisma.user.update.mockResolvedValue({ ...mockUser, isEmailVerified: true });
+      mockPrisma.user.update.mockResolvedValue({
+        ...mockUser,
+        isEmailVerified: true,
+      });
 
       const result = await service.verifyEmail('valid-token');
 

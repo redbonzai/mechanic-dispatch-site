@@ -7,13 +7,18 @@
     "^.+\\.(t|j)s$": [
       "ts-jest",
       {
-        "tsconfig": "<rootDir>/../tsconfig.jest.json"
+        "tsconfig": "<rootDir>/../tsconfig.jest.json",
+        "diagnostics": {
+          "ignoreCodes": ["TS2307"]
+        }
       }
     ]
   },
   "moduleNameMapper": {
     "^@src/(.*)$": "<rootDir>/../src/$1",
-    "^src/(.*)$": "<rootDir>/../src/$1"
+    "^src/(.*)$": "<rootDir>/../src/$1",
+    "^nodemailer$": "<rootDir>/../src/__mocks__/nodemailer.ts",
+    "^@nestjs/axios$": "<rootDir>/../src/__mocks__/nestjs-axios.ts"
   },
   "collectCoverage": false,
   "verbose": true

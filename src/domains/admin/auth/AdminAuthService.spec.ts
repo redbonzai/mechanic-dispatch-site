@@ -103,7 +103,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       expect(result.user.email).toBe('admin@test.com');
       expect(result.user.role).toBe('admin');
       expect(result.user).not.toHaveProperty('passwordHash');
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminUser.findUnique).toHaveBeenCalledWith({
         where: { email: 'admin@test.com' },
       });
@@ -322,12 +322,12 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminUser.update).toHaveBeenCalledWith({
         where: { id: 'user123' },
         data: {
           failedLoginAttempts: { increment: 1 },
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           lastFailedLoginAt: expect.any(Date),
         },
       });
@@ -365,7 +365,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       await service.login(loginDto);
 
       // Assert
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminUser.update).toHaveBeenCalledWith({
         where: { id: 'user123' },
         data: {
@@ -407,12 +407,12 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       await service.login(loginDto);
 
       // Assert
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminRefreshToken.create).toHaveBeenCalledWith({
         data: {
           userId: 'user123',
           token: 'mock-refresh-token',
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           expiresAt: expect.any(Date),
         },
       });
@@ -461,9 +461,9 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       // Assert
       expect(result.accessToken).toBe('new-access-token');
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(jwt.verify).toHaveBeenCalledWith(refreshToken);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(jwt.sign).toHaveBeenCalledWith(
         { sub: 'user123', email: 'admin@test.com', role: 'admin' },
         { expiresIn: '15m' },
@@ -637,7 +637,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       await service.logout(refreshToken);
 
       // Assert
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminRefreshToken.deleteMany).toHaveBeenCalledWith({
         where: { token: refreshToken },
       });
@@ -652,7 +652,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       // Act & Assert
       await expect(service.logout(refreshToken)).resolves.not.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminRefreshToken.deleteMany).toHaveBeenCalledWith({
         where: { token: refreshToken },
       });
@@ -701,7 +701,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       expect(result?.email).toBe('admin@test.com');
       expect(result?.role).toBe('admin');
       expect(result).not.toHaveProperty('passwordHash');
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(prisma.adminUser.findUnique).toHaveBeenCalledWith({
         where: { id: 'user123' },
       });

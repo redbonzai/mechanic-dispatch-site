@@ -7,6 +7,16 @@ interface SendOptions {
   html: string;
 }
 
+/** Minimal transporter interface to avoid nodemailer type resolution issues in strict lint. */
+interface MailTransporter {
+  sendMail(opts: {
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+  }): Promise<unknown>;
+}
+
 /**
  * Thin SMTP wrapper.
  *
@@ -22,7 +32,7 @@ interface SendOptions {
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private readonly transporter: nodemailer.Transporter | null;
+  private readonly transporter: MailTransporter | null;
   private readonly from: string;
 
   constructor() {
@@ -31,11 +41,13 @@ export class MailService {
     const host = process.env['SMTP_HOST'];
     if (!host) {
       this.transporter = null;
-      this.logger.warn('SMTP_HOST not configured — emails will be logged to console only');
+      this.logger.warn(
+        'SMTP_HOST not configured — emails will be logged to console only',
+      );
       return;
     }
 
-    this.transporter = nodemailer.createTransport({
+    const transport = nodemailer.createTransport({
       host,
       port: parseInt(process.env['SMTP_PORT'] ?? '587', 10),
       secure: process.env['SMTP_PORT'] === '465',
@@ -44,6 +56,7 @@ export class MailService {
         pass: process.env['SMTP_PASS'],
       },
     });
+    this.transporter = transport as MailTransporter;
   }
 
   async send(opts: SendOptions): Promise<void> {
@@ -60,7 +73,11 @@ export class MailService {
     });
   }
 
-  async sendVerificationEmail(to: string, name: string, verifyUrl: string): Promise<void> {
+  async sendVerificationEmail(
+    to: string,
+    name: string,
+    verifyUrl: string,
+  ): Promise<void> {
     await this.send({
       to,
       subject: 'Verify your FixGuide email',
@@ -82,7 +99,11 @@ export class MailService {
     });
   }
 
-  async sendMechanicWelcomeEmail(to: string, name: string, verifyUrl: string): Promise<void> {
+  async sendMechanicWelcomeEmail(
+    to: string,
+    name: string,
+    verifyUrl: string,
+  ): Promise<void> {
     await this.send({
       to,
       subject: 'Verify your FixGuide mechanic account',
@@ -107,7 +128,11 @@ export class MailService {
     });
   }
 
-  async sendPasswordResetEmail(to: string, name: string, resetUrl: string): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+  ): Promise<void> {
     await this.send({
       to,
       subject: 'Reset your FixGuide password',

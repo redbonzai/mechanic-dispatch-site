@@ -11,7 +11,6 @@ const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('MechanicAuthService', () => {
   let service: MechanicAuthService;
-  let prisma: jest.Mocked<PrismaService>;
   let jwtService: jest.Mocked<JwtService>;
 
   const mockMechanic = {
@@ -67,7 +66,7 @@ describe('MechanicAuthService', () => {
     }).compile();
 
     service = module.get<MechanicAuthService>(MechanicAuthService);
-    prisma = module.get(PrismaService);
+    void module.get(PrismaService);
     jwtService = module.get(JwtService);
   });
 
@@ -212,7 +211,10 @@ describe('MechanicAuthService', () => {
       });
 
       await expect(
-        service.login({ email: 'mechanic@example.com', password: 'Password1!' }),
+        service.login({
+          email: 'mechanic@example.com',
+          password: 'Password1!',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -267,7 +269,9 @@ describe('MechanicAuthService', () => {
 
   describe('logout', () => {
     it('should delete all refresh tokens for the mechanic', async () => {
-      mockPrisma.mechanicRefreshToken.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrisma.mechanicRefreshToken.deleteMany.mockResolvedValue({
+        count: 1,
+      });
 
       await service.logout(mockMechanic.id);
 

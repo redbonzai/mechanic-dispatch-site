@@ -1,4 +1,11 @@
-import { Controller, Get, Param, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  DefaultValuePipe,
+} from '@nestjs/common';
 import { RepairGuidesService } from '../services/repair-guides.service';
 
 @Controller('repair-guides')
@@ -12,7 +19,12 @@ export class RepairGuidesController {
     @Query('category') category?: string,
     @Query('difficulty') difficulty?: string,
   ) {
-    return this.repairGuidesService.findAll({ page, limit, category, difficulty });
+    return this.repairGuidesService.findAll({
+      page,
+      limit,
+      category,
+      difficulty,
+    });
   }
 
   @Get('categories')

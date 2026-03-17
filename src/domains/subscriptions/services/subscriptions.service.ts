@@ -23,7 +23,7 @@ export class SubscriptionsService {
     });
   }
 
-  async getPlans() {
+  getPlans() {
     return Object.values(SUBSCRIPTION_PLANS).map((plan) => ({
       tier: plan.tier,
       name: plan.name,

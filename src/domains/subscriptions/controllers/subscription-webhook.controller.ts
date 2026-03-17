@@ -53,20 +53,18 @@ export class SubscriptionWebhookController {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
         await this.subscriptionsService.handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription,
+          event.data.object,
         );
         break;
 
       case 'invoice.payment_succeeded':
         this.logger.log(
-          `Payment succeeded for invoice ${(event.data.object as Stripe.Invoice).id}`,
+          `Payment succeeded for invoice ${event.data.object.id}`,
         );
         break;
 
       case 'invoice.payment_failed':
-        this.logger.warn(
-          `Payment failed for invoice ${(event.data.object as Stripe.Invoice).id}`,
-        );
+        this.logger.warn(`Payment failed for invoice ${event.data.object.id}`);
         break;
 
       default:

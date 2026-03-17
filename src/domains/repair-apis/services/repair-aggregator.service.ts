@@ -107,7 +107,9 @@ export class RepairAggregatorService {
     );
   }
 
-  private deduplicateAndRank(results: RepairGuideResult[]): RepairGuideResult[] {
+  private deduplicateAndRank(
+    results: RepairGuideResult[],
+  ): RepairGuideResult[] {
     const sourcePriority: Record<RepairGuideResult['source'], number> = {
       INTERNAL: 4,
       ALLDATA: 3,

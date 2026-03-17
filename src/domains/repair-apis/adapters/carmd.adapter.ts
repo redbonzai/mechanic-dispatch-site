@@ -25,8 +25,7 @@ export class CarMdAdapter implements IRepairDataAdapter {
   private readonly partnerToken: string | undefined;
 
   constructor() {
-    this.baseUrl =
-      process.env.CARMD_BASE_URL ?? 'https://api.carmd.com/v3.0';
+    this.baseUrl = process.env.CARMD_BASE_URL ?? 'https://api.carmd.com/v3.0';
     this.apiKey = process.env.CARMD_API_KEY;
     this.partnerToken = process.env.CARMD_PARTNER_TOKEN;
   }
@@ -99,14 +98,10 @@ export class CarMdAdapter implements IRepairDataAdapter {
       difficulty: item.urgency === 'Critical' ? 'PROFESSIONAL' : 'INTERMEDIATE',
       diyFriendly: item.urgency !== 'Critical',
       estimatedCostMinCents: item.labor_cost_min
-        ? Math.round(
-            (item.labor_cost_min + (item.parts_cost_min ?? 0)) * 100,
-          )
+        ? Math.round((item.labor_cost_min + (item.parts_cost_min ?? 0)) * 100)
         : undefined,
       estimatedCostMaxCents: item.labor_cost_max
-        ? Math.round(
-            (item.labor_cost_max + (item.parts_cost_max ?? 0)) * 100,
-          )
+        ? Math.round((item.labor_cost_max + (item.parts_cost_max ?? 0)) * 100)
         : undefined,
       timeEstimateMinutes: undefined,
       steps: [],

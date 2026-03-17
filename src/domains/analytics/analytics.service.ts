@@ -25,7 +25,9 @@ export class AnalyticsService {
   async fireEvent(ga4Event: GA4Event): Promise<void> {
     if (!this.measurementId || !this.apiSecret) {
       // GA4 not configured — log in dev and silently skip
-      this.logger.debug(`[GA4 skipped] ${ga4Event.event}: ${JSON.stringify(ga4Event.params)}`);
+      this.logger.debug(
+        `[GA4 skipped] ${ga4Event.event}: ${JSON.stringify(ga4Event.params)}`,
+      );
       return;
     }
 
@@ -33,27 +35,32 @@ export class AnalyticsService {
     const url = `https://www.google-analytics.com/mp/collect?measurement_id=${this.measurementId}&api_secret=${this.apiSecret}`;
 
     try {
-      await firstValueFrom(
-        this.http.post(url, {
-          client_id: clientId,
-          events: [
-            {
-              name: ga4Event.event,
-              params: ga4Event.params ?? {},
-            },
-          ],
-        }),
-      );
+      const post$ = this.http.post(url, {
+        client_id: clientId,
+        events: [{ name: ga4Event.event, params: ga4Event.params ?? {} }],
+      });
+
+      await firstValueFrom(post$);
     } catch (err) {
       // Non-critical — never let analytics failures surface to the user
       this.logger.warn(`GA4 event delivery failed: ${String(err)}`);
     }
   }
 
-  async trackSearch(query: string, make?: string, model?: string, year?: number): Promise<void> {
+  async trackSearch(
+    query: string,
+    make?: string,
+    model?: string,
+    year?: number,
+  ): Promise<void> {
     await this.fireEvent({
       event: 'search_fix',
-      params: { search_term: query, vehicle_make: make, vehicle_model: model, vehicle_year: year },
+      params: {
+        search_term: query,
+        vehicle_make: make,
+        vehicle_model: model,
+        vehicle_year: year,
+      },
     });
   }
 
