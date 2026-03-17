@@ -152,7 +152,7 @@ All tests passing ✅:
 pnpm exec nx run-many --target=build --all
 
 # Build one project
-pnpm exec nx buildmechanic-dispatch-site-api
+pnpm exec nx build mechanic-dispatch-site-api
 
 # Build affected
 pnpm exec nx affected --target=build --base=main
