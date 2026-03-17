@@ -24,16 +24,18 @@ This document covers deploying FixGuide (mechanic-dispatch-site) to [Railway](ht
 ### 2. Connect the API to the database
 
 1. Click the **API** service (the one from GitHub)
-2. Go to **Variables**
-3. Click **+ New Variable** → **Add a Reference**
+2. Go to **Variables** (or **Settings** → **Service Variables**)
+3. Click **+ New Variable** → **Add a Reference** (or **Raw Editor** to paste a value)
 4. Select the **PostgreSQL** service → choose `DATABASE_URL`
-5. Railway will inject `DATABASE_URL` automatically
+5. Railway injects `DATABASE_URL` automatically. If you see an empty value field, use **Add a Reference** to link the Postgres service’s `DATABASE_URL` variable.
 
 ### 3. Configure the API service
 
 - **Build:** Railway detects the `Dockerfile` at the repo root and builds from it
 - **Root directory:** `.` (project root — the Dockerfile builds the NestJS API only)
 - The entrypoint (`scripts/docker-entrypoint.sh`) runs migrations and seed before starting; it uses `DATABASE_URL` when set (Railway) or `db:5432` (Docker Compose)
+
+**PostgreSQL on Railway vs local:** The `docker-compose.yml` and `Dockerfile` are for local development. On Railway, PostgreSQL is a **managed plugin** (add via **+ New** → **Database** → **PostgreSQL**), not a container from your repo. The API connects to Railway’s Postgres via `DATABASE_URL`; you do not configure a Postgres container in the deploy UI.
 
 ### 4. Add custom domain `api.mechanicdispatch.com`
 
@@ -80,9 +82,12 @@ At your DNS provider (or Cloudflare), add:
 | Field | Value |
 |-------|-------|
 | **Framework Preset** | Angular |
-| **Build Command** | `pnpm run build` |
+| **Root Directory** | `web` |
+| **Build Command** | `npm run build` |
 | **Output Directory** | `dist/mechanic-dispatch-web` |
-| **Install Command** | `pnpm install` |
+| **Install Command** | `npm install` |
+
+*Note: Use `npm` (not `pnpm`) to avoid `ERR_INVALID_THIS` / `ERR_PNPM_META_FETCH_FAIL` with Node 24 on Vercel. The `web/` directory has its own `package-lock.json`. Node 20 is recommended (set via `engines` in `web/package.json` or `.nvmrc`).*
 
 ### 3. Environment variables (Vercel)
 
