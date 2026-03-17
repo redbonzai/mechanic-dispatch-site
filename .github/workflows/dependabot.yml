@@ -1,4 +1,3 @@
-version: 2
 updates:
   # API (root) dependencies
   - package-ecosystem: "npm"
