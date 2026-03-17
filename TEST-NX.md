@@ -25,7 +25,7 @@ mechanic-dispatch-api
 
 ```bash
 # Build API only
-pnpm exec nx buildmechanic-dispatch-site-api
+pnpm exec nx build mechanic-dispatch-site-api
 
 # Build Web only
 pnpm exec nx build mechanic-dispatch-web
