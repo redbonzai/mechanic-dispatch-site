@@ -9,7 +9,7 @@
     "postinstall": "if [ \"$CI\" != \"true\" ]; then prisma generate; fi",
     "prebuild": "pnpm prisma:generate",
     "build": "nest build",
-    "build:release": "pnpm prisma:generate && nx build mechanic-dispatch-api",
+    "build:release": "pnpm prisma:generate && nx build mechanic-dispatch-site-api",
     "build:nx": "nx build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
