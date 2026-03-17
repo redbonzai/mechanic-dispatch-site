@@ -7,11 +7,27 @@ set -e
 echo "Starting Mechanic Dispatch API..."
 
 # Wait for the database TCP port to be reachable
+# Uses DATABASE_URL when set (Railway), otherwise db:5432 (Docker Compose)
 echo "Waiting for database to be ready..."
-until node -e "require('net').createConnection(5432, 'db').on('error', () => process.exit(1)).on('connect', () => process.exit(0))"; do
-  echo "  Database is unavailable - retrying in 2s"
-  sleep 2
-done
+if [ -n "$DATABASE_URL" ]; then
+  until node -e "
+    const url = process.env.DATABASE_URL;
+    if (!url) process.exit(1);
+    const m = url.match(/@([^:\/]+):(\d+)/);
+    if (!m) process.exit(1);
+    const host = m[1];
+    const port = parseInt(m[2], 10);
+    require('net').createConnection(port, host).on('error', () => process.exit(1)).on('connect', () => process.exit(0));
+  "; do
+    echo "  Database is unavailable - retrying in 2s"
+    sleep 2
+  done
+else
+  until node -e "require('net').createConnection(5432, 'db').on('error', () => process.exit(1)).on('connect', () => process.exit(0))"; do
+    echo "  Database is unavailable - retrying in 2s"
+    sleep 2
+  done
+fi
 echo "Database is ready!"
 
 # Apply all pending Prisma migrations
