@@ -203,7 +203,7 @@ docker exec -it mechanic-dispatch-db psql -U postgres -d mechanic \
 
 **If no results, re-seed:**
 ```bash
-docker exec -itmechanic-dispatch-site-api npx prisma db seed
+docker exec -it mechanic-dispatch-site-api npx prisma db seed
 ```
 
 ### No Service Requests in Dashboard
@@ -218,7 +218,7 @@ docker exec -it mechanic-dispatch-db psql -U postgres -d mechanic \
 
 **If 0, re-seed:**
 ```bash
-docker exec -itmechanic-dispatch-site-api npx prisma db seed
+docker exec -it mechanic-dispatch-site-api npx prisma db seed
 ```
 
 ### Seeding Fails on Startup
