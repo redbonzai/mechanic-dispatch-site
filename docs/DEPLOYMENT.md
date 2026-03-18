@@ -80,7 +80,7 @@ CLIENT_ORIGIN=https://your-frontend.com
 ### Build Image
 
 ```bash
-docker build -tmechanic-dispatch-site-api .
+docker build -t mechanic-dispatch-site-api .
 ```
 
 ### Run Container
