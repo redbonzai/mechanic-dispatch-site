@@ -82,12 +82,12 @@ At your DNS provider (or Cloudflare), add:
 | Field | Value |
 |-------|-------|
 | **Framework Preset** | Angular |
-| **Root Directory** | `.` (repo root) or leave empty |
-| **Build Command** | *(leave empty — uses `vercel.json`)* |
-| **Output Directory** | *(leave empty — uses `vercel.json`)* |
-| **Install Command** | *(leave empty — uses `vercel.json`)* |
+| **Root Directory** | `web` |
+| **Install Command** | Override: `npm install` |
+| **Build Command** | Override: `npm run build` |
+| **Output Directory** | Override: `dist/mechanic-dispatch-web` |
 
-The root `vercel.json` forces `npm install` and `npm run build` from the `web/` directory to avoid `ERR_INVALID_THIS` when Vercel’s Nx detection would otherwise run `pnpm install` from the monorepo root. Keep **Root Directory** as the repo root so the root `vercel.json` is used.
+Vercel's Nx integration overrides `vercel.json` and forces `pnpm install`, causing `ERR_INVALID_THIS`. When Vercel’s Nx detection would otherwise run `pnpm install`. Enable **Override** for Install/Build/Output in Build & Development Settings. Set Node.js to `20.x` in General. See [docs/VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).
 
 ### 3. Environment variables (Vercel)
 
