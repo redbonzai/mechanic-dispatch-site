@@ -8,7 +8,7 @@
   "packageManager": "npm@10.9.2",
   "scripts": {
     "start": "ng serve --host 0.0.0.0 --port 4200",
-    "build": "npx ng build --configuration production",
+    "build": "node ./node_modules/@angular/cli/bin/ng.js build --configuration production",
     "build:dev": "ng build --configuration development",
     "test": "ng test --watch=false --browsers=ChromeHeadlessCI",
     "test:watch": "ng test",
