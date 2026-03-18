@@ -294,7 +294,7 @@ docker exec -it mechanic-dispatch-db psql -U postgres -d mechanic \
 **Solution**:
 ```bash
 # Manually run seed
-docker exec -itmechanic-dispatch-site-api npx prisma db seed
+docker exec -it mechanic-dispatch-site-api npx prisma db seed
 
 # Or recreate containers
 docker-compose down -v
@@ -315,7 +315,7 @@ docker exec -it mechanic-dispatch-db psql -U postgres -d mechanic \
 **Solution**:
 ```bash
 # Manually run seed
-docker exec -itmechanic-dispatch-site-api npx prisma db seed
+docker exec -it mechanic-dispatch-site-api npx prisma db seed
 ```
 
 ### Issue: Docker Entrypoint Script Fails
