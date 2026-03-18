@@ -39,7 +39,7 @@ The Dockerfile now includes verification steps that will fail the build if:
 
 ```bash
 # Check what's actually in the image
-docker run --rm --entrypoint shmechanic-dispatch-site-api -c "ls -la /app/dist/"
+docker run --rm --entrypoint sh mechanic-dispatch-site-api -c "ls -la /app/dist/"
 ```
 
 ## Updated Dockerfile
@@ -102,6 +102,6 @@ docker compose build api 2>&1 | grep -i "prisma generate"
 docker compose logs api
 
 # Check if all node_modules are copied
-docker run --rm --entrypoint shmechanic-dispatch-site-api -c "ls node_modules/.prisma/client"
+docker run --rm --entrypoint sh mechanic-dispatch-site-api -c "ls node_modules/.prisma/client"
 ```
 
