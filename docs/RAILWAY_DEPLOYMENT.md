@@ -82,12 +82,12 @@ At your DNS provider (or Cloudflare), add:
 | Field | Value |
 |-------|-------|
 | **Framework Preset** | Angular |
-| **Root Directory** | `web` |
-| **Build Command** | `npm run build` |
-| **Output Directory** | `dist/mechanic-dispatch-web` |
-| **Install Command** | `npm install` |
+| **Root Directory** | `.` (repo root) or leave empty |
+| **Build Command** | *(leave empty — uses `vercel.json`)* |
+| **Output Directory** | *(leave empty — uses `vercel.json`)* |
+| **Install Command** | *(leave empty — uses `vercel.json`)* |
 
-*Note: Use `npm` (not `pnpm`) to avoid `ERR_INVALID_THIS` / `ERR_PNPM_META_FETCH_FAIL` with Node 24 on Vercel. The `web/` directory has its own `package-lock.json`. Node 20 is recommended (set via `engines` in `web/package.json` or `.nvmrc`).*
+The root `vercel.json` forces `npm install` and `npm run build` from the `web/` directory to avoid `ERR_INVALID_THIS` when Vercel’s Nx detection would otherwise run `pnpm install` from the monorepo root. Keep **Root Directory** as the repo root so the root `vercel.json` is used.
 
 ### 3. Environment variables (Vercel)
 
