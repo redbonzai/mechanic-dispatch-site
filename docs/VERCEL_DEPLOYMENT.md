@@ -30,7 +30,7 @@ You **must** override the build settings in the Vercel dashboard so they take pr
 
 | Setting           | Override | Value                          |
 |-------------------|----------|--------------------------------|
-| Install Command   | ✅ On    | `npm install`                  |
+| Install Command   | ✅ On    | `npm install --include=dev`    |
 | Build Command     | ✅ On    | `npm run build`                |
 | Output Directory  | ✅ On    | `dist/mechanic-dispatch-web`  |
 
@@ -43,7 +43,7 @@ The Override toggle is critical—it forces Vercel to use your values instead of
 
 ## Why This Works
 
-- **`npm install`** instead of `pnpm install` avoids the Node 24 + pnpm bug
+- **`npm install --include=dev`** ensures devDependencies (e.g. `@angular/cli`) are installed; Vercel may set `NODE_ENV=production` which would otherwise skip them
 - **Node 20** is the recommended runtime until the upstream issue is fixed
 - **Dashboard overrides** take precedence over Nx auto-configuration
 - **Root Directory = `web`** ensures the build runs from the Angular app directory
@@ -60,5 +60,6 @@ The Override toggle is critical—it forces Vercel to use your values instead of
 
 1. Confirm **Override** is enabled for Install Command, Build Command, and Output Directory
 2. Confirm **Node.js Version** is 20.x
-3. Clear the build cache and redeploy
-4. Check the build logs—you should see `npm install` and `npm run build`, not `pnpm install`
+3. If you see `Cannot find module '.../web/node_modules/@angular/cli/bin/ng.js'`, the Nx integration may be running install from the repo root. Try changing Install Command to: `cd web && npm install --include=dev`
+4. Clear the build cache and redeploy
+5. Check the build logs—you should see `npm install` and `npm run build`, not `pnpm install`

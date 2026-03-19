@@ -7,12 +7,12 @@
   },
   "packageManager": "npm@10.9.2",
   "scripts": {
-    "start": "ng serve --host 0.0.0.0 --port 4200",
-    "build": "node ./node_modules/@angular/cli/bin/ng.js build --configuration production",
-    "build:dev": "ng build --configuration development",
-    "test": "ng test --watch=false --browsers=ChromeHeadlessCI",
-    "test:watch": "ng test",
-    "lint": "ng lint"
+    "start": "npx ng serve --host 0.0.0.0 --port 4200",
+    "build": "node node_modules/@angular/cli/bin/ng.js build --configuration production",
+    "build:dev": "npx ng build --configuration development",
+    "test": "npx ng test --watch=false --browsers=ChromeHeadlessCI",
+    "test:watch": "npx ng test",
+    "lint": "npx ng lint"
   },
   "dependencies": {
     "@angular/animations": "^19.2.0",
