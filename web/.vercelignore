@@ -1,0 +1,4 @@
+# When running vercel from web/, exclude build artifacts
+node_modules
+dist
+.angular

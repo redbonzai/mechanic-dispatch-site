@@ -5,10 +5,9 @@
   "engines": {
     "node": ">=20 <25"
   },
-  "packageManager": "npm@10.9.2",
   "scripts": {
     "start": "npx ng serve --host 0.0.0.0 --port 4200",
-    "build": "node node_modules/@angular/cli/bin/ng.js build --configuration production",
+    "build": "ng build --configuration production",
     "build:dev": "npx ng build --configuration development",
     "test": "npx ng test --watch=false --browsers=ChromeHeadlessCI",
     "test:watch": "npx ng test",

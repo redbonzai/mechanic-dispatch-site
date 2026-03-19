@@ -1,0 +1,10 @@
+# Deploy minimal set for pnpm workspace (root + web only)
+# Exclude everything except what's needed for web build
+/*
+!web
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!package.json
+web/node_modules
+web/dist
+web/.angular

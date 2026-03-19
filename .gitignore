@@ -66,3 +66,5 @@ web/dist
 .nx/workspace-data
 graph.html
 static/
+.vercel
+.env*.local

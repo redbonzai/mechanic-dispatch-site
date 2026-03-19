@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm install --include=dev",
-  "buildCommand": "npm run build",
+  "installCommand": "pnpm install --filter mechanic-dispatch-web",
+  "buildCommand": "pnpm run build",
   "outputDirectory": "dist/mechanic-dispatch-web",
   "framework": "angular"
 }

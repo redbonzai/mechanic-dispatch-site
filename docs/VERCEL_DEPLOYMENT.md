@@ -1,65 +1,52 @@
 # Vercel Deployment Guide (Angular Frontend)
 
-This guide covers deploying the Angular app (`web/`) to Vercel when the repo is an Nx monorepo.
+This guide covers deploying the Angular app (`web/`) to Vercel using **pnpm** (the project's package manager for both API and web).
 
-## The Problem
+## Requirements
 
-When Vercel detects Nx (via `nx.json` at the repo root), it **overrides** your project settings and runs `pnpm install` from the monorepo root. That causes:
+- **Node.js 20.x** – Required to avoid `ERR_INVALID_THIS` with older pnpm versions. Set in Vercel → Settings → General.
+- **pnpm 9+** – The root `package.json` has `"packageManager": "pnpm@9.15.0"` for compatibility.
 
-- `ERR_INVALID_THIS` / `ERR_PNPM_META_FETCH_FAIL` (pnpm + Node 24 compatibility bug)
-- `Ignoring not compatible lockfile` warnings
+## Dashboard Settings
 
-The `web/vercel.json` and Root Directory = `web` are ignored by the Nx integration.
+### Project Settings → General
 
-## The Solution: Dashboard Overrides
+- **Node.js Version:** `20.x`
 
-You **must** override the build settings in the Vercel dashboard so they take precedence over the Nx integration.
+### Project Settings → Build & Development Settings
 
-### Step 1: Project Settings → General
+| Setting           | Override | Value                                    |
+|-------------------|----------|------------------------------------------|
+| Root Directory    | ✅ On    | `web`                                    |
+| Install Command   | ✅ On    | `pnpm install --filter mechanic-dispatch-web` |
+| Build Command     | ✅ On    | `pnpm run build`                         |
+| Output Directory  | ✅ On    | `dist/mechanic-dispatch-web`             |
 
-1. Go to your Vercel project → **Settings** → **General**
-2. Under **Node.js Version**, select **20.x** (not 24.x)
-   - Node 20 avoids the pnpm `ERR_INVALID_THIS` bug
-   - Reverting to Node 20 is **not** a mistake; it's required until pnpm/Vercel fix the Node 24 issue
+## How It Works
 
-### Step 2: Project Settings → Build & Development Settings
+- **Install:** Runs from repo root. `pnpm install --filter mechanic-dispatch-web` installs only the web package and its dependencies.
+- **Build:** Runs from `web/` (Root Directory). `pnpm run build` runs the Angular build.
+- **`.vercelignore`:** Excludes `node_modules`, `.nx`, `dist`, etc. The full repo is uploaded so the pnpm workspace is intact.
 
-1. Go to **Settings** → **Build & Development Settings**
-2. Set **Root Directory** to `web`
-3. Enable **Override** for each of these and set:
+## Local `vercel build` and `vercel deploy`
 
-| Setting           | Override | Value                          |
-|-------------------|----------|--------------------------------|
-| Install Command   | ✅ On    | `npm install --include=dev`    |
-| Build Command     | ✅ On    | `npm run build`                |
-| Output Directory  | ✅ On    | `dist/mechanic-dispatch-web`  |
+Run from the **repo root** (pnpm workspace root):
 
-The Override toggle is critical—it forces Vercel to use your values instead of the Nx defaults.
+```bash
+# From repo root
+vercel build
+vercel --prod
+```
 
-### Step 3: Redeploy
+If you run from `web/`, use `./web/scripts/vercel-deploy.sh` or run `vercel pull` from `web/` then `./scripts/fix-vercel-project.sh` to adjust `project.json` for local builds.
 
-1. Clear the build cache: **Settings** → **General** → **Build Cache** → **Clear**
-2. Trigger a new deployment (push a commit or click **Redeploy**)
+**"spawn sh ENOENT"** – Known Vercel CLI issue when using pnpm from `web/`. Running from the repo root usually avoids it.
 
-## Why This Works
-
-- **`npm install --include=dev`** ensures devDependencies (e.g. `@angular/cli`) are installed; Vercel may set `NODE_ENV=production` which would otherwise skip them
-- **Node 20** is the recommended runtime until the upstream issue is fixed
-- **Dashboard overrides** take precedence over Nx auto-configuration
-- **Root Directory = `web`** ensures the build runs from the Angular app directory
-
-## Files in This Repo
-
-| File                | Purpose                                                |
-|---------------------|--------------------------------------------------------|
-| `web/vercel.json`   | Config for when overrides aren't used (Nx overrides it) |
-| `web/.nvmrc`       | Pins Node 20 for local/dev                             |
-| `web/package.json`  | `engines.node` and `packageManager: npm`               |
+**File limit:** If `vercel --prod` fails with "more than 15000 items", use `vercel --prod --archive=tgz`.
 
 ## If It Still Fails
 
-1. Confirm **Override** is enabled for Install Command, Build Command, and Output Directory
-2. Confirm **Node.js Version** is 20.x
-3. If you see `Cannot find module '.../web/node_modules/@angular/cli/bin/ng.js'`, the Nx integration may be running install from the repo root. Try changing Install Command to: `cd web && npm install --include=dev`
-4. Clear the build cache and redeploy
-5. Check the build logs—you should see `npm install` and `npm run build`, not `pnpm install`
+1. Confirm **Node.js Version** is 20.x
+2. Confirm **Override** is enabled for Install, Build, and Output Directory
+3. Clear the build cache and redeploy
+4. Ensure `pnpm-lock.yaml` and `pnpm-workspace.yaml` exist at the repo root
