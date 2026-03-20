@@ -9,7 +9,7 @@ Run these commands to verify your NX setup is working correctly:
 ### 1. **Test Project Detection**
 
 ```bash
-# Should show both projects: mechanic-dispatch-api and mechanic-dispatch-web
+# Should show both projects:mechanic-dispatch-site-api and mechanic-dispatch-web
 pnpm exec nx show projects
 ```
 
@@ -25,7 +25,7 @@ mechanic-dispatch-api
 
 ```bash
 # Build API only
-pnpm exec nx build mechanic-dispatch-api
+pnpm exec nx build mechanic-dispatch-site-api
 
 # Build Web only
 pnpm exec nx build mechanic-dispatch-web

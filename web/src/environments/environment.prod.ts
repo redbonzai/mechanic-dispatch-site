@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: '',
+  apiUrl: 'https://api.mechanicdispatch.com',
   stripePublishableKey: '',
   ga4MeasurementId: '',
 };

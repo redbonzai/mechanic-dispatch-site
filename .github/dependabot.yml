@@ -1,3 +1,4 @@
+version: 2
 updates:
   # API (root) dependencies
   - package-ecosystem: "npm"
@@ -27,4 +28,3 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-

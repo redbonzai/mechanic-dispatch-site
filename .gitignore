@@ -61,8 +61,13 @@ web/.angular/
 web/node_modules
 web/dist
 
+# npm lockfile — project uses pnpm
+web/package-lock.json
+
 # NX
 .nx/cache
 .nx/workspace-data
 graph.html
 static/
+.vercel
+.env*.local

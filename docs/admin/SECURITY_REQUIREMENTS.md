@@ -52,14 +52,14 @@ export const jwtConfig = {
   // Access token configuration
   accessToken: {
     expiresIn: '15m',  // 15 minutes
-    issuer: 'mechanic-dispatch-api',
+    issuer: 'mechanic-dispatch-site-api',
     audience: 'mechanic-dispatch-admin',
   },
   
   // Refresh token configuration
   refreshToken: {
     expiresIn: '7d',  // 7 days
-    issuer: 'mechanic-dispatch-api',
+    issuer: 'mechanic-dispatch-site-api',
     audience: 'mechanic-dispatch-admin',
   },
 };
