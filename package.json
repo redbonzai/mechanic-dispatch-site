@@ -5,7 +5,7 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.0.0",
   "scripts": {
     "postinstall": "if [ \"$CI\" != \"true\" ] && [ -f prisma/schema.prisma ]; then prisma generate; fi",
     "prebuild": "pnpm prisma:generate",
