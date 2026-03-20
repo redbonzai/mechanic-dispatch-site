@@ -2,6 +2,8 @@
 
 This document covers deploying FixGuide (mechanic-dispatch-site) to [Railway](https://railway.app/) with the frontend on Vercel.
 
+**CI:** To deploy the API from GitHub Actions on merge to `main`, see [GITHUB_DEPLOYMENTS.md](GITHUB_DEPLOYMENTS.md).
+
 ## Architecture
 
 | Service | Host | Deployment |
