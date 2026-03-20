@@ -2,6 +2,8 @@
 
 This guide covers deploying the Angular app (`web/`) to Vercel using **pnpm** (the project's package manager for both API and web).
 
+**CI:** To deploy from GitHub Actions on merge to `main`, see [GITHUB_DEPLOYMENTS.md](GITHUB_DEPLOYMENTS.md).
+
 ## Requirements
 
 - **Node.js 20.x** – Required to avoid `ERR_INVALID_THIS` with older pnpm versions. Set in Vercel → Settings → General.
