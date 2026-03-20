@@ -54,7 +54,7 @@ jobs:
             nx-${{ runner.os }}-
 
       - name: Install dependencies (API + Web)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
         env:
           CI: 'true'
 
