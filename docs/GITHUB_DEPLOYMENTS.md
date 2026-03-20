@@ -20,13 +20,23 @@ Project tokens are scoped to a **specific Railway environment** (e.g. production
 
 If the **same** Railway service is also connected to **GitHub** in the Railway dashboard (auto-deploy on push), a push to `main` will trigger **both** Railway’s integration and this workflow. Disable one of them.
 
-## Vercel — required GitHub secrets
+## Vercel — GitHub secrets (where to find each value)
 
-| Secret | Description |
-|--------|-------------|
-| `VERCEL_TOKEN` | Vercel account token (**Account Settings → Tokens**). |
-| `VERCEL_ORG_ID` | Project **Team / Personal** ID (Project → Settings → General). |
-| `VERCEL_PROJECT_ID` | **Project ID** (same screen). |
+The **Deploy Frontend (Vercel)** workflow uses the GitHub Environment named **`production`** (see `environment: production` in the workflow). Store secrets here unless you prefer repository-wide secrets:
+
+**GitHub:** Repository → **Settings** → **Environments** → **production** (create the environment if needed) → **Environment secrets** → add each name below **exactly** (not `VERSEL_TOKEN`).
+
+You can instead add the same names under **Settings → Secrets and variables → Actions → Repository secrets** — GitHub merges them; if both exist, the environment value wins for jobs that declare `environment: production`.
+
+### Where each value comes from (Vercel dashboard)
+
+| GitHub secret | Where to get it in Vercel |
+|---------------|---------------------------|
+| **`VERCEL_TOKEN`** | **Vercel dashboard** → click your profile (top right) → **Account Settings** → **Tokens** → **Create** (scope: full account or enough to deploy — typical is a personal access token for CLI). Copy the token once; Vercel won’t show it again. |
+| **`VERCEL_PROJECT_ID`** | Open your **frontend project** → **Settings** → **General** → **Project ID** (copy the value). |
+| **`VERCEL_ORG_ID`** | Same **Settings → General** page: look for **Team / Personal ID** or the scope your project lives under. **If you only see Project ID:** open **Team Settings** for that team (or Hobby “Personal Account”) → **General** — the **Team ID** is your `VERCEL_ORG_ID`. |
+
+**CLI alternative (local):** From the repo, run `pnpm dlx vercel@latest link` (log in when prompted), then read **`.vercel/project.json`** in the directory you linked — it contains `"orgId"` and `"projectId"`. Those map to **`VERCEL_ORG_ID`** and **`VERCEL_PROJECT_ID`**. Don’t commit that folder (it’s gitignored).
 
 Vercel **project** settings should match [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) (root directory `web`, pnpm install/build overrides, Node 20).
 
