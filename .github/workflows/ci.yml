@@ -29,6 +29,18 @@ jobs:
         ports:
           - 5432:5432
 
+    # Inherited by every step (including Nx/Jest child processes). Without DATABASE_URL / PG*,
+    # tools may fall back to the runner user (`root`) and hit: FATAL: role "root" does not exist.
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
+      STRIPE_SECRET_KEY: sk_test_mock
+      STRIPE_WEBHOOK_SECRET: whsec_mock
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: '5432'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -55,8 +67,6 @@ jobs:
 
       - name: Install dependencies (API + Web)
         run: pnpm install --no-frozen-lockfile
-        env:
-          CI: 'true'
 
       - name: Wait for PostgreSQL
         run: |
@@ -68,13 +78,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm prisma:generate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
 
       - name: Run database migrations
         run: pnpm prisma:migrate:deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
 
       - name: Lint (NX affected)
         run: pnpm exec nx affected --target=lint --base=origin/main --head=HEAD --parallel=3
@@ -84,28 +90,6 @@ jobs:
 
       - name: Build (NX affected)
         run: pnpm exec nx affected --target=build --base=origin/main --head=HEAD --parallel=3
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGHOST: localhost
-          PGPORT: 5432
-
-      - name: Install Chromium
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-
-      - name: Set CHROME_BIN for Karma
-        run: |
-          CHROME_PATH="$(which chromium-browser || which chromium || which google-chrome || which google-chrome-stable || true)"
-          if [ -z "$CHROME_PATH" ]; then
-            echo "No Chrome/Chromium found on runner"
-            exit 1
-          fi
-          echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
 
       - name: Install Chromium
         run: |
@@ -123,25 +107,9 @@ jobs:
 
       - name: Run unit tests (NX affected)
         run: pnpm exec nx affected --target=test --base=origin/main --head=HEAD --parallel=3
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGHOST: localhost
-          PGPORT: 5432
 
       - name: Run e2e tests (API)
         run: pnpm test:e2e
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGHOST: localhost
-          PGPORT: 5432
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
