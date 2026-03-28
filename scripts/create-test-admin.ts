@@ -5,10 +5,10 @@
  * Run with: pnpm tsx scripts/create-test-admin.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../src/domains/database/prisma-client.factory';
 import * as bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function main() {
   console.log('🔧 Creating test admin user...');

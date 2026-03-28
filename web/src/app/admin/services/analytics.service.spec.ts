@@ -6,6 +6,7 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { AnalyticsService } from './analytics.service';
 import { OverviewStats, SubscriptionMetrics } from '../models/analytics.model';
+import { environment } from '../../../environments/environment';
 
 const mockOverview: OverviewStats = {
   totalUsers: 100,
@@ -57,7 +58,7 @@ describe('AnalyticsService', () => {
     req.flush(mockOverview);
   });
 
-  it('should call GET /api/admin/analytics/subscriptions', () => {
+  it('should call GET /admin/analytics/subscriptions', () => {
     const mockSubs: SubscriptionMetrics = {
       breakdown: [],
       totalRevenueCents: 0,
@@ -71,15 +72,17 @@ describe('AnalyticsService', () => {
       expect(data).toEqual(mockSubs);
     });
 
-    const req = httpMock.expectOne('/api/admin/analytics/subscriptions');
+    const req = httpMock.expectOne(`${environment.apiUrl}/admin/analytics/subscriptions`);
     expect(req.request.method).toBe('GET');
     req.flush(mockSubs);
   });
 
-  it('should call GET /api/admin/analytics/search/top-queries', () => {
+  it('should call GET /admin/analytics/search/top-queries', () => {
     service.getTopQueries(10).subscribe();
 
-    const req = httpMock.expectOne('/api/admin/analytics/search/top-queries?limit=10');
+    const req = httpMock.expectOne(
+      `${environment.apiUrl}/admin/analytics/search/top-queries?limit=10`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ queries: [] });
   });

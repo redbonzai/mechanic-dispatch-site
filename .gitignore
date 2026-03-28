@@ -71,3 +71,7 @@ graph.html
 static/
 .vercel
 .env*.local
+
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json

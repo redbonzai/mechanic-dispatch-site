@@ -12,6 +12,21 @@ import {
   SubscriptionTierKey,
 } from '../constants/subscription-plans';
 
+/** Stripe 2026+ API: billing period fields live on subscription items, not the subscription root. */
+function getSubscriptionItemPeriod(subscription: Stripe.Subscription): {
+  currentPeriodStart: number;
+  currentPeriodEnd: number;
+} {
+  const item = subscription.items?.data?.[0];
+  if (!item) {
+    throw new Error('Stripe subscription has no subscription items');
+  }
+  return {
+    currentPeriodStart: item.current_period_start,
+    currentPeriodEnd: item.current_period_end,
+  };
+}
+
 @Injectable()
 export class SubscriptionsService {
   private readonly logger = new Logger(SubscriptionsService.name);
@@ -19,7 +34,7 @@ export class SubscriptionsService {
 
   constructor(private readonly prisma: PrismaService) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
-      apiVersion: '2024-06-20',
+      apiVersion: '2026-02-25.clover',
     });
   }
 
@@ -84,13 +99,16 @@ export class SubscriptionsService {
       customer: stripeCustomerId,
       items: [{ price: priceId }],
       trial_period_days: plan.trialDays,
-      expand: ['latest_invoice.payment_intent'],
+      expand: ['latest_invoice.payment_intent', 'items'],
       metadata: { mechanicId, tier: dto.tier },
     });
 
     const trialEnd = subscription.trial_end
       ? new Date(subscription.trial_end * 1000)
       : null;
+
+    const { currentPeriodStart, currentPeriodEnd } =
+      getSubscriptionItemPeriod(subscription);
 
     // Persist subscription record
     await this.prisma.$transaction([
@@ -101,13 +119,9 @@ export class SubscriptionsService {
           stripeCustomerId,
           tier: dto.tier,
           status: subscription.status === 'trialing' ? 'TRIALING' : 'ACTIVE',
-          currentPeriodStart: new Date(
-            subscription.current_period_start * 1000,
-          ),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          trialStart: trialEnd
-            ? new Date(subscription.current_period_start * 1000)
-            : null,
+          currentPeriodStart: new Date(currentPeriodStart * 1000),
+          currentPeriodEnd: new Date(currentPeriodEnd * 1000),
+          trialStart: trialEnd ? new Date(currentPeriodStart * 1000) : null,
           trialEnd,
         },
       }),
@@ -119,10 +133,8 @@ export class SubscriptionsService {
           subscriptionStatus:
             subscription.status === 'trialing' ? 'TRIALING' : 'ACTIVE',
           subscriptionTier: dto.tier,
-          subscriptionStartAt: new Date(
-            subscription.current_period_start * 1000,
-          ),
-          subscriptionEndAt: new Date(subscription.current_period_end * 1000),
+          subscriptionStartAt: new Date(currentPeriodStart * 1000),
+          subscriptionEndAt: new Date(currentPeriodEnd * 1000),
           trialEndsAt: trialEnd,
           isActive: true,
         },
@@ -133,7 +145,7 @@ export class SubscriptionsService {
       subscriptionId: subscription.id,
       status: subscription.status,
       trialEnd,
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodEnd: new Date(currentPeriodEnd * 1000),
     };
   }
 
@@ -196,6 +208,9 @@ export class SubscriptionsService {
         | 'PREMIUM'
         | undefined) ?? undefined;
 
+    const { currentPeriodStart, currentPeriodEnd } =
+      getSubscriptionItemPeriod(stripeSubscription);
+
     await this.prisma.$transaction(async (tx) => {
       await tx.mechanic.update({
         where: { id: mechanicId },
@@ -208,9 +223,7 @@ export class SubscriptionsService {
             | 'CANCELLED',
           subscriptionTier: tier,
           isActive,
-          subscriptionEndAt: new Date(
-            stripeSubscription.current_period_end * 1000,
-          ),
+          subscriptionEndAt: new Date(currentPeriodEnd * 1000),
         },
       });
 
@@ -224,12 +237,8 @@ export class SubscriptionsService {
               | 'ACTIVE'
               | 'PAST_DUE'
               | 'CANCELLED',
-            currentPeriodStart: new Date(
-              stripeSubscription.current_period_start * 1000,
-            ),
-            currentPeriodEnd: new Date(
-              stripeSubscription.current_period_end * 1000,
-            ),
+            currentPeriodStart: new Date(currentPeriodStart * 1000),
+            currentPeriodEnd: new Date(currentPeriodEnd * 1000),
             cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
           },
         })

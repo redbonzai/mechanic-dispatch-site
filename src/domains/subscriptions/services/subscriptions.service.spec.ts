@@ -26,8 +26,14 @@ describe('SubscriptionsService', () => {
     id: 'sub_test123',
     status: 'trialing',
     trial_end: Math.floor(Date.now() / 1000) + 7 * 86400,
-    current_period_start: Math.floor(Date.now() / 1000),
-    current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
+    items: {
+      data: [
+        {
+          current_period_start: Math.floor(Date.now() / 1000),
+          current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
+        },
+      ],
+    },
     cancel_at_period_end: false,
     metadata: { mechanicId: 'mech_1', tier: 'PRO' },
   } as unknown as Stripe.Subscription;
@@ -252,8 +258,14 @@ describe('SubscriptionsService', () => {
         id: 'sub_webhook',
         status,
         cancel_at_period_end: false,
-        current_period_start: Math.floor(Date.now() / 1000),
-        current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
+        items: {
+          data: [
+            {
+              current_period_start: Math.floor(Date.now() / 1000),
+              current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
+            },
+          ],
+        },
         trial_end: null,
         metadata: { mechanicId, tier },
       }) as unknown as Stripe.Subscription;

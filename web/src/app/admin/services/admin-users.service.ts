@@ -8,6 +8,7 @@ import {
   CreateAdminUserRequest,
   UpdateAdminUserRequest,
 } from '../models/admin-user.model';
+import { environment } from '../../../environments/environment';
 
 /**
  * Admin Users Service
@@ -19,7 +20,7 @@ import {
   providedIn: 'root',
 })
 export class AdminUsersService {
-  private readonly baseUrl = '/api/admin/users';
+  private readonly baseUrl = `${environment.apiUrl}/admin/users`;
 
   constructor(private http: HttpClient) {}
 

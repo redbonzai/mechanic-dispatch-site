@@ -5,6 +5,7 @@
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
+// Default matches CI (5432). Docker Compose uses 15432 — global-integration-setup resolves that when unset.
 process.env.DATABASE_URL =
   process.env.DATABASE_URL ||
   'postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public';

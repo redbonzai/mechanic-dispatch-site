@@ -1,12 +1,17 @@
 import type { Config } from 'jest';
 
-const config: Config = {
+const shared: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
-  testMatch: ['**/src/**/*.spec.ts', '**/test/**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/web/'],
+  // Avoid scanning compiled output / Nx cache (duplicate __mocks__ vs src/__mocks__)
+  modulePathIgnorePatterns: [
+    '<rootDir>/dist/',
+    '<rootDir>/.nx/',
+    '<rootDir>/coverage/',
+    '<rootDir>/web/',
+  ],
   transform: {
-    '^.+\\.(t|j)s$': [
+    '^.+\\.ts$': [
       'ts-jest',
       {
         tsconfig: 'tsconfig.jest.json',
@@ -28,7 +33,29 @@ const config: Config = {
     '^@nestjs/axios$': '<rootDir>/src/__mocks__/nestjs-axios.ts',
   },
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-  verbose: true,
+};
+
+const config: Config = {
+  projects: [
+    {
+      ...shared,
+      displayName: 'unit',
+      testMatch: [
+        '<rootDir>/src/**/*.spec.ts',
+        '<rootDir>/test/integration/AdminAnalyticsService.spec.ts',
+      ],
+      testPathIgnorePatterns: ['/node_modules/', '/web/'],
+    },
+    {
+      ...shared,
+      displayName: 'integration',
+      testMatch: ['<rootDir>/test/integration/**/*.integration.spec.ts'],
+      testPathIgnorePatterns: ['/node_modules/', '/web/'],
+      globalSetup: '<rootDir>/test/global-integration-setup.ts',
+      // One worker: shared DATABASE_URL; these tests truncate and seed.
+      maxWorkers: 1,
+    },
+  ],
 };
 
 export default config;

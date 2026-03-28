@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -271,6 +270,341 @@ enum RepairDifficulty {
   INTERMEDIATE
   ADVANCED
   PROFESSIONAL
+}
+
+enum SafetyLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ProcedureSourceType {
+  INTERNAL
+  LICENSED
+  IMPORTED
+}
+
+enum WarningSeverity {
+  INFO
+  WARNING
+  DANGER
+}
+
+// ============================================================
+// REPAIR KNOWLEDGE V2 (normalized; RepairGuide kept for migration)
+// ============================================================
+
+model VehicleMakeCatalog {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  name          String
+  slug          String   @unique
+  isActive      Boolean  @default(true)
+  isDailyDriver Boolean  @default(true)
+  source        String?
+
+  models   VehicleModelCatalog[]
+  fitments GuideFitment[]
+  recalls  RecallReference[]
+
+  @@unique([name])
+  @@index([isActive, isDailyDriver])
+}
+
+model VehicleModelCatalog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  makeId    String
+  name      String
+  slug      String
+  isActive  Boolean  @default(true)
+
+  make     VehicleMakeCatalog    @relation(fields: [makeId], references: [id], onDelete: Cascade)
+  years    VehicleYearCatalog[]
+  trims    VehicleTrimCatalog[]
+  engines  VehicleEngineCatalog[]
+  fitments GuideFitment[]
+  recalls  RecallReference[]
+
+  @@unique([makeId, slug])
+  @@index([makeId, name])
+}
+
+model VehicleYearCatalog {
+  id      String @id @default(cuid())
+  modelId String
+  year    Int
+
+  model VehicleModelCatalog @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@unique([modelId, year])
+  @@index([year])
+}
+
+model VehicleTrimCatalog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  modelId   String
+  name      String
+  slug      String
+  yearFrom  Int?
+  yearTo    Int?
+
+  model    VehicleModelCatalog @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  fitments GuideFitment[]
+
+  @@unique([modelId, slug])
+  @@index([modelId, yearFrom, yearTo])
+}
+
+model VehicleEngineCatalog {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  modelId       String
+  name          String
+  displacementL Float?
+  fuelType      String?
+  aspiration    String?
+  cylinders     Int?
+  yearFrom      Int?
+  yearTo        Int?
+
+  model    VehicleModelCatalog @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  fitments GuideFitment[]
+
+  @@index([modelId, name])
+}
+
+model IssueCategory {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  slug        String   @unique
+  description String?
+
+  issues Issue[]
+
+  @@unique([name])
+}
+
+model Issue {
+  id             String      @id @default(cuid())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  categoryId     String
+  name           String
+  slug           String      @unique
+  symptomSummary String      @db.Text
+  diyFriendly    Boolean     @default(true)
+  safetyLevel    SafetyLevel @default(MEDIUM)
+  isPublished    Boolean     @default(true)
+
+  category       IssueCategory         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  aliases        IssueAlias[]
+  searchMappings SearchIntentMapping[]
+  procedures     FixProcedure[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId, isPublished])
+}
+
+model IssueAlias {
+  id      String @id @default(cuid())
+  issueId String
+  alias   String
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, alias])
+  @@index([alias])
+}
+
+model SearchIntentMapping {
+  id      String @id @default(cuid())
+  issueId String
+  phrase  String
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, phrase])
+  @@index([phrase])
+}
+
+model FixProcedure {
+  id                    String              @id @default(cuid())
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  issueId               String
+  title                 String
+  slug                  String              @unique
+  difficulty            RepairDifficulty
+  diyFriendly           Boolean             @default(true)
+  estimatedCostMinCents Int?
+  estimatedCostMaxCents Int?
+  timeEstimateMinutes   Int?
+  summary               String              @db.Text
+  diagnosisNotes        String?             @db.Text
+  whenToStop            String?             @db.Text
+  sourceType            ProcedureSourceType
+  sourceConfidence      Float               @default(0.5)
+  isPublished           Boolean             @default(true)
+
+  issue      Issue                      @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  steps      FixProcedureStep[]
+  tools      FixProcedureTool[]
+  parts      FixProcedurePart[]
+  warnings   FixProcedureWarning[]
+  fitments   GuideFitment[]
+  sourceRefs ProcedureSourceReference[]
+
+  @@index([issueId, isPublished])
+  @@index([sourceType, sourceConfidence])
+}
+
+model FixProcedureStep {
+  id            String  @id @default(cuid())
+  procedureId   String
+  stepNumber    Int
+  title         String?
+  body          String  @db.Text
+  isDiagnostic  Boolean @default(false)
+  requiresLift  Boolean @default(false)
+
+  procedure FixProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+
+  @@unique([procedureId, stepNumber])
+}
+
+model FixProcedureTool {
+  id          String  @id @default(cuid())
+  procedureId String
+  name        String
+  notes       String?
+
+  procedure FixProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+
+  @@index([procedureId])
+}
+
+model FixProcedurePart {
+  id           String  @id @default(cuid())
+  procedureId  String
+  name         String
+  quantity     String?
+  notes        String?
+  isConsumable Boolean @default(false)
+
+  procedure FixProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+
+  @@index([procedureId])
+}
+
+model FixProcedureWarning {
+  id          String          @id @default(cuid())
+  procedureId String
+  severity    WarningSeverity
+  message     String          @db.Text
+
+  procedure FixProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+
+  @@index([procedureId, severity])
+}
+
+model GuideFitment {
+  id           String  @id @default(cuid())
+  procedureId  String
+  makeId       String
+  modelId      String?
+  trimId       String?
+  engineId     String?
+  yearFrom     Int?
+  yearTo       Int?
+  notes        String? @db.Text
+  confidence   Float   @default(1.0)
+
+  procedure FixProcedure         @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+  make      VehicleMakeCatalog   @relation(fields: [makeId], references: [id], onDelete: Cascade)
+  model     VehicleModelCatalog? @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  trim      VehicleTrimCatalog?  @relation(fields: [trimId], references: [id], onDelete: Cascade)
+  engine    VehicleEngineCatalog? @relation(fields: [engineId], references: [id], onDelete: Cascade)
+
+  @@index([makeId, modelId, yearFrom, yearTo])
+  @@index([trimId])
+  @@index([engineId])
+}
+
+model ExternalSource {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  name       String   @unique
+  sourceType String
+  baseUrl    String?
+  isActive   Boolean  @default(true)
+
+  refs ProcedureSourceReference[]
+}
+
+model ProcedureSourceReference {
+  id           String    @id @default(cuid())
+  procedureId  String
+  sourceId     String
+  externalId   String?
+  sourceUrl    String?
+  licenseScope String?
+  fetchedAt    DateTime?
+  rawPayload   Json?
+
+  procedure FixProcedure   @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+  source    ExternalSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([procedureId])
+  @@index([sourceId, externalId])
+}
+
+model RecallReference {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  makeId        String?
+  modelId       String?
+  year          Int?
+  nhtsaCampaign String
+  component     String?
+  summary       String    @db.Text
+  consequence   String?   @db.Text
+  remedy        String?   @db.Text
+  reportDate    DateTime?
+  sourceUrl     String?
+
+  make  VehicleMakeCatalog?  @relation(fields: [makeId], references: [id], onDelete: SetNull)
+  model VehicleModelCatalog? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+
+  @@index([makeId, modelId, year])
+  @@index([nhtsaCampaign])
+}
+
+model SearchMiss {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  query           String
+  make            String?
+  model           String?
+  year            Int?
+  trim            String?
+  normalizedIssue String?
+  reason          String?
+  userId          String?
+  sessionId       String?
+
+  @@index([createdAt])
+  @@index([normalizedIssue])
+  @@index([make, model, year])
 }
 
 // ============================================================

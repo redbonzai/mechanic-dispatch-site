@@ -1,82 +1,62 @@
-# Prisma 7 Migration Guide
+# Prisma 7 migration (this repo)
 
-## Changes Made
+## What changed
 
-### 1. Schema Changes
-- Removed `url` from `datasource` in `prisma/schema.prisma`
-- Connection URL now configured in `prisma.config.ts`
+### 1. `prisma.config.ts` (repo root)
 
-### 2. New Configuration File
-Created `prisma.config.ts`:
-```typescript
-import { defineConfig } from 'prisma';
+- Holds the **database URL** for the CLI (`migrate`, `generate`, etc.).
+- Uses a **fallback URL** when `DATABASE_URL` is unset so `prisma generate` works in Docker/CI before a real DB exists (no connection is opened during generate).
+- Loads `.env` via `dotenv/config`.
 
-export default defineConfig({
-  datasource: {
-    url: process.env.DATABASE_URL,
-  },
-});
-```
+### 2. `prisma/schema.prisma`
 
-### 3. Updated PrismaClient Initialization
+- `datasource db` keeps **`provider = "postgresql"`** only — **`url` was removed** (Prisma 7 P1012 if left in the schema).
 
-**Before (Prisma 5):**
-```typescript
-const prisma = new PrismaClient();
-```
+### 3. PostgreSQL driver adapter (required in Prisma 7)
 
-**After (Prisma 7):**
-```typescript
-import { postgres } from '@prisma/adapter-postgres';
-import { Pool } from 'pg';
+Runtime `PrismaClient` must be constructed with **`@prisma/adapter-pg`** and **`pg`**:
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = postgres(pool);
-const prisma = new PrismaClient({ adapter });
-```
+- `src/domains/database/prisma.service.ts` — Nest `PrismaService`
+- `src/domains/database/prisma-client.factory.ts` — shared helper for scripts/tests
+- `prisma/seed.ts`, `scripts/create-test-admin.ts`, `test/helpers/test-db.helper.ts`
 
-### 4. Updated Files
-- `src/infrastructure/database/prisma.service.ts` - Uses adapter
-- `prisma/seed.ts` - Uses adapter
-- `prisma.config.ts` - New config file for migrations
+### 4. Docker
 
-### 5. Dependencies
-Added:
-- `@prisma/adapter-postgres@^7.0.0`
-- `pg@^8.11.3`
-- Updated `@prisma/client` and `prisma` to `^7.0.0`
+- **`Dockerfile`** copies **`prisma.config.ts`** and runs **`pnpm exec prisma generate`** (no `--schema`; config defines the schema path).
 
-## Installation
+## Dependencies
+
+- `prisma` / `@prisma/client` — 7.x
+- `@prisma/adapter-pg` — same minor as `@prisma/client`
+- `pg`
+- `dotenv` — for `prisma.config.ts`
+
+## Commands
+
+Unchanged for day-to-day use:
 
 ```bash
-pnpm install
+pnpm prisma:generate
+pnpm prisma:migrate:dev
+pnpm prisma:migrate:deploy
+pnpm prisma db seed
 ```
 
-## Usage
+## Tests (Jest)
 
-Everything works the same, but PrismaClient now uses the adapter pattern:
+- **`pnpm test`** runs **`pretest`** → `pnpm prisma:generate` so `node_modules/.prisma/client` exists before TypeScript checks `PrismaService` / `@prisma/client`.
+- **Jest** ignores **`dist/`** and **`.nx/`** so compiled copies of `src/__mocks__` do not duplicate manual mocks.
 
-```typescript
-// In your services
-constructor(private prisma: PrismaService) {}
+If you run **`jest` directly**, run **`pnpm prisma:generate`** first.
 
-// PrismaService automatically uses the adapter
-await this.prisma.mechanic.findMany();
-```
+## Stripe (dependabot `stripe@20`)
 
-## Migrations
+Use **`apiVersion: '2026-02-25.clover'`** to match the installed SDK. Subscription billing windows use **`subscription.items.data[0].current_period_*`** (not the subscription root).
 
-Migrations work the same way:
-```bash
-pnpm prisma migrate dev
-pnpm prisma migrate deploy
-```
+## Node version
 
-The `prisma.config.ts` file provides the DATABASE_URL for migrations.
+Prisma 7.x expects a **supported Node** (see [Prisma docs](https://www.prisma.io/docs/orm/reference/system-requirements)). Use **Node ≥ 20.19** (or 22.x / 24.x per Prisma engines).
 
-## Benefits
+## Managed Postgres (e.g. Railway) SSL
 
-- Better connection pooling
-- More flexible connection management
-- Future-proof for Prisma 7+ features
-
+If you see TLS / access errors after upgrading, you may need to relax SSL verification for `pg` or set `NODE_EXTRA_CA_CERTS` — see the [Prisma 7 upgrade guide](https://www.prisma.io/docs/guides/upgrade-prisma-orm/v7) (SSL section).

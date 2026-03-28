@@ -13,7 +13,7 @@ echo "✅ Schema file exists"
 
 echo "2. Generating Prisma client..."
 DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public" \
-  pnpm exec prisma generate --schema=./prisma/schema.prisma
+  pnpm exec prisma generate
 
 echo "3. Verifying Prisma client generated..."
 test -d node_modules/.prisma/client || { echo "❌ Prisma client not generated"; exit 1; }
