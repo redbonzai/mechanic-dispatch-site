@@ -44,7 +44,9 @@ const config: Config = {
         '<rootDir>/src/**/*.spec.ts',
         '<rootDir>/test/integration/AdminAnalyticsService.spec.ts',
       ],
-      testPathIgnorePatterns: ['/node_modules/', '/web/'],
+      // *.e2e-spec.ts hits the real DB and clears admin users; it must not run in parallel
+      // with the integration project (see test/jest-e2e.json + pnpm test:e2e).
+      testPathIgnorePatterns: ['/node_modules/', '/web/', '\\.e2e-spec\\.ts$'],
     },
     {
       ...shared,

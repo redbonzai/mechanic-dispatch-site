@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/domains/database/prisma.service';
+import * as validation from '../../src/core/validation';
 
 /**
  * Admin Analytics API integration tests — real HTTP + database (see test/setup.ts DATABASE_URL).
@@ -18,6 +19,13 @@ describe('Admin Analytics API (Integration Tests)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -26,12 +34,12 @@ describe('Admin Analytics API (Integration Tests)', () => {
       where: { email: 'analytics-test@test.com' },
     });
 
+    const passwordHash = await validation.hashPassword('password');
     await prisma.adminUser.create({
       data: {
         email: 'analytics-test@test.com',
         name: 'Analytics Test Admin',
-        passwordHash:
-          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWmRJ3GKQEK', // 'password'
+        passwordHash,
         role: 'admin',
         isActive: true,
       },
