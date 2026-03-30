@@ -1,6 +1,8 @@
+import { API_BASE_URL } from './api-base.generated';
+
 export const environment = {
   production: false,
-  apiUrl: 'https://api.mechanicdispatch.com',
+  apiUrl: API_BASE_URL,
   stripePublishableKey: '',
   ga4MeasurementId: '',
 };

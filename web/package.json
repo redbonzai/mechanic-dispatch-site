@@ -6,9 +6,12 @@
     "node": ">=20 <25"
   },
   "scripts": {
+    "prebuild": "node scripts/generate-api-base.mjs",
+    "prestart": "node scripts/generate-api-base.mjs",
     "start": "ng serve --host 0.0.0.0 --port 4200",
     "build": "ng build --configuration production",
-    "build:dev": "ng build --configuration development",
+    "build:dev": "node scripts/generate-api-base.mjs && ng build --configuration development",
+    "pretest": "node scripts/generate-api-base.mjs",
     "test": "ng test --watch=false --browsers=ChromeHeadlessCI",
     "test:watch": "ng test",
     "lint": "ng lint"

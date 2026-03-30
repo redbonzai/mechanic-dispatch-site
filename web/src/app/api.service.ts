@@ -1,13 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { APP_CONFIG, AppConfig } from './app-config';
+import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly config = inject<AppConfig>(APP_CONFIG);
-  readonly baseUrl = this.config.apiBase ?? 'https://api.mechanicdispatch.com';
+  readonly baseUrl = environment.apiUrl;
 
   getReviews(params?: {
     mechanicId?: string;
