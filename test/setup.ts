@@ -3,12 +3,12 @@
 
 /// <reference types="jest" />
 
+import { normalizeProcessDatabaseUrlForTests } from './resolve-test-database-url';
+
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 // Default matches CI (5432). Docker Compose uses 15432 — global-integration-setup resolves that when unset.
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public';
+normalizeProcessDatabaseUrlForTests();
 process.env.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || 'sk_test_mock';
 process.env.STRIPE_WEBHOOK_SECRET =
   process.env.STRIPE_WEBHOOK_SECRET || 'whsec_mock';

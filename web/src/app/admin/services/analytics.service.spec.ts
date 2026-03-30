@@ -48,12 +48,12 @@ describe('AnalyticsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call GET /api/admin/analytics/overview', () => {
+  it('should call GET /admin/analytics/overview', () => {
     service.getOverview().subscribe((data) => {
       expect(data).toEqual(mockOverview);
     });
 
-    const req = httpMock.expectOne('/api/admin/analytics/overview');
+    const req = httpMock.expectOne(`${environment.apiUrl}/admin/analytics/overview`);
     expect(req.request.method).toBe('GET');
     req.flush(mockOverview);
   });

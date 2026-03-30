@@ -7,7 +7,7 @@ import { APP_CONFIG, AppConfig } from './app-config';
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject<AppConfig>(APP_CONFIG);
-  readonly baseUrl = this.config.apiBase ?? 'http://localhost:3000';
+  readonly baseUrl = this.config.apiBase ?? 'https://api.mechanicdispatch.com';
 
   getReviews(params?: {
     mechanicId?: string;

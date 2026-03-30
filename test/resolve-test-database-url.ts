@@ -1,5 +1,48 @@
 import { Client } from 'pg';
 
+const CI_FALLBACK =
+  'postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public';
+
+/**
+ * Ensures `DATABASE_URL` always includes an explicit Postgres user.
+ * URLs without userinfo make libpq use the OS user — on GitHub Actions that is `root`, which
+ * triggers `FATAL: role "root" does not exist` against the standard `postgres` service image.
+ */
+export function normalizeProcessDatabaseUrlForTests(): void {
+  const raw = process.env.DATABASE_URL?.trim();
+
+  if (!raw) {
+    process.env.DATABASE_URL = CI_FALLBACK;
+    syncLibpqEnvFromDatabaseUrl(CI_FALLBACK);
+    return;
+  }
+
+  try {
+    const forParse = raw.replace(/^postgres(ql)?:/i, 'http:');
+    const u = new URL(forParse);
+    const user = decodeURIComponent(u.username || '');
+    if (!user || user === 'root') {
+      process.env.DATABASE_URL = CI_FALLBACK;
+    }
+  } catch {
+    process.env.DATABASE_URL = CI_FALLBACK;
+  }
+
+  syncLibpqEnvFromDatabaseUrl(process.env.DATABASE_URL ?? CI_FALLBACK);
+}
+
+function syncLibpqEnvFromDatabaseUrl(url: string): void {
+  try {
+    const u = new URL(url.replace(/^postgres(ql)?:/i, 'http:'));
+    if (u.username) process.env.PGUSER = decodeURIComponent(u.username);
+    if (u.password) process.env.PGPASSWORD = decodeURIComponent(u.password);
+    if (u.hostname) process.env.PGHOST = u.hostname;
+    if (u.port) process.env.PGPORT = u.port;
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Default URLs when `DATABASE_URL` is unset (see docker-compose.yml db port 15432). */
 const FALLBACK_CANDIDATES = [
   'postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public',
@@ -101,6 +144,7 @@ async function tryResolveLocalMechanicTest(): Promise<string | null> {
  *   This covers `.env` using host `db`, which only resolves inside Docker — Jest runs on the host.
  */
 export async function resolveTestDatabaseUrl(): Promise<string> {
+  normalizeProcessDatabaseUrlForTests();
   const explicit = process.env.DATABASE_URL?.trim();
   if (explicit && (await canConnect(explicit))) {
     return explicit;
