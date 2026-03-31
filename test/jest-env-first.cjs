@@ -50,7 +50,8 @@ function apply() {
     url = CI_FALLBACK;
   }
   syncLibpqFromUrl(process.env.DATABASE_URL || CI_FALLBACK);
-  if (process.env.CI === 'true') {
+  // GitHub sets CI on hosted runners; also handle GITHUB_ACTIONS-only contexts.
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
     process.env.PGUSER = process.env.PGUSER || 'postgres';
     process.env.PGPASSWORD = process.env.PGPASSWORD || 'postgres';
     process.env.PGHOST = process.env.PGHOST || 'localhost';

@@ -3,10 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/domains/database/prisma.service';
 import { TestDbHelper } from '../helpers/test-db.helper';
 
 describe('Mechanics E2E Tests', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
   let dbHelper: TestDbHelper;
 
   beforeAll(async () => {
@@ -20,6 +22,7 @@ describe('Mechanics E2E Tests', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    prisma = app.get<PrismaService>(PrismaService);
   });
 
   afterAll(async () => {
@@ -27,6 +30,11 @@ describe('Mechanics E2E Tests', () => {
       await app.close();
     } catch {
       /* Nest / HTTP server teardown */
+    }
+    try {
+      await prisma.$disconnect();
+    } catch {
+      /* ensure @prisma/adapter-pg pool closes */
     }
     try {
       await dbHelper.cleanDatabase();
@@ -38,7 +46,7 @@ describe('Mechanics E2E Tests', () => {
     } catch {
       /* Prisma client from helper */
     }
-  }, 30_000);
+  }, 60_000);
 
   describe('/mechanics (GET)', () => {
     it('should return all mechanics', () => {

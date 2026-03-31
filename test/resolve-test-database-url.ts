@@ -30,7 +30,7 @@ export function normalizeProcessDatabaseUrlForTests(): void {
 
   syncLibpqEnvFromDatabaseUrl(process.env.DATABASE_URL ?? CI_FALLBACK);
 
-  if (process.env.CI === 'true') {
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
     process.env.PGUSER = process.env.PGUSER || 'postgres';
     process.env.PGPASSWORD = process.env.PGPASSWORD || 'postgres';
     process.env.PGHOST = process.env.PGHOST || 'localhost';

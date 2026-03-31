@@ -32,7 +32,7 @@
     "test:cov": "jest --coverage --selectProjects unit",
     "test:cov:nx": "nx test --codeCoverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand --forceExit",
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "test:e2e:nx": "nx test:e2e",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",

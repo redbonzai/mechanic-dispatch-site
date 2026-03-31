@@ -65,9 +65,14 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
     try {
       await app.close();
     } catch {
-      /* Nest / HTTP / Prisma onModuleDestroy */
+      /* Nest / HTTP; PrismaService.onModuleDestroy runs here */
     }
-  }, 30_000);
+    try {
+      await prisma.$disconnect();
+    } catch {
+      /* idempotent: adapter pool may still report open handles after close */
+    }
+  }, 60_000);
 
   afterEach(async () => {
     try {

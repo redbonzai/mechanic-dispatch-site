@@ -32,5 +32,5 @@
   "verbose": true,
   "maxWorkers": 1,
   "testTimeout": 60000,
-  "forceExit": true
+  "openHandlesTimeout": 30000
 }
