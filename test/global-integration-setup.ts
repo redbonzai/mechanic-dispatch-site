@@ -1,14 +1,12 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+require('./jest-env-first.cjs');
+/* eslint-enable @typescript-eslint/no-require-imports */
+
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Client } from 'pg';
 
-import {
-  normalizeProcessDatabaseUrlForTests,
-  resolveTestDatabaseUrl,
-} from './resolve-test-database-url';
-
-/** Global-setup runs in its own Node process; normalize before any pg connection. */
-normalizeProcessDatabaseUrlForTests();
+import { resolveTestDatabaseUrl } from './resolve-test-database-url';
 
 async function runMigrationSql(sql: string, client: Client): Promise<void> {
   try {

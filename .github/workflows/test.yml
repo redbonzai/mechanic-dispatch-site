@@ -110,4 +110,10 @@ jobs:
         run: pnpm exec nx run-many --target=test --all --parallel=3
 
       - name: Run e2e tests (API)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGHOST: localhost
+          PGPORT: '5432'
         run: pnpm test:e2e

@@ -109,6 +109,12 @@ jobs:
         run: pnpm exec nx affected --target=test --base=origin/main --head=HEAD --parallel=3
 
       - name: Run e2e tests (API)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGHOST: localhost
+          PGPORT: '5432'
         run: pnpm test:e2e
 
       - name: Upload coverage

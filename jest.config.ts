@@ -3,7 +3,10 @@ import type { Config } from 'jest';
 const shared: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
-  setupFiles: ['<rootDir>/test/jest-setup-env.ts'],
+  setupFiles: [
+    '<rootDir>/test/jest-env-first.cjs',
+    '<rootDir>/test/jest-setup-env.ts',
+  ],
   // Avoid scanning compiled output / Nx cache (duplicate __mocks__ vs src/__mocks__)
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
