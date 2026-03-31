@@ -57,6 +57,7 @@ const config: Config = {
       globalSetup: '<rootDir>/test/global-integration-setup.ts',
       // One worker: shared DATABASE_URL; these tests truncate and seed.
       maxWorkers: 1,
+      forceExit: true,
     },
   ],
 };

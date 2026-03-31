@@ -32,6 +32,9 @@ function readEnvFileKey(filePath, key) {
   return v || null;
 }
 
+/** When unset, use this in Vercel builds so we never ship localhost:3000 to browsers. */
+const VERCEL_DEFAULT_API_BASE = 'https://api.mechanicdispatch.com';
+
 function resolveApiBaseUrl() {
   const fromEnv = process.env.API_BASE_URL?.trim();
   if (fromEnv) return stripTrailingSlashes(fromEnv);
@@ -41,6 +44,11 @@ function resolveApiBaseUrl() {
 
   const fromRootEnv = readEnvFileKey(path.join(webRoot, '..', '.env'), 'API_BASE_URL');
   if (fromRootEnv) return stripTrailingSlashes(fromRootEnv);
+
+  // Vercel sets VERCEL=1 during `pnpm build` when API_BASE_URL is not configured.
+  if (process.env.VERCEL === '1') {
+    return stripTrailingSlashes(VERCEL_DEFAULT_API_BASE);
+  }
 
   return 'http://localhost:3000';
 }

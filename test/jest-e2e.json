@@ -26,5 +26,7 @@
     "^@nestjs/axios$": "<rootDir>/src/__mocks__/nestjs-axios.ts"
   },
   "collectCoverage": false,
-  "verbose": true
+  "verbose": true,
+  "maxWorkers": 1,
+  "forceExit": true
 }
