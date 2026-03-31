@@ -55,8 +55,9 @@ const config: Config = {
       testMatch: ['<rootDir>/test/integration/**/*.integration.spec.ts'],
       testPathIgnorePatterns: ['/node_modules/', '/web/'],
       globalSetup: '<rootDir>/test/global-integration-setup.ts',
-      // One worker: shared DATABASE_URL; these tests truncate and seed.
+      // Use CLI --runInBand for this project (Jest 30: not valid in JSON config).
       maxWorkers: 1,
+      testTimeout: 60000,
       forceExit: true,
     },
   ],

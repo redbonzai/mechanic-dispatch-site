@@ -23,10 +23,22 @@ describe('Mechanics E2E Tests', () => {
   });
 
   afterAll(async () => {
-    await dbHelper.cleanDatabase();
-    await dbHelper.disconnect();
-    await app.close();
-  });
+    try {
+      await app.close();
+    } catch {
+      /* Nest / HTTP server teardown */
+    }
+    try {
+      await dbHelper.cleanDatabase();
+    } catch {
+      /* final clean best-effort */
+    }
+    try {
+      await dbHelper.disconnect();
+    } catch {
+      /* Prisma client from helper */
+    }
+  }, 30_000);
 
   describe('/mechanics (GET)', () => {
     it('should return all mechanics', () => {

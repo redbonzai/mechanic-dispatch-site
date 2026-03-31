@@ -2,7 +2,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Client } from 'pg';
 
-import { resolveTestDatabaseUrl } from './resolve-test-database-url';
+import {
+  normalizeProcessDatabaseUrlForTests,
+  resolveTestDatabaseUrl,
+} from './resolve-test-database-url';
+
+/** Global-setup runs in its own Node process; normalize before any pg connection. */
+normalizeProcessDatabaseUrlForTests();
 
 async function runMigrationSql(sql: string, client: Client): Promise<void> {
   try {

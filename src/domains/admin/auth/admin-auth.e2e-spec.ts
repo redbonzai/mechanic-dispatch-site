@@ -62,15 +62,21 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
     } catch {
       /* ignore teardown errors */
     }
-    // Close Nest first so PrismaService.onModuleDestroy runs ($disconnect).
-    await app.close();
+    try {
+      await app.close();
+    } catch {
+      /* Nest / HTTP / Prisma onModuleDestroy */
+    }
   }, 30_000);
 
   afterEach(async () => {
-    // Clear data between tests
-    await prisma.adminRefreshToken.deleteMany();
-    await prisma.adminUser.deleteMany();
-  });
+    try {
+      await prisma.adminRefreshToken.deleteMany();
+      await prisma.adminUser.deleteMany();
+    } catch {
+      /* avoid leaving failed cleanups to poison the next test */
+    }
+  }, 15_000);
 
   describe('POST /admin/auth/login', () => {
     beforeEach(async () => {

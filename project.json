@@ -30,7 +30,7 @@
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/coverage"],
       "options": {
-        "command": "jest",
+        "command": "jest --selectProjects unit && jest --selectProjects integration --runInBand --forceExit",
         "cwd": "{projectRoot}"
       }
     },
@@ -52,7 +52,7 @@
     "test:e2e": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "jest --config ./test/jest-e2e.json",
+        "command": "jest --config ./test/jest-e2e.json --runInBand --forceExit",
         "cwd": "{projectRoot}"
       }
     },
