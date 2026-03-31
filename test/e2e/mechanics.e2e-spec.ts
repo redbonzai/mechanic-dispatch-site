@@ -27,14 +27,19 @@ describe('Mechanics E2E Tests', () => {
 
   afterAll(async () => {
     try {
+      await prisma.$disconnect();
+    } catch {
+      /* Nest Prisma pool */
+    }
+    try {
       await app.close();
     } catch {
-      /* Nest / HTTP server teardown */
+      /* Nest / HTTP server */
     }
     try {
       await prisma.$disconnect();
     } catch {
-      /* ensure @prisma/adapter-pg pool closes */
+      /* idempotent */
     }
     try {
       await dbHelper.cleanDatabase();

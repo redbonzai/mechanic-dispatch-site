@@ -52,7 +52,7 @@
     "test:e2e": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "jest --config ./test/jest-e2e.json --runInBand",
+        "command": "jest --config ./test/jest-e2e.json --runInBand --ci=false",
         "cwd": "{projectRoot}"
       }
     },

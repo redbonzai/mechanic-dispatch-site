@@ -63,14 +63,19 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
       /* ignore teardown errors */
     }
     try {
+      await prisma.$disconnect();
+    } catch {
+      /* pool / adapter */
+    }
+    try {
       await app.close();
     } catch {
-      /* Nest / HTTP; PrismaService.onModuleDestroy runs here */
+      /* HTTP + Nest (Prisma onModuleDestroy is often no-op after $disconnect) */
     }
     try {
       await prisma.$disconnect();
     } catch {
-      /* idempotent: adapter pool may still report open handles after close */
+      /* idempotent */
     }
   }, 60_000);
 

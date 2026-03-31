@@ -50,12 +50,22 @@ function apply() {
     url = CI_FALLBACK;
   }
   syncLibpqFromUrl(process.env.DATABASE_URL || CI_FALLBACK);
-  // GitHub sets CI on hosted runners; also handle GITHUB_ACTIONS-only contexts.
-  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
-    process.env.PGUSER = process.env.PGUSER || 'postgres';
-    process.env.PGPASSWORD = process.env.PGPASSWORD || 'postgres';
-    process.env.PGHOST = process.env.PGHOST || 'localhost';
-    process.env.PGPORT = String(process.env.PGPORT || '5432');
+
+  const onGithub = process.env.GITHUB_ACTIONS === 'true';
+  // GitHub sets CI=true; Jest treats that as `--ci` unless jest-e2e sets ci:false.
+  if (onGithub || process.env.CI === 'true') {
+    // On Actions, always pin libpq env so nothing falls back to runner user `root`.
+    if (onGithub) {
+      process.env.PGUSER = 'postgres';
+      process.env.PGPASSWORD = 'postgres';
+      process.env.PGHOST = process.env.PGHOST || 'localhost';
+      process.env.PGPORT = String(process.env.PGPORT || '5432');
+    } else {
+      process.env.PGUSER = process.env.PGUSER || 'postgres';
+      process.env.PGPASSWORD = process.env.PGPASSWORD || 'postgres';
+      process.env.PGHOST = process.env.PGHOST || 'localhost';
+      process.env.PGPORT = String(process.env.PGPORT || '5432');
+    }
   }
   process.env.NODE_ENV = 'test';
 }
