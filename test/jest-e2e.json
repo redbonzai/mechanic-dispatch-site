@@ -32,6 +32,6 @@
   "ci": false,
   "verbose": true,
   "maxWorkers": 1,
-  "testTimeout": 60000,
+  "testTimeout": 90000,
   "openHandlesTimeout": 30000
 }

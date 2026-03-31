@@ -15,6 +15,6 @@ process.env.STRIPE_WEBHOOK_SECRET =
 
 // Increase timeout for integration tests
 // Ensure Jest types are available via tsconfig.jest.json
-jest.setTimeout(60000);
+jest.setTimeout(90000);
 
 export {};

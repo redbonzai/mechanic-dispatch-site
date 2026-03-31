@@ -70,8 +70,8 @@ jobs:
 
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U postgres && break
+          for i in {1..60}; do
+            pg_isready -h localhost -p 5432 -U postgres -d mechanic_test && break
             echo "Waiting for postgres..."
             sleep 1
           done

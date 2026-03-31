@@ -24,6 +24,7 @@ import * as request from 'supertest';
 import { AppModule } from '../../../app.module';
 import { PrismaService } from '../../database/prisma.service';
 import * as validation from '../../../core/validation';
+import { waitForPrismaDb } from '../../../../test/helpers/wait-for-db';
 
 describe('AdminAuthController (Integration Tests - 15%)', () => {
   let app: INestApplication;
@@ -50,10 +51,11 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // Clear test database before running tests
+    await waitForPrismaDb(prisma);
+
     await prisma.adminRefreshToken.deleteMany();
     await prisma.adminUser.deleteMany();
-  });
+  }, 90_000);
 
   afterAll(async () => {
     try {
@@ -62,20 +64,19 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
     } catch {
       /* ignore teardown errors */
     }
-    try {
-      await prisma.$disconnect();
-    } catch {
-      /* pool / adapter */
+    if (app) {
+      try {
+        await app.close();
+      } catch {
+        /* Nest / HTTP */
+      }
     }
-    try {
-      await app.close();
-    } catch {
-      /* HTTP + Nest (Prisma onModuleDestroy is often no-op after $disconnect) */
-    }
-    try {
-      await prisma.$disconnect();
-    } catch {
-      /* idempotent */
+    if (prisma) {
+      try {
+        await prisma.$disconnect();
+      } catch {
+        /* pool / adapter */
+      }
     }
   }, 60_000);
 
