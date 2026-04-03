@@ -61,7 +61,6 @@ const config: Config = {
       // Use CLI --runInBand for this project (Jest 30: not valid in JSON config).
       maxWorkers: 1,
       testTimeout: 60000,
-      forceExit: true,
     },
   ],
 };
