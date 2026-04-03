@@ -79,19 +79,16 @@ Infrastructure (Prisma, Stripe, External Services)
   - Repository interfaces (contracts)
   - Domain services (pure business logic)
   - No dependencies on infrastructure
-  
 - **Application Layer** (`src/application/`)
   - Use cases and application services
   - Orchestrates domain logic
   - Defines application-specific workflows
   - May depend on domain, NOT on infrastructure directly
-  
 - **Infrastructure Layer** (`src/infrastructure/`)
   - Prisma implementations
   - Stripe service implementations
   - External API integrations
   - Implements repository interfaces from domain
-  
 - **Interface Layer** (`src/interfaces/`)
   - HTTP controllers
   - DTOs (Data Transfer Objects)
@@ -130,19 +127,16 @@ Models (TypeScript interfaces, API contracts)
   - Route components
   - Page-level layouts
   - Coordinate multiple components
-  
 - **Components** (`web/src/app/components/` or feature components)
   - Presentational components (dumb)
   - Container components (smart)
   - Standalone components preferred
   - Use Angular signals for state
-  
 - **Services** (`web/src/app/services/` or feature services)
   - HTTP communication
   - State management
   - Business logic
   - Injectable services
-  
 - **Models** (`web/src/app/models/` or feature models)
   - TypeScript interfaces
   - API DTOs
@@ -172,13 +166,11 @@ Testing is a **hard requirement**, not optional.
   - Mock dependencies (repositories, external services)
   - Target: 80%+ code coverage for services
   - Location: `src/**/*.spec.ts`
-  
 - **Integration Tests** (Jest + Supertest)
   - Test API endpoints end-to-end
   - Use test database
   - Verify request/response contracts
   - Location: `test/**/*.e2e-spec.ts`
-  
 - **Repository Tests**
   - Test Prisma repository implementations
   - Use test database transactions
@@ -191,7 +183,6 @@ Testing is a **hard requirement**, not optional.
   - Mock services
   - Verify template bindings
   - Location: `web/src/app/**/*.spec.ts`
-  
 - **Service Tests**
   - Test HTTP services with HttpTestingController
   - Test state management logic
@@ -220,29 +211,24 @@ This is a **non-negotiable requirement**.
   - Refresh token rotation
   - Secure HTTP-only cookies for refresh tokens
   - bcrypt for password hashing (10 rounds minimum)
-  
 - **Authorization**
   - Role-based access control (RBAC)
   - Guards protect all admin routes
   - Least privilege principle
-  
 - **Input Validation**
   - All DTOs use class-validator decorators
   - Validate before processing
   - Sanitize user inputs
   - Reject invalid requests (400 Bad Request)
-  
 - **SQL Injection Prevention**
   - Always use Prisma (never raw SQL unless necessary)
   - Parameterized queries only
   - Validate and sanitize inputs
-  
 - **API Security**
   - CORS properly configured
   - Rate limiting on sensitive endpoints
   - Helmet middleware for security headers
   - HTTPS in production (enforced)
-  
 - **Secrets Management**
   - Environment variables for all secrets
   - Never commit secrets to git
@@ -255,11 +241,9 @@ This is a **non-negotiable requirement**.
   - Angular sanitizes by default
   - Never use innerHTML with user content
   - Validate and sanitize inputs
-  
 - **CSRF Protection**
   - Use HTTP-only cookies
   - CSRF tokens for state-changing operations
-  
 - **Authentication State**
   - Store JWT in memory or HttpOnly cookie
   - Clear tokens on logout
@@ -287,19 +271,16 @@ Before proceeding to the next phase, the following MUST pass:
    - Frontend: `cd web && pnpm build` succeeds
    - Prisma: `pnpm prisma:generate` succeeds
    - No TypeScript compilation errors
-   
 2. **Linter Gate**
    - Backend: `pnpm lint` passes
    - Frontend: `cd web && pnpm lint` passes
    - No new linting errors introduced
    - Existing warnings acceptable (if pre-existing)
-   
 3. **Test Gate**
    - Backend unit tests: `pnpm test` passes
    - Backend E2E tests: `pnpm test:e2e` passes
    - Frontend tests: `cd web && pnpm test` passes
    - Coverage thresholds met (80%+ for services)
-   
 4. **Type Safety Gate**
    - No `any` types unless explicitly justified
    - All DTOs properly typed
@@ -394,7 +375,7 @@ web/src/app/
 
 - **Resources**: Use nouns, not verbs (`/requests`, not `/getRequests`)
 - **HTTP Methods**: GET (read), POST (create), PATCH (update), DELETE (delete)
-- **Status Codes**: 
+- **Status Codes**:
   - 200 OK (success)
   - 201 Created (resource created)
   - 400 Bad Request (validation error)
@@ -402,7 +383,6 @@ web/src/app/
   - 403 Forbidden (not authorized)
   - 404 Not Found (resource doesn't exist)
   - 500 Internal Server Error (server error)
-  
 - **Versioning**: Use URL versioning (`/api/v1/`)
 - **Pagination**: Use query params (`?page=1&limit=20`)
 - **Filtering**: Use query params (`?status=PENDING`)
@@ -468,12 +448,14 @@ export interface IServiceRequestRepository {
 // Infrastructure layer: implementation
 export class PrismaServiceRequestRepository implements IServiceRequestRepository {
   constructor(private prisma: PrismaService) {}
-  
+
   async findById(id: string): Promise<ServiceRequest | null> {
-    const record = await this.prisma.serviceRequest.findUnique({ where: { id } });
+    const record = await this.prisma.serviceRequest.findUnique({
+      where: { id },
+    });
     return record ? this.toDomain(record) : null;
   }
-  
+
   // ... other methods
 }
 ```
@@ -501,31 +483,26 @@ AI agents must operate within one or more personas.
   - Defines API contracts (DTOs)
   - Implements domain logic
   - Authority: Backend architecture decisions
-  
 - **Frontend Engineer**
   - Designs and implements Angular components
   - Implements UI/UX
   - Integrates with backend APIs
   - Authority: Frontend architecture decisions
-  
 - **Full-Stack Engineer**
   - Combines Backend + Frontend personas
   - Designs end-to-end features
   - Ensures frontend/backend contract alignment
   - Authority: Cross-stack decisions
-  
 - **Database Engineer**
   - Designs Prisma schema
   - Creates migrations
   - Optimizes queries
   - Authority: Database decisions
-  
 - **Security Engineer**
   - Reviews authentication/authorization
   - Identifies security vulnerabilities
   - Enforces security standards
   - Authority: Security decisions
-  
 - **DevOps Engineer**
   - Docker configuration
   - CI/CD pipelines
@@ -608,3 +585,27 @@ This constitution establishes:
 7. **Authority**: Persona-based decision making, approval gates
 
 **Remember**: This is a constitution, not a workflow. It defines boundaries and authority. Specific workflows are defined in `AGENTS.md`.
+
+<!-- nx configuration start-->
+<!-- Leave the start & end comments to automatically receive updates. -->
+
+## General Guidelines for working with Nx
+
+- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects, targets, and dependencies
+- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
+- You have access to the Nx MCP server and its tools, use them to help the user
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
+- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
+
+## Scaffolding & Generators
+
+- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST before exploring or calling MCP tools
+
+## When to use nx_docs
+
+- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
+- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
+- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
+
+<!-- nx configuration end-->

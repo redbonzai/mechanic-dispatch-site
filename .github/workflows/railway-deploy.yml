@@ -1,0 +1,55 @@
+# Deploy NestJS API to Railway (upload + build on Railway; uses service Dockerfile / settings).
+#
+# Setup:
+#   1. Railway → Project → (environment) → Settings → Tokens → create a Project Token
+#   2. Repo → Settings → Secrets → RAILWAY_TOKEN
+#   3. If the project has multiple services, add RAILWAY_SERVICE (exact service name, e.g. mechanic-dispatch-api)
+#
+# If the service is also connected to GitHub in Railway, each push may deploy twice — disable one path.
+name: Deploy API (Railway)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+concurrency:
+  group: railway-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy via Railway CLI
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          # Optional: required when multiple services exist in the same Railway environment
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RAILWAY_TOKEN:-}" ]; then
+            echo "::error::RAILWAY_TOKEN secret is not set"
+            exit 1
+          fi
+          args=(--ci)
+          if [ -n "${RAILWAY_SERVICE:-}" ]; then
+            args+=(--service "$RAILWAY_SERVICE")
+          fi
+          railway up "${args[@]}"

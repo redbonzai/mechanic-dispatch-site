@@ -10,6 +10,8 @@ import {
   Body,
   UseGuards,
   Request,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AdminAuthService } from './AdminAuthService';
 import { LoginDto } from './dtos';
@@ -40,6 +42,7 @@ export class AdminAuthController {
    * @returns Access token, refresh token, and user profile
    */
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDtoValidator) {
     return this.authService.login(loginDto as LoginDto);
   }
@@ -51,6 +54,7 @@ export class AdminAuthController {
    * @returns New access token
    */
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   async refresh(@Body() refreshDto: RefreshDtoValidator) {
     return this.authService.refresh(refreshDto.refreshToken);
   }
@@ -61,6 +65,7 @@ export class AdminAuthController {
    * @param logoutDto - Refresh token to invalidate (validated)
    */
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   async logout(@Body() logoutDto: LogoutDtoValidator) {
     await this.authService.logout(logoutDto.refreshToken);
     return { message: 'Logged out successfully' };

@@ -22,6 +22,7 @@ import { AdminPlatformUsersController } from './platform-users/AdminPlatformUser
 import { AdminPlatformUsersService } from './platform-users/AdminPlatformUsersService';
 import { AdminSubscriptionsController } from './subscriptions/AdminSubscriptionsController';
 import { AdminSubscriptionsService } from './subscriptions/AdminSubscriptionsService';
+import { resolveAdminJwtSecret } from './auth/resolve-admin-jwt-secret';
 
 @Module({
   imports: [
@@ -32,9 +33,7 @@ import { AdminSubscriptionsService } from './subscriptions/AdminSubscriptionsSer
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret:
-          config.get<string>('JWT_SECRET') ??
-          'default-secret-key-change-in-production',
+        secret: resolveAdminJwtSecret(config),
         signOptions: { expiresIn: '15m' },
       }),
     }),

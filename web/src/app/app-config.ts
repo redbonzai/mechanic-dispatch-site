@@ -1,7 +1,6 @@
 import { InjectionToken } from '@angular/core';
 
 export interface AppConfig {
-  apiBase: string;
   stripePublishableKey: string;
 }
 

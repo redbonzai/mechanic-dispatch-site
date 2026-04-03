@@ -1,3 +1,4 @@
+import { createPrismaClient } from '../../src/domains/database/prisma-client.factory';
 import { Mechanic, PrismaClient, Skill } from '@prisma/client';
 
 /**
@@ -9,13 +10,7 @@ export class TestDbHelper {
   private prisma: PrismaClient;
 
   constructor() {
-    this.prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-    });
+    this.prisma = createPrismaClient();
   }
 
   /**

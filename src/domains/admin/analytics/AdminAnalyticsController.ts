@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminAnalyticsService } from './AdminAnalyticsService';
+import { SearchVolumeQueryDto } from './search-volume-query.dto';
 import { JwtAuthGuard } from '../auth';
 
 @Controller('admin/analytics')
@@ -32,9 +33,8 @@ export class AdminAnalyticsController {
   }
 
   @Get('search/volume')
-  getSearchVolume(
-    @Query('days', new DefaultValuePipe(30), ParseIntPipe) days: number,
-  ) {
+  getSearchVolume(@Query() query: SearchVolumeQueryDto) {
+    const days = query.days ?? 30;
     return this.analyticsService.getSearchVolume(days);
   }
 

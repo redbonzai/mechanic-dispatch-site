@@ -1,13 +1,15 @@
+import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { MechanicsService } from '../../src/domains/mechanics/services/mechanics.service';
 import { TestDbHelper } from '../helpers/test-db.helper';
 import { CreateMechanicData } from '../../src/domains/mechanics/interfaces';
 
-describe.skip('Mechanics Integration Tests', () => {
+describe('Mechanics Integration Tests', () => {
   let service: MechanicsService;
   let dbHelper: TestDbHelper;
   let module: TestingModule;
+  let app: INestApplication;
 
   beforeAll(async () => {
     dbHelper = new TestDbHelper();
@@ -18,13 +20,16 @@ describe.skip('Mechanics Integration Tests', () => {
       imports: [AppModule],
     }).compile();
 
-    service = module.get<MechanicsService>(MechanicsService);
+    app = module.createNestApplication();
+    await app.init();
+
+    service = app.get<MechanicsService>(MechanicsService);
   });
 
   afterAll(async () => {
     await dbHelper.cleanDatabase();
     await dbHelper.disconnect();
-    await module.close();
+    await app.close();
   });
 
   describe('getMechanics', () => {

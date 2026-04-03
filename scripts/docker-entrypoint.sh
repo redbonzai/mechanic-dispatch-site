@@ -30,14 +30,14 @@ else
 fi
 echo "Database is ready!"
 
-# Apply all pending Prisma migrations
+# Apply all pending Prisma migrations (use local CLI — runner image has no pnpm; npx spams npm notices)
 echo "Applying database migrations..."
-npx prisma migrate deploy
+node node_modules/prisma/build/index.js migrate deploy
 echo "Migrations complete!"
 
 # Run Prisma seed (failure is non-fatal — data may already exist)
 echo "Seeding database..."
-npx prisma db seed || echo "Seeding skipped or already seeded"
+node node_modules/prisma/build/index.js db seed || echo "Seeding skipped or already seeded"
 
 # Hand off to the application
 echo "Starting application..."

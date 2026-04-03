@@ -1,6 +1,8 @@
+import { API_BASE_URL } from './api-base.generated';
+
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000',
+  apiUrl: API_BASE_URL,
   stripePublishableKey: '',
   ga4MeasurementId: '',
 };

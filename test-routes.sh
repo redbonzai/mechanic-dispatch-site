@@ -3,7 +3,7 @@
 # Route Testing Script for Mechanic Dispatch API
 # This script tests all available API routes
 
-BASE_URL="${BASE_URL:-http://localhost:3000}"
+BASE_URL="${BASE_URL:-https://api.mechanicdispatch.com}"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'

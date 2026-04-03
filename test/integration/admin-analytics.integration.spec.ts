@@ -1,259 +1,190 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/domains/database/prisma.service';
+import * as validation from '../../src/core/validation';
 
 /**
- * Admin Analytics API Integration Tests (15% of test pyramid)
- *
- * Following constitutional requirements:
- * - Test actual HTTP endpoints
- * - Test with real database (test environment)
- * - Test authentication guards
- * - AAA pattern (Arrange-Act-Assert)
- *
- * References:
- * - docs/standards/testing/integration.md
- * - CLAUDE.md: Testing Requirements
+ * Admin Analytics API integration tests — real HTTP + database (see test/setup.ts DATABASE_URL).
  */
-describe.skip('Admin Analytics API (Integration Tests - 15%)', () => {
+describe('Admin Analytics API (Integration Tests)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let accessToken: string;
 
   beforeAll(async () => {
-    // Arrange: Set up test application
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // Create test admin user and get token
-    const testAdmin = await prisma.adminUser.create({
+    await prisma.adminUser.deleteMany({
+      where: { email: 'analytics-test@test.com' },
+    });
+
+    const passwordHash = await validation.hashPassword('password');
+    await prisma.adminUser.create({
       data: {
         email: 'analytics-test@test.com',
         name: 'Analytics Test Admin',
-        passwordHash:
-          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWmRJ3GKQEK', // 'password'
+        passwordHash,
         role: 'admin',
         isActive: true,
       },
     });
 
-    // Get access token
     const loginResponse = await request(app.getHttpServer())
       .post('/admin/auth/login')
       .send({ email: 'analytics-test@test.com', password: 'password' });
 
-    accessToken = loginResponse.body.tokens.accessToken;
+    expect(loginResponse.status).toBe(200);
+    accessToken = loginResponse.body.tokens.accessToken as string;
+    expect(accessToken).toBeDefined();
   });
 
   afterAll(async () => {
-    // Cleanup: Remove test data
     await prisma.adminUser.deleteMany({
       where: { email: 'analytics-test@test.com' },
     });
-    await prisma.$disconnect();
     await app.close();
   });
 
   describe('GET /admin/analytics/overview', () => {
     it('should return 200 with overview statistics', async () => {
-      // Act
       const response = await request(app.getHttpServer())
         .get('/admin/analytics/overview')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('totalRequests');
-      expect(response.body).toHaveProperty('pendingRequests');
-      expect(response.body).toHaveProperty('authorizedRequests');
-      expect(response.body).toHaveProperty('capturedRequests');
-      expect(response.body).toHaveProperty('finalizedRequests');
-      expect(response.body).toHaveProperty('cancelledRequests');
-      expect(response.body).toHaveProperty('totalRevenueCents');
-      expect(response.body).toHaveProperty('activeMechanics');
-      expect(response.body).toHaveProperty('totalMechanics');
-      expect(response.body).toHaveProperty('totalReviews');
-      expect(response.body).toHaveProperty('averageRating');
-      expect(response.body).toHaveProperty('totalWorkLogs');
-      expect(typeof response.body.totalRequests).toBe('number');
-      expect(typeof response.body.totalRevenueCents).toBe('number');
+      expect(response.body).toMatchObject({
+        totalUsers: expect.any(Number),
+        activeUsers: expect.any(Number),
+        totalMechanics: expect.any(Number),
+        activeMechanics: expect.any(Number),
+        mechsTrialing: expect.any(Number),
+        mechsActive: expect.any(Number),
+        mechsPastDue: expect.any(Number),
+        subscriptionRevenueMonthlyCents: expect.any(Number),
+        totalSearches: expect.any(Number),
+        totalReviews: expect.any(Number),
+        averageRating: expect.any(Number),
+      });
     });
 
     it('should return 401 without authentication', async () => {
-      // Act
       const response = await request(app.getHttpServer()).get(
         '/admin/analytics/overview',
       );
 
-      // Assert
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /admin/analytics/revenue', () => {
-    it('should return 200 with revenue metrics for date range', async () => {
-      // Arrange
-      const query = {
-        startDate: '2025-01-01',
-        endDate: '2025-01-31',
-        granularity: 'day',
-      };
-
-      // Act
+  describe('GET /admin/analytics/subscriptions', () => {
+    it('should return 200 with subscription metrics', async () => {
       const response = await request(app.getHttpServer())
-        .get('/admin/analytics/revenue')
-        .query(query)
+        .get('/admin/analytics/subscriptions')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('dataPoints');
-      expect(response.body).toHaveProperty('summary');
-      expect(Array.isArray(response.body.dataPoints)).toBe(true);
-      expect(response.body.summary).toHaveProperty('totalRevenueCents');
-      expect(response.body.summary).toHaveProperty('totalFinalizedCount');
-      expect(response.body.summary).toHaveProperty('averageRevenueCents');
-      expect(response.body.summary).toHaveProperty('peakRevenueCents');
-      expect(response.body.summary).toHaveProperty('peakRevenueDate');
-    });
-
-    it('should use default granularity when not specified', async () => {
-      // Arrange
-      const query = {
-        startDate: '2025-01-01',
-        endDate: '2025-01-07',
-      };
-
-      // Act
-      const response = await request(app.getHttpServer())
-        .get('/admin/analytics/revenue')
-        .query(query)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('dataPoints');
-      expect(response.body).toHaveProperty('summary');
+      expect(response.body).toMatchObject({
+        totalSubscribers: expect.any(Number),
+        basicCount: expect.any(Number),
+        proCount: expect.any(Number),
+        premiumCount: expect.any(Number),
+        trialingCount: expect.any(Number),
+        monthlyRevenueCents: expect.any(Number),
+        churnedThisMonth: expect.any(Number),
+      });
     });
 
     it('should return 401 without authentication', async () => {
-      // Act
       const response = await request(app.getHttpServer()).get(
-        '/admin/analytics/revenue',
+        '/admin/analytics/subscriptions',
       );
 
-      // Assert
       expect(response.status).toBe(401);
-    });
-
-    it('should handle invalid date format', async () => {
-      // Arrange
-      const query = {
-        startDate: 'invalid-date',
-        endDate: '2025-01-31',
-      };
-
-      // Act
-      const response = await request(app.getHttpServer())
-        .get('/admin/analytics/revenue')
-        .query(query)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      // Assert
-      expect(response.status).toBe(400);
     });
   });
 
   describe('GET /admin/analytics/mechanics', () => {
-    it('should return 200 with mechanics performance data', async () => {
-      // Act
+    it('should return 200 with mechanics analytics and total count', async () => {
       const response = await request(app.getHttpServer())
         .get('/admin/analytics/mechanics')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Assert
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('mechanics');
-      expect(response.body).toHaveProperty('summary');
+      expect(response.body).toHaveProperty('total');
       expect(Array.isArray(response.body.mechanics)).toBe(true);
-      expect(response.body.summary).toHaveProperty('totalMechanics');
-      expect(response.body.summary).toHaveProperty('activeMechanics');
-      expect(response.body.summary).toHaveProperty('totalCompletedJobs');
-      expect(response.body.summary).toHaveProperty('totalHoursWorked');
-      expect(response.body.summary).toHaveProperty('averageRating');
+      expect(typeof response.body.total).toBe('number');
+
+      if (response.body.mechanics.length > 0) {
+        const m = response.body.mechanics[0] as Record<string, unknown>;
+        expect(m).toMatchObject({
+          id: expect.any(String),
+          name: expect.any(String),
+          slug: expect.any(String),
+          profileViews: expect.any(Number),
+          searchAppearances: expect.any(Number),
+          linkClicks: expect.any(Number),
+          rating: expect.any(Number),
+          reviewCount: expect.any(Number),
+        });
+      }
     });
 
-    it('should filter by active status', async () => {
-      // Arrange
-      const query = { isActive: true };
-
-      // Act
+    it('should sort by rating descending when sortBy=rating', async () => {
       const response = await request(app.getHttpServer())
         .get('/admin/analytics/mechanics')
-        .query(query)
+        .query({ sortBy: 'rating', limit: 50 })
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Assert
       expect(response.status).toBe(200);
-      expect(
-        response.body.mechanics.every((m: any) => m.isActive === true),
-      ).toBe(true);
-    });
-
-    it('should filter by minimum jobs', async () => {
-      // Arrange
-      const query = { minJobs: 5 };
-
-      // Act
-      const response = await request(app.getHttpServer())
-        .get('/admin/analytics/mechanics')
-        .query(query)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(
-        response.body.mechanics.every((m: any) => m.completedJobs >= 5),
-      ).toBe(true);
-    });
-
-    it('should sort by specified field', async () => {
-      // Arrange
-      const query = { sortBy: 'rating', sortOrder: 'desc' };
-
-      // Act
-      const response = await request(app.getHttpServer())
-        .get('/admin/analytics/mechanics')
-        .query(query)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      // Assert
-      expect(response.status).toBe(200);
-      // Verify descending order
-      const ratings = response.body.mechanics.map((m: any) => m.averageRating);
-      const sortedRatings = [...ratings].sort((a, b) => b - a);
-      expect(ratings).toEqual(sortedRatings);
+      const mechanics = response.body.mechanics as { rating: number }[];
+      const ratings = mechanics.map((row) => row.rating);
+      const sorted = [...ratings].sort((a, b) => b - a);
+      expect(ratings).toEqual(sorted);
     });
 
     it('should return 401 without authentication', async () => {
-      // Act
       const response = await request(app.getHttpServer()).get(
         '/admin/analytics/mechanics',
       );
 
-      // Assert
       expect(response.status).toBe(401);
+    });
+  });
+
+  describe('GET /admin/analytics/search/volume', () => {
+    it('should return 200 with volume points for default window', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/admin/analytics/search/volume')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+    });
+
+    it('should return 400 for invalid days query', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/admin/analytics/search/volume')
+        .query({ days: 'not-a-number' })
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(400);
     });
   });
 });

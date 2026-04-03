@@ -205,7 +205,7 @@ export class AdminAuthService {
 
   /** Increment failed login attempts */
   private async incrementFailedLoginAttempts(userId: string): Promise<void> {
-    await this.prisma.adminUser.update({
+    await this.prisma.adminUser.updateMany({
       where: { id: userId },
       data: {
         failedLoginAttempts: { increment: 1 },
@@ -216,7 +216,7 @@ export class AdminAuthService {
 
   /** Reset failed login attempts */
   private async resetFailedLoginAttempts(userId: string): Promise<void> {
-    await this.prisma.adminUser.update({
+    await this.prisma.adminUser.updateMany({
       where: { id: userId },
       data: {
         failedLoginAttempts: 0,

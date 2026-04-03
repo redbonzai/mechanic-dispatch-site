@@ -2,6 +2,8 @@
 
 This document covers deploying FixGuide (mechanic-dispatch-site) to [Railway](https://railway.app/) with the frontend on Vercel.
 
+**CI:** To deploy the API from GitHub Actions on merge to `main`, see [GITHUB_DEPLOYMENTS.md](GITHUB_DEPLOYMENTS.md).
+
 ## Architecture
 
 | Service | Host | Deployment |
@@ -31,8 +33,8 @@ This document covers deploying FixGuide (mechanic-dispatch-site) to [Railway](ht
 
 ### 3. Configure the API service
 
-- **Build:** Railway detects the `Dockerfile` at the repo root and builds from it
-- **Root directory:** `.` (project root — the Dockerfile builds the NestJS API only)
+- **Root directory:** **`.`** (repository root). This monorepo’s Nest app is **`src/main.ts`** at the root — there is **no** `api/` package folder. Setting Root Directory to `api` builds the wrong context and breaks deploys.
+- **Build:** Prefer **Dockerfile** at repo root (`Dockerfile`). In Railway: **Settings → Build** → use **Dockerfile** (not Nixpacks) if auto-detect picks the wrong stack.
 - The entrypoint (`scripts/docker-entrypoint.sh`) runs migrations and seed before starting; it uses `DATABASE_URL` when set (Railway) or `db:5432` (Docker Compose)
 
 **PostgreSQL on Railway vs local:** The `docker-compose.yml` and `Dockerfile` are for local development. On Railway, PostgreSQL is a **managed plugin** (add via **+ New** → **Database** → **PostgreSQL**), not a container from your repo. The API connects to Railway’s Postgres via `DATABASE_URL`; you do not configure a Postgres container in the deploy UI.
@@ -50,16 +52,20 @@ At your DNS provider (or Cloudflare), add:
 
 | Type | Name | Value |
 |------|------|-------|
-| CNAME | `api` | `skuqx4hy.up.railway.app` (use the value Railway shows) |
+| CNAME | `api` | **Exact** hostname Railway shows for *this* service (e.g. `mechanic-dispatch-api-production.up.railway.app` — **no** `https://`, trailing dot is OK) |
+| TXT | `_railway-verify` (or as shown) | **Exact** `railway-verify=...` string from Railway’s “Configure DNS” modal — if you changed services or re-added the domain, the token may change |
+
+**Important:** The CNAME target is **per service** and can differ from an older deploy URL (e.g. `rapffnsk.up.railway.app`). If Railway shows “DNS configuration error,” the CNAME at the registrar must match the **current** value in **Settings → Networking** for `api.mechanicdispatch.com`, not an old screenshot.
 
 ### 6. Environment variables (API service)
 
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | From PostgreSQL service reference (see step 2) |
-| `APP_PORT` | `3000` |
+| _(none)_ | **`PORT`** is injected by Railway — the app listens on `PORT` first, then `APP_PORT`, then `3000` for local Docker |
+| `APP_PORT` | Optional; used when `PORT` is not set (e.g. local Docker Compose) |
 | `APP_URL` | `https://mechanicdispatch.com` |
-| `CLIENT_ORIGIN` | `https://mechanicdispatch.com,https://www.mechanicdispatch.com` (Vercel domains) |
+| `CLIENT_ORIGIN` | `https://mechanicdispatch.com,https://www.mechanicdispatch.com` (include every Vercel production + preview origin that must call the API) |
 | `STRIPE_SECRET_KEY` | Stripe key |
 | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook for `https://api.mechanicdispatch.com/webhooks/stripe` |
 | `STRIPE_PRICE_BASIC` | Stripe Price ID |
@@ -107,6 +113,35 @@ Click **Deploy**. Vercel will build the Angular app and serve it.
 
 - **CORS:** The API's `CLIENT_ORIGIN` must include your Vercel URLs (e.g. `https://mechanicdispatch.com`, `https://www.mechanicdispatch.com`, and any `*.vercel.app` preview URLs if needed)
 - **Stripe webhook:** Create a webhook in Stripe for `https://api.mechanicdispatch.com/webhooks/stripe` and set `STRIPE_WEBHOOK_SECRET`
+
+---
+
+## Part 4: GitHub → Railway (main + feature branches)
+
+- **Production on `main`:** In the API service → **Settings** → **Deploy**, keep **Trigger on push** enabled for branch `main`. Merging a PR into `main` should trigger a new deploy.
+- **Preview / dev from PRs:** Enable **Deploy on PR** (same screen) so Railway opens environments or preview deploys per PR (Railway UI naming may vary). Alternatively, create a second **environment** or duplicate service with **branch** set to a feature branch for long-lived dev testing.
+
+---
+
+## Troubleshooting
+
+### Railway shows “Not found” / “The train has not arrived at the station” on `api.mechanicdispatch.com`
+
+1. **CNAME points to the wrong `*.up.railway.app` host** — Update registrar to the hostname shown **today** on the API service’s custom domain panel.
+2. **TXT verification still pending** — Until ownership verifies, routing may fail; use the latest `_railway-verify` token from Railway (remove stale TXT values if you re-added the domain).
+3. **Wrong Root Directory** — This repo’s Nest app lives at the **repository root** (`src/main.ts`, root `Dockerfile`). **Root directory must be `.` (empty)** — not `api/`. A path like `/api` builds the wrong tree and can produce a service that never binds correctly.
+
+### `mechanic-dispatch-api.railway.internal` does not open in a browser
+
+That hostname is **private cluster DNS** between Railway services. Use the public `*.up.railway.app` URL or your custom domain from a normal client.
+
+### App deploys “green” but HTTP fails
+
+Railway sets **`PORT`** (often `8080`). The Nest app must listen on that port — it now prefers `process.env.PORT` over `APP_PORT`.
+
+### Database / seed
+
+Add **PostgreSQL** in the same project, **reference** `DATABASE_URL` on the API service. The Docker image entrypoint runs migrations and seed when `DATABASE_URL` is set — check deploy logs for Prisma errors.
 
 ---
 

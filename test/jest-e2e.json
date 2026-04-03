@@ -1,13 +1,21 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
-  "testMatch": ["**/*.e2e-spec.ts"],
+  "rootDir": "..",
+  "setupFiles": [
+    "<rootDir>/test/jest-env-first.cjs",
+    "<rootDir>/test/jest-setup-env.ts"
+  ],
+  "testMatch": [
+    "<rootDir>/src/**/*.e2e-spec.ts",
+    "<rootDir>/test/**/*.e2e-spec.ts"
+  ],
   "testEnvironment": "node",
+  "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
   "transform": {
     "^.+\\.(t|j)s$": [
       "ts-jest",
       {
-        "tsconfig": "<rootDir>/../tsconfig.jest.json",
+        "tsconfig": "<rootDir>/tsconfig.jest.json",
         "diagnostics": {
           "ignoreCodes": ["TS2307"]
         }
@@ -15,11 +23,15 @@
     ]
   },
   "moduleNameMapper": {
-    "^@src/(.*)$": "<rootDir>/../src/$1",
-    "^src/(.*)$": "<rootDir>/../src/$1",
-    "^nodemailer$": "<rootDir>/../src/__mocks__/nodemailer.ts",
-    "^@nestjs/axios$": "<rootDir>/../src/__mocks__/nestjs-axios.ts"
+    "^@src/(.*)$": "<rootDir>/src/$1",
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^nodemailer$": "<rootDir>/src/__mocks__/nodemailer.ts",
+    "^@nestjs/axios$": "<rootDir>/src/__mocks__/nestjs-axios.ts"
   },
   "collectCoverage": false,
-  "verbose": true
+  "ci": false,
+  "verbose": true,
+  "maxWorkers": 1,
+  "testTimeout": 90000,
+  "openHandlesTimeout": 30000
 }

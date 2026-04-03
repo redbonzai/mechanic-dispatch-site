@@ -3,14 +3,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/domains/database/prisma.service';
 import { TestDbHelper } from '../helpers/test-db.helper';
+import { waitForPrismaDb } from '../helpers/wait-for-db';
 
 describe('Mechanics E2E Tests', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
   let dbHelper: TestDbHelper;
 
   beforeAll(async () => {
     dbHelper = new TestDbHelper();
+    await waitForPrismaDb(dbHelper.getPrisma());
     await dbHelper.cleanDatabase();
     await dbHelper.seedTestData();
 
@@ -20,13 +24,36 @@ describe('Mechanics E2E Tests', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  });
+    prisma = app.get<PrismaService>(PrismaService);
+    await waitForPrismaDb(prisma);
+  }, 90_000);
 
   afterAll(async () => {
-    await dbHelper.cleanDatabase();
-    await dbHelper.disconnect();
-    await app.close();
-  });
+    if (app) {
+      try {
+        await app.close();
+      } catch {
+        /* Nest / HTTP */
+      }
+    }
+    if (prisma) {
+      try {
+        await prisma.$disconnect();
+      } catch {
+        /* pool */
+      }
+    }
+    try {
+      await dbHelper.cleanDatabase();
+    } catch {
+      /* final clean */
+    }
+    try {
+      await dbHelper.disconnect();
+    } catch {
+      /* helper client */
+    }
+  }, 60_000);
 
   describe('/mechanics (GET)', () => {
     it('should return all mechanics', () => {

@@ -14,7 +14,12 @@ import { MailModule } from './domains/mail/mail.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // During Jest on GitHub, NODE_ENV is test and CI is set — skip repo .env so DATABASE_URL stays job-scoped.
+      ignoreEnvFile:
+        process.env.CI === 'true' && process.env.NODE_ENV === 'test',
+    }),
     DatabaseModule,
     MechanicsModule,
     UsersModule,

@@ -8,10 +8,11 @@ import {
   SearchVolumeResponse,
   MechanicAnalyticsResponse,
 } from '../models/analytics.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
-  private readonly baseUrl = '/api/admin/analytics';
+  private readonly baseUrl = `${environment.apiUrl}/admin/analytics`;
 
   constructor(private readonly http: HttpClient) {}
 

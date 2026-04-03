@@ -11,6 +11,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AdminAuthService } from './AdminAuthService';
+import { resolveAdminJwtSecret } from './resolve-admin-jwt-secret';
 import * as auth from '../../../core/auth';
 
 /**
@@ -28,9 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        config.get<string>('JWT_SECRET') ||
-        'default-secret-key-change-in-production',
+      secretOrKey: resolveAdminJwtSecret(config),
     });
   }
 

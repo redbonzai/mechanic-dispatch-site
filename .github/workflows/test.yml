@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -59,12 +59,12 @@ jobs:
             nx-${{ runner.os }}-
 
       - name: Install dependencies (API + Web)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U postgres && break
+          for i in {1..60}; do
+            pg_isready -h localhost -p 5432 -U postgres -d mechanic_test && break
             echo "Waiting for postgres..."
             sleep 1
           done
@@ -110,4 +110,10 @@ jobs:
         run: pnpm exec nx run-many --target=test --all --parallel=3
 
       - name: Run e2e tests (API)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGHOST: localhost
+          PGPORT: '5432'
         run: pnpm test:e2e

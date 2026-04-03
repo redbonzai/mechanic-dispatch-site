@@ -29,6 +29,18 @@ jobs:
         ports:
           - 5432:5432
 
+    # Inherited by every step (including Nx/Jest child processes). Without DATABASE_URL / PG*,
+    # tools may fall back to the runner user (`root`) and hit: FATAL: role "root" does not exist.
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
+      STRIPE_SECRET_KEY: sk_test_mock
+      STRIPE_WEBHOOK_SECRET: whsec_mock
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: '5432'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -36,7 +48,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -54,27 +66,21 @@ jobs:
             nx-${{ runner.os }}-
 
       - name: Install dependencies (API + Web)
-        run: pnpm install --frozen-lockfile
-        env:
-          CI: 'true'
+        run: pnpm install --no-frozen-lockfile
 
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U postgres && break
+          for i in {1..60}; do
+            pg_isready -h localhost -p 5432 -U postgres -d mechanic_test && break
             echo "Waiting for postgres..."
             sleep 1
           done
 
       - name: Generate Prisma Client
         run: pnpm prisma:generate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
 
       - name: Run database migrations
         run: pnpm prisma:migrate:deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
 
       - name: Lint (NX affected)
         run: pnpm exec nx affected --target=lint --base=origin/main --head=HEAD --parallel=3
@@ -84,28 +90,6 @@ jobs:
 
       - name: Build (NX affected)
         run: pnpm exec nx affected --target=build --base=origin/main --head=HEAD --parallel=3
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGHOST: localhost
-          PGPORT: 5432
-
-      - name: Install Chromium
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-
-      - name: Set CHROME_BIN for Karma
-        run: |
-          CHROME_PATH="$(which chromium-browser || which chromium || which google-chrome || which google-chrome-stable || true)"
-          if [ -z "$CHROME_PATH" ]; then
-            echo "No Chrome/Chromium found on runner"
-            exit 1
-          fi
-          echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
 
       - name: Install Chromium
         run: |
@@ -123,25 +107,15 @@ jobs:
 
       - name: Run unit tests (NX affected)
         run: pnpm exec nx affected --target=test --base=origin/main --head=HEAD --parallel=3
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGHOST: localhost
-          PGPORT: 5432
 
       - name: Run e2e tests (API)
-        run: pnpm test:e2e
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public
-          STRIPE_SECRET_KEY: sk_test_mock
-          STRIPE_WEBHOOK_SECRET: whsec_mock
           PGUSER: postgres
           PGPASSWORD: postgres
           PGHOST: localhost
-          PGPORT: 5432
+          PGPORT: '5432'
+        run: pnpm test:e2e
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
@@ -160,7 +134,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker images
         run: docker compose build
