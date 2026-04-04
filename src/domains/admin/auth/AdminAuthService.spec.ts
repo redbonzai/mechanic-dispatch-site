@@ -32,6 +32,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
             adminUser: {
               findUnique: jest.fn(),
               update: jest.fn(),
+              updateMany: jest.fn(),
             },
             adminRefreshToken: {
               findUnique: jest.fn(),
@@ -85,7 +86,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(jwt, 'sign').mockReturnValue('mock-token');
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
       jest.spyOn(prisma.adminRefreshToken, 'create').mockResolvedValue({
         id: 'token123',
         userId: 'user123',
@@ -141,7 +142,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       };
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
 
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow(
@@ -279,7 +280,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(jwt, 'sign').mockReturnValue('mock-token');
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
       jest.spyOn(prisma.adminRefreshToken, 'create').mockResolvedValue({
         id: 'token123',
         userId: 'user123',
@@ -314,16 +315,12 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
       };
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue({
-        ...mockUser,
-        failedLoginAttempts: 3,
-        lastFailedLoginAt: new Date(),
-      });
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
 
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow();
 
-      expect(prisma.adminUser.update).toHaveBeenCalledWith({
+      expect(prisma.adminUser.updateMany).toHaveBeenCalledWith({
         where: { id: 'user123' },
         data: {
           failedLoginAttempts: { increment: 1 },
@@ -352,7 +349,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(jwt, 'sign').mockReturnValue('mock-token');
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
       jest.spyOn(prisma.adminRefreshToken, 'create').mockResolvedValue({
         id: 'token123',
         userId: 'user123',
@@ -366,7 +363,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       // Assert
 
-      expect(prisma.adminUser.update).toHaveBeenCalledWith({
+      expect(prisma.adminUser.updateMany).toHaveBeenCalledWith({
         where: { id: 'user123' },
         data: {
           failedLoginAttempts: 0,
@@ -394,7 +391,7 @@ describe('AdminAuthService (Unit Tests - 80%)', () => {
 
       jest.spyOn(prisma.adminUser, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(jwt, 'sign').mockReturnValue('mock-refresh-token');
-      jest.spyOn(prisma.adminUser, 'update').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.adminUser, 'updateMany').mockResolvedValue({ count: 1 });
       jest.spyOn(prisma.adminRefreshToken, 'create').mockResolvedValue({
         id: 'token123',
         userId: 'user123',

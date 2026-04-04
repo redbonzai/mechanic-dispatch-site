@@ -334,6 +334,9 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
     });
 
     it('should return 200 and new access token for valid refresh token', async () => {
+      // Wait >1s so JWT `iat` (seconds precision) differs from the login token
+      await new Promise((r) => setTimeout(r, 1100));
+
       // Act
       const response = await request(app.getHttpServer())
         .post('/admin/auth/refresh')
@@ -581,7 +584,8 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      // Act 3: Refresh token
+      // Act 3: Refresh token (wait >1s so JWT `iat` differs)
+      await new Promise((r) => setTimeout(r, 1100));
       const refreshResponse = await request(app.getHttpServer())
         .post('/admin/auth/refresh')
         .send({ refreshToken })

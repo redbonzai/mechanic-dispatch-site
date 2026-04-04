@@ -7,6 +7,8 @@
  */
 const CI_FALLBACK =
   'postgresql://postgres:postgres@localhost:5432/mechanic_test?schema=public';
+const LOCAL_DOCKER_FALLBACK =
+  'postgresql://postgres:postgres@localhost:15432/mechanic_test?schema=public';
 
 function urlMissingPostgresUser(url) {
   const u = (url || '').trim();
@@ -43,17 +45,37 @@ function syncLibpqFromUrl(url) {
   }
 }
 
+/**
+ * Returns true when the URL points to a non-localhost host (e.g. Railway, RDS).
+ * Tests should never run against remote/production databases.
+ */
+function isRemoteUrl(url) {
+  try {
+    const forParse = url.replace(/^postgres(ql)?:/i, 'http:');
+    const parsed = new URL(forParse);
+    const host = parsed.hostname.toLowerCase();
+    return host !== 'localhost' && host !== '127.0.0.1' && host !== '::1';
+  } catch {
+    return false;
+  }
+}
+
 function apply() {
   let url = (process.env.DATABASE_URL || '').trim();
-  if (urlMissingPostgresUser(url)) {
-    process.env.DATABASE_URL = CI_FALLBACK;
-    url = CI_FALLBACK;
+
+  const onGithub = process.env.GITHUB_ACTIONS === 'true';
+  const isCI = onGithub || process.env.CI === 'true';
+
+  if (urlMissingPostgresUser(url) || (!isCI && isRemoteUrl(url))) {
+    // In CI use port 5432 (service container); locally use 15432 (docker-compose.yml).
+    const fallback = isCI ? CI_FALLBACK : LOCAL_DOCKER_FALLBACK;
+    process.env.DATABASE_URL = fallback;
+    url = fallback;
   }
   syncLibpqFromUrl(process.env.DATABASE_URL || CI_FALLBACK);
 
-  const onGithub = process.env.GITHUB_ACTIONS === 'true';
   // GitHub sets CI=true; Jest treats that as `--ci` unless jest-e2e sets ci:false.
-  if (onGithub || process.env.CI === 'true') {
+  if (isCI) {
     // On Actions, always pin libpq env so nothing falls back to runner user `root`.
     if (onGithub) {
       process.env.PGUSER = 'postgres';

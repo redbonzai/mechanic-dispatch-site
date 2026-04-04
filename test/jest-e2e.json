@@ -9,6 +9,12 @@
     "<rootDir>/src/**/*.e2e-spec.ts",
     "<rootDir>/test/**/*.e2e-spec.ts"
   ],
+  "modulePathIgnorePatterns": [
+    "<rootDir>/dist/",
+    "<rootDir>/.nx/",
+    "<rootDir>/coverage/",
+    "<rootDir>/web/"
+  ],
   "testEnvironment": "node",
   "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
   "transform": {
