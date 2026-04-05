@@ -4,6 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/domains/database/prisma.service';
 import * as validation from '../../src/core/validation';
+import { waitForPrismaDb } from '../helpers/wait-for-db';
 
 /**
  * Admin Analytics API integration tests — real HTTP + database (see test/setup.ts DATABASE_URL).
@@ -30,6 +31,8 @@ describe('Admin Analytics API (Integration Tests)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
+    await waitForPrismaDb(prisma);
+
     await prisma.adminUser.deleteMany({
       where: { email: 'analytics-test@test.com' },
     });
@@ -55,11 +58,28 @@ describe('Admin Analytics API (Integration Tests)', () => {
   });
 
   afterAll(async () => {
-    await prisma.adminUser.deleteMany({
-      where: { email: 'analytics-test@test.com' },
-    });
-    await app.close();
-  });
+    try {
+      await prisma.adminUser.deleteMany({
+        where: { email: 'analytics-test@test.com' },
+      });
+    } catch {
+      /* ignore teardown errors */
+    }
+    if (app) {
+      try {
+        await app.close();
+      } catch {
+        /* Nest / HTTP */
+      }
+    }
+    if (prisma) {
+      try {
+        await prisma.$disconnect();
+      } catch {
+        /* pool / adapter */
+      }
+    }
+  }, 60_000);
 
   describe('GET /admin/analytics/overview', () => {
     it('should return 200 with overview statistics', async () => {
