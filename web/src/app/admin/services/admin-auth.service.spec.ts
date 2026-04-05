@@ -12,10 +12,12 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AdminAuthService } from './admin-auth.service';
 import { LoginResponse, RefreshResponse, AdminUser } from '../models/admin-user.model';
+import { environment } from '../../../environments/environment';
 
 describe('AdminAuthService (Unit Tests - Frontend)', () => {
   let service: AdminAuthService;
   let httpMock: HttpTestingController;
+  const API_BASE = `${environment.apiUrl}/admin/auth`;
 
   beforeEach(() => {
     // Arrange: Setup test module
@@ -70,7 +72,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ email, password });
       req.flush(mockResponse);
@@ -106,7 +108,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush(mockResponse);
     });
 
@@ -142,7 +144,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush(mockResponse);
     });
 
@@ -177,7 +179,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         });
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush(mockResponse);
     });
 
@@ -198,7 +200,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         },
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush(errorResponse, { status: 401, statusText: 'Unauthorized' });
     });
 
@@ -219,7 +221,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         },
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush(errorResponse, { status: 400, statusText: 'Bad Request' });
     });
 
@@ -239,7 +241,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         },
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/login');
+      const req = httpMock.expectOne(`${API_BASE}/login`);
       req.flush({}, { status: 401, statusText: 'Unauthorized' });
     });
   });
@@ -254,7 +256,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/logout');
+      const req = httpMock.expectOne(`${API_BASE}/logout`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ refreshToken: 'test-refresh-token' });
       req.flush({});
@@ -273,7 +275,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/logout');
+      const req = httpMock.expectOne(`${API_BASE}/logout`);
       req.flush({});
     });
 
@@ -289,7 +291,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/logout');
+      const req = httpMock.expectOne(`${API_BASE}/logout`);
       req.flush({});
     });
 
@@ -315,7 +317,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         });
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/logout');
+      const req = httpMock.expectOne(`${API_BASE}/logout`);
       req.flush({});
     });
 
@@ -327,7 +329,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/logout');
+      const req = httpMock.expectOne(`${API_BASE}/logout`);
       expect(req.request.body.refreshToken).toBeNull();
       req.flush({});
     });
@@ -348,7 +350,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/refresh');
+      const req = httpMock.expectOne(`${API_BASE}/refresh`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ refreshToken: 'valid-refresh-token' });
       req.flush(mockResponse);
@@ -368,7 +370,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         done();
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/refresh');
+      const req = httpMock.expectOne(`${API_BASE}/refresh`);
       req.flush(mockResponse);
     });
 
@@ -388,7 +390,7 @@ describe('AdminAuthService (Unit Tests - Frontend)', () => {
         },
       });
 
-      const req = httpMock.expectOne('http://localhost:3000/admin/auth/refresh');
+      const req = httpMock.expectOne(`${API_BASE}/refresh`);
       req.flush(errorResponse, { status: 401, statusText: 'Unauthorized' });
     });
 
