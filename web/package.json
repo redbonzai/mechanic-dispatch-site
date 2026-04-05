@@ -6,12 +6,15 @@
     "node": ">=20 <25"
   },
   "scripts": {
-    "start": "npx ng serve --host 0.0.0.0 --port 4200",
+    "prebuild": "node scripts/generate-api-base.mjs",
+    "prestart": "node scripts/generate-api-base.mjs",
+    "start": "ng serve --host 0.0.0.0 --port 4200",
     "build": "ng build --configuration production",
-    "build:dev": "npx ng build --configuration development",
-    "test": "npx ng test --watch=false --browsers=ChromeHeadlessCI",
-    "test:watch": "npx ng test",
-    "lint": "npx ng lint"
+    "build:dev": "node scripts/generate-api-base.mjs && ng build --configuration development",
+    "pretest": "node scripts/generate-api-base.mjs",
+    "test": "ng test --watch=false --browsers=ChromeHeadlessCI",
+    "test:watch": "ng test",
+    "lint": "ng lint"
   },
   "dependencies": {
     "@angular/animations": "^21.2.5",

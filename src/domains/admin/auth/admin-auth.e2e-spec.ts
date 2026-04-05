@@ -20,10 +20,11 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../../../app.module';
 import { PrismaService } from '../../database/prisma.service';
 import * as validation from '../../../core/validation';
+import { waitForPrismaDb } from '../../../../test/helpers/wait-for-db';
 
 describe('AdminAuthController (Integration Tests - 15%)', () => {
   let app: INestApplication;
@@ -50,24 +51,43 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // Clear test database before running tests
+    await waitForPrismaDb(prisma);
+
     await prisma.adminRefreshToken.deleteMany();
     await prisma.adminUser.deleteMany();
-  });
+  }, 90_000);
 
   afterAll(async () => {
-    // Cleanup
-    await prisma.adminRefreshToken.deleteMany();
-    await prisma.adminUser.deleteMany();
-    await prisma.$disconnect();
-    await app.close();
-  });
+    try {
+      await prisma.adminRefreshToken.deleteMany();
+      await prisma.adminUser.deleteMany();
+    } catch {
+      /* ignore teardown errors */
+    }
+    if (app) {
+      try {
+        await app.close();
+      } catch {
+        /* Nest / HTTP */
+      }
+    }
+    if (prisma) {
+      try {
+        await prisma.$disconnect();
+      } catch {
+        /* pool / adapter */
+      }
+    }
+  }, 60_000);
 
   afterEach(async () => {
-    // Clear data between tests
-    await prisma.adminRefreshToken.deleteMany();
-    await prisma.adminUser.deleteMany();
-  });
+    try {
+      await prisma.adminRefreshToken.deleteMany();
+      await prisma.adminUser.deleteMany();
+    } catch {
+      /* avoid leaving failed cleanups to poison the next test */
+    }
+  }, 15_000);
 
   describe('POST /admin/auth/login', () => {
     beforeEach(async () => {
@@ -314,6 +334,9 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
     });
 
     it('should return 200 and new access token for valid refresh token', async () => {
+      // Wait >1s so JWT `iat` (seconds precision) differs from the login token
+      await new Promise((r) => setTimeout(r, 1100));
+
       // Act
       const response = await request(app.getHttpServer())
         .post('/admin/auth/refresh')
@@ -561,7 +584,8 @@ describe('AdminAuthController (Integration Tests - 15%)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      // Act 3: Refresh token
+      // Act 3: Refresh token (wait >1s so JWT `iat` differs)
+      await new Promise((r) => setTimeout(r, 1100));
       const refreshResponse = await request(app.getHttpServer())
         .post('/admin/auth/refresh')
         .send({ refreshToken })

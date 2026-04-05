@@ -1,12 +1,21 @@
 import type { Config } from 'jest';
 
-const config: Config = {
+const shared: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
-  testMatch: ['**/src/**/*.spec.ts', '**/test/**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/web/'],
+  setupFiles: [
+    '<rootDir>/test/jest-env-first.cjs',
+    '<rootDir>/test/jest-setup-env.ts',
+  ],
+  // Avoid scanning compiled output / Nx cache (duplicate __mocks__ vs src/__mocks__)
+  modulePathIgnorePatterns: [
+    '<rootDir>/dist/',
+    '<rootDir>/.nx/',
+    '<rootDir>/coverage/',
+    '<rootDir>/web/',
+  ],
   transform: {
-    '^.+\\.(t|j)s$': [
+    '^.+\\.ts$': [
       'ts-jest',
       {
         tsconfig: 'tsconfig.jest.json',
@@ -28,7 +37,32 @@ const config: Config = {
     '^@nestjs/axios$': '<rootDir>/src/__mocks__/nestjs-axios.ts',
   },
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-  verbose: true,
+};
+
+const config: Config = {
+  projects: [
+    {
+      ...shared,
+      displayName: 'unit',
+      testMatch: [
+        '<rootDir>/src/**/*.spec.ts',
+        '<rootDir>/test/integration/AdminAnalyticsService.spec.ts',
+      ],
+      // *.e2e-spec.ts hits the real DB and clears admin users; it must not run in parallel
+      // with the integration project (see test/jest-e2e.json + pnpm test:e2e).
+      testPathIgnorePatterns: ['/node_modules/', '/web/', '\\.e2e-spec\\.ts$'],
+    },
+    {
+      ...shared,
+      displayName: 'integration',
+      testMatch: ['<rootDir>/test/integration/**/*.integration.spec.ts'],
+      testPathIgnorePatterns: ['/node_modules/', '/web/'],
+      globalSetup: '<rootDir>/test/global-integration-setup.ts',
+      // Use CLI --runInBand for this project (Jest 30: not valid in JSON config).
+      maxWorkers: 1,
+      testTimeout: 60000,
+    },
+  ],
 };
 
 export default config;

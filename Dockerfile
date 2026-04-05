@@ -13,6 +13,7 @@ RUN apk add --no-cache openssl && \
 COPY package.json pnpm-lock.yaml ./
 
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./
+COPY prisma.config.ts ./
 COPY prisma ./prisma
 COPY scripts ./scripts
 
@@ -22,7 +23,7 @@ COPY scripts ./scripts
 RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma client (must happen before build)
-RUN pnpm exec prisma generate --schema=./prisma/schema.prisma
+RUN pnpm exec prisma generate
 
 # Copy source code
 COPY src ./src
@@ -33,8 +34,9 @@ RUN pnpm run build
 # Verify build output
 RUN test -f dist/main.js || (echo "dist/main.js missing!" && ls -la dist/ && exit 1)
 
-# Prune dev deps so node_modules becomes production-only
-RUN pnpm prune --prod
+# Prune dev deps so node_modules becomes production-only.
+# CI=true skips postinstall's prisma generate (prisma may be removed mid-prune before deps are settled).
+RUN CI=true pnpm prune --prod
 
 
 # =============================================================================
@@ -53,6 +55,8 @@ RUN addgroup -S appuser && adduser -S -G appuser appuser
 # Copy only what runtime needs
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/node_modules ./node_modules
+# Prisma 7+: migrate deploy / db seed read datasource URL from prisma.config.ts (not schema.prisma)
+COPY --from=base /app/prisma.config.ts ./prisma.config.ts
 COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/scripts ./scripts
 COPY --from=base /app/dist ./dist
